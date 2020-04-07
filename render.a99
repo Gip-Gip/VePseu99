@@ -31,7 +31,7 @@
 *##############################################################################*
 
 *RNDPSH: Pushes the rendered screen to the VDC
-* 39,264 cycles in total
+* 36,214 cycles in total
 RNDPSH
 * A1 is the pointer to the screen buffer
     LI A1, SCRNBF * 12 cycles
@@ -44,13 +44,13 @@ RNDPSH
     MOVB A3, @VCOMM * 22 cycles
     SWPB A3 * 10 cycles
     MOVB A3, @VCOMM * 22 cycles
+    LI A3, SCRNBF * 12 cycles
 * Then we just loop `n` write
 RNDPL1
     MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
-    MOVB *A1, @VWRIT * (26 * half screen buffer size ) = 9984 cycles
-    DEC A1 * (10 cycles * half screen buffer size) = 3840
+    MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
 * We also clear the screen buffer as we write to the vdp
-    CLR *A1+ * (18 cycles * half screen buffer size) = 6912
+    CLR *A3+ * (18 cycles * half screen buffer size) = 6912
     DECT A2 * (10 * half screen buffer size) = 3840 cycles
     JNE RNDPL1 * (10 * half screen buffer size) - 2 = 3838 cycles
 * The -2 cycles is for the not taken JNE at the end of the loop
