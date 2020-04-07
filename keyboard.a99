@@ -30,9 +30,9 @@
 * POSSIBILITY OF SUCH DAMAGE.                                                  *
 *##############################################################################*
 
-* The amount of frames between repeating a key. Since we get on average 20fps
+* The amount of frames between repeating a key. Since we get on average 30fps
 * and we want a key to repeat every 1/4 of a second, we'll set the delay to
-* 5 frames
+* 7 frames
 KEYDLY EQU >0500
 
 * Keyboard scanning routine

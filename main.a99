@@ -193,10 +193,9 @@ LOOP
 * Render the screen
     BL @RENDER * (20 + 50,442 to 20 + 56,517) cycles on average
 * Push the previously rendered screen to the VDP
-    BL @RNDPSH * (20 + 47,714) cycles
-
-* Each frame is around 98,884 to 105,243 cycles long, on average.
-* Meaning it takes about 3 frames at most to render an image. Meaning 20 fps
+    BL @RNDPSH * (20 + 39,264) cycles
+* Each frame is around 90,434 to 96,793 cycles long, on average.
+* Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
 * Not terrible, considering making the framerate higher doesn't make the game
 * smoother, but I'm not too impressed with it either. We'll just have to see how
 * optimization goes

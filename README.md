@@ -41,3 +41,7 @@ development cycle
 * main.obj - cart obj
 * README.md - the file you're reading now!
 * template.a99 - simple header template for all .a99 files
+
+**Contributors**
+* [Asmusr](https://atariage.com/forums/profile/35226-asmusr/) - made a
+suggestion that brought RNDPSH down to 39,264 cycles!
