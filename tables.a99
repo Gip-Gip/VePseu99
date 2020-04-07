@@ -1,0 +1,271 @@
+*##############################################################################*
+* tables.a99 - multiple collections of important non-code data                 *
+*==============================================================================*
+* This file is a part of VePseu 99!                                            *
+*                                                                              *
+* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
+*                                                                              *
+* Redistribution and use in source and binary forms, with or without           *
+* modification, are permitted provided that the following conditions are met:  *
+*                                                                              *
+* 1. Redistributions of source code must retain the above copyright notice,    *
+*    this list of conditions and the following disclaimer.                     *
+* 2. Redistributions in binary form must reproduce the above copyright notice, *
+*    this list of conditions and the following disclaimer in the documentation *
+*    and/or other materials provided with the distribution.                    *
+* 3. Neither the name of the copyright holder nor the names of its             *
+*    contributors may be used to endorse or promote products derived from this *
+*    software without specific prior written permission.                       *
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
+* POSSIBILITY OF SUCH DAMAGE.                                                  *
+*##############################################################################*
+
+CLRTBL
+    BYTE >11, >FF, >EE, >33, >22, >CC, >99, >88, >66, >00
+
+* Wall style table, formatted as follows:
+* y offset(if 0, end of wall table is signaled)
+* x offset
+* color a
+* color b
+* vertical line draw list size in bytes
+* vertical line draw list, position, height, and color selection(boolean 0 or 8)
+
+WALTBL
+
+WAL1
+    BYTE 1 * y offset
+    BYTE 0 * x offset
+    BYTE 96 * length of the vertical line draw list in bytes
+    BYTE 0, 24, 0 * vertical line draw list
+    BYTE 1, 24, 0
+    BYTE 2, 24, 0
+    BYTE 3, 24, 0
+    BYTE 4, 24, 0
+    BYTE 5, 24, 0
+    BYTE 6, 24, 0
+    BYTE 7, 24, 0
+    BYTE 8, 24, 0
+    BYTE 9, 24, 0
+    BYTE 10, 24, 0
+    BYTE 11, 24, 0
+    BYTE 12, 24, 0
+    BYTE 13, 24, 0
+    BYTE 14, 24, 0
+    BYTE 15, 24, 0
+    BYTE 16, 24, 0
+    BYTE 17, 24, 0
+    BYTE 18, 24, 0
+    BYTE 19, 24, 0
+    BYTE 20, 24, 0
+    BYTE 21, 24, 0
+    BYTE 22, 24, 0
+    BYTE 23, 24, 0
+    BYTE 24, 24, 0
+    BYTE 25, 24, 0
+    BYTE 26, 24, 0
+    BYTE 27, 24, 0
+    BYTE 28, 24, 0
+    BYTE 29, 24, 0
+    BYTE 30, 24, 0
+    BYTE 31, 24, 0
+
+WAL2
+    BYTE 0
+    BYTE -1
+    BYTE 9
+    BYTE 29, 22, 8
+    BYTE 30, 23, 8
+    BYTE 31, 24, 8
+
+WAL3
+    BYTE 0
+    BYTE 1
+    BYTE 9
+    BYTE 0, 24, 8
+    BYTE 1, 23, 8
+    BYTE 2, 22, 8
+
+WAL4
+    BYTE 1
+    BYTE -1
+    BYTE 30
+    BYTE 22, 13, 8
+    BYTE 23, 14, 8
+    BYTE 24, 16, 8
+    BYTE 25, 17, 8
+    BYTE 26, 18, 8
+    BYTE 27, 19, 8
+    BYTE 28, 20, 8
+    BYTE 29, 22, 8
+    BYTE 30, 23, 8
+    BYTE 31, 24, 8
+
+WAL5
+    BYTE 1
+    BYTE 1
+    BYTE 30
+    BYTE 0, 24, 8
+    BYTE 1, 23, 8
+    BYTE 2, 22, 8
+    BYTE 3, 20, 8
+    BYTE 4, 19, 8
+    BYTE 5, 18, 8
+    BYTE 6, 17, 8
+    BYTE 7, 16, 8
+    BYTE 8, 14, 8
+    BYTE 9, 13, 8
+
+WAL6
+    BYTE 2
+    BYTE 0
+    BYTE 36
+    BYTE 10, 12, 0
+    BYTE 11, 12, 0
+    BYTE 12, 12, 0
+    BYTE 13, 12, 0
+    BYTE 14, 12, 0
+    BYTE 15, 12, 0
+    BYTE 16, 12, 0
+    BYTE 17, 12, 0
+    BYTE 18, 12, 0
+    BYTE 19, 12, 0
+    BYTE 20, 12, 0
+    BYTE 21, 12, 0
+
+WAL7
+    BYTE 2
+    BYTE -1
+    BYTE 39
+    BYTE 19, 8, 8
+    BYTE 20, 10, 8
+    BYTE 21, 12, 8
+    BYTE 22, 12, 0
+    BYTE 23, 12, 0
+    BYTE 24, 12, 0
+    BYTE 25, 12, 0
+    BYTE 26, 12, 0
+    BYTE 27, 12, 0
+    BYTE 28, 12, 0
+    BYTE 29, 12, 0
+    BYTE 30, 12, 0
+    BYTE 31, 12, 0
+
+WAL8
+    BYTE 2
+    BYTE 1
+    BYTE 39
+    BYTE 0, 12, 0
+    BYTE 1, 12, 0
+    BYTE 2, 12, 0
+    BYTE 3, 12, 0
+    BYTE 4, 12, 0
+    BYTE 5, 12, 0
+    BYTE 6, 12, 0
+    BYTE 7, 12, 0
+    BYTE 8, 12, 0
+    BYTE 9, 12, 0
+    BYTE 10, 12, 8
+    BYTE 11, 10, 8
+    BYTE 12, 8, 8
+
+WAL9
+    BYTE 2
+    BYTE -2
+    BYTE 18
+    BYTE 26, 7, 8
+    BYTE 27, 8, 8
+    BYTE 28, 9, 8
+    BYTE 29, 10, 8
+    BYTE 30, 11, 8
+    BYTE 31, 12, 8
+
+WALA
+    BYTE 2
+    BYTE 2
+    BYTE 18
+    BYTE 0, 12, 8
+    BYTE 1, 11, 8
+    BYTE 2, 10, 8
+    BYTE 3, 9, 8
+    BYTE 4, 8, 8
+    BYTE 5, 7, 8
+
+WALB
+    BYTE 3
+    BYTE 0
+    BYTE 18
+    BYTE 13, 6, 0
+    BYTE 14, 6, 0
+    BYTE 15, 6, 0
+    BYTE 16, 6, 0
+    BYTE 17, 6, 0
+    BYTE 18, 6, 0
+
+WALC
+    BYTE 3
+    BYTE -1
+    BYTE 27
+    BYTE 17, 4, 8
+    BYTE 18, 6, 8
+    BYTE 19, 6, 0
+    BYTE 20, 6, 0
+    BYTE 21, 6, 0
+    BYTE 22, 6, 0
+    BYTE 23, 6, 0
+    BYTE 24, 6, 0
+    BYTE 25, 6, 0
+
+WALD
+    BYTE 3
+    BYTE 1
+    BYTE 27
+    BYTE 6, 6, 0
+    BYTE 7, 6, 0
+    BYTE 8, 6, 0
+    BYTE 9, 6, 0
+    BYTE 10, 6, 0
+    BYTE 11, 6, 0
+    BYTE 12, 6, 0
+    BYTE 13, 6, 8
+    BYTE 14, 4, 8
+
+WALE
+    BYTE 3
+    BYTE -2
+    BYTE 24
+    BYTE 24, 4, 8
+    BYTE 25, 6, 8
+    BYTE 26, 6, 0
+    BYTE 27, 6, 0
+    BYTE 28, 6, 0
+    BYTE 29, 6, 0
+    BYTE 30, 6, 0
+    BYTE 31, 6, 0
+
+WALF
+    BYTE 3
+    BYTE 2
+    BYTE 24
+    BYTE 0, 6, 0
+    BYTE 1, 6, 0
+    BYTE 2, 6, 0
+    BYTE 3, 6, 0
+    BYTE 4, 6, 0
+    BYTE 5, 6, 0
+    BYTE 6, 6, 8
+    BYTE 7, 6, 8
+
+    BYTE 0, 0
+
+    PAGE

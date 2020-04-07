@@ -1,0 +1,229 @@
+*##############################################################################*
+* render.a99 - code used to render a picture to the VDP                        *
+*==============================================================================*
+* This file is a part of VePseu 99!                                            *
+*                                                                              *
+* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
+*                                                                              *
+* Redistribution and use in source and binary forms, with or without           *
+* modification, are permitted provided that the following conditions are met:  *
+*                                                                              *
+* 1. Redistributions of source code must retain the above copyright notice,    *
+*    this list of conditions and the following disclaimer.                     *
+* 2. Redistributions in binary form must reproduce the above copyright notice, *
+*    this list of conditions and the following disclaimer in the documentation *
+*    and/or other materials provided with the distribution.                    *
+* 3. Neither the name of the copyright holder nor the names of its             *
+*    contributors may be used to endorse or promote products derived from this *
+*    software without specific prior written permission.                       *
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
+* POSSIBILITY OF SUCH DAMAGE.                                                  *
+*##############################################################################*
+
+*RNDPSH: Pushes the rendered screen to the VDC
+* 47714 cycles in total
+RNDPSH
+* A1 is the pointer to the screen buffer
+    LI A1, SCRNBF * 12 cycles
+* A2 is the length of the screen buffer
+    LI A2, SCRNBL * 12 cycles
+* First set the VDC write address (See VDPSWA for comments, this is the same)
+* The ORI and SWPB have been done beforehand
+* A3 is used as a general-purpose register here
+    LI A3, >0048 * 12 cycles
+    MOVB A3, @VCOMM * 22 cycles
+    SWPB A3 * 10 cycles
+    MOVB A3, @VCOMM * 22 cycles
+* Then we just loop `n` write
+    CLR A3 * 10 cycles
+RNDPL1
+    MOVB *A1, @VWRIT * (22 * screen buffer size ) = 16,896 cycles
+* We also clear the screen buffer as we write to the vdp
+    MOVB A3, *A1+ * (20 * screen buffer size) = 15,360 cycles
+    DEC A2 * (10 * screen buffer size) = 7680 cycles
+    JNE RNDPL1 * (10 * screen buffer size) - 2 = 7678 cycles
+* The -2 cycles is for the not taken JNE at the end of the loop
+    RT * 18 cycles, end of tally
+
+* RENDER: Render the screen!
+* 50442 to 56517 cycles on average
+RENDER
+* First, make a 2 character high horizontal line across the screen
+* 2594 cycles
+    LI A1, SCRNBH-32 * 12 cycles
+    LI A2, 64 * 12 cycles
+    LI A3, >0800 * 12 cycles
+RNDL3
+    MOVB A3, *A1+ * (20 * 64) = 1280 cycles
+    DEC A2 * (10 * 64) = 640 cycles
+    JNE RNDL3 * (10 * 64) - 2 = 638 cycles, end of tally
+
+* Second, make sure all vertical lines are reset
+* 1302 cycles
+    LI A1, DRAWNL * 12 cycles
+    LI A2, 32 * 12 cycles
+RNDL4
+    MOVB A3, *A1+ * (20 * 32) = 640 cycles
+    DEC A2 * (10 * 32) = 320 cycles
+    JNE RNDL4 * (10 * 32) - 2 = 318 cycles
+
+* Calculating the cycles for this was a pain! There are many branches that can
+* Speed up or slow down execution depending on which walls are rendered.
+* Assuming the most calculation-intensive map style is use(one-unit-wide
+* hallway), there is a 13/15 chance that a wall will attempt to be drawn.
+* Meaning 87% of the loops will be 3488 to 3954 cycles long and 13% of the loops
+* will be 440 to 528 cycles long. Meaning RNDL1 on average takes
+* (3488 * .87 + 440 * .13) = 3092 to (3954 * .87 + 440 * .13) = 3497 cycles per
+* loop. taking that RNDL1 loops around 15 times, RNDL1 takes, on average,
+* (46380 + 166) = 46546 to (52455 + 166) = 52621 cycles. That's a lot of cycles!
+
+* A1 will point to the wall table
+    LI A1, WALTBL * 12 cycles
+
+RNDL1
+* First, check to make sure we're not at the end of the wall table
+    CLR RX * 10 cycles
+    CLR RY * 10 cycles
+    CLR A2 * 10 cycles
+    MOVB *A1+, RY * 20 cycles
+    MOVB *A1+, RX * 20 cycles
+    A RX, A2 * 14 cycles
+    SWPB A2 * 10 cycles
+    A RY, A2 * 14 cycles
+    CI A2, 0 * 14 cycles
+    JEQ RNDEND * 8 to (10 + 14) cycles, branch from here
+
+    MOV PA, A2 * 14 cycles
+* If swap(bit 15 of PA) is true, swap +x and +y
+    ANDI A2, >01 * 14 cycles
+    JNE RNDB2 * 8 or (10 + 64) cycles, branch from here
+RNDB2R
+    MOV PA, A2 * 14 cycles
+* If neg(bit 14 of PA) is true, make the ray's advances negative
+    ANDI A2, >02 * 14 cycles
+    JEQ RNDB3 * 8 to 10 cycles, branch from here
+    NEG RX * 12 cycles
+    NEG RY * 12 cycles
+RNDB3
+* I hate this code with every fiber in my being
+* Can't SWPB while keeping the sign bit intact...
+    SWPB PX * 10 cycles
+    SWPB PY * 10 cycles
+    A PX, RX * 14 cycles
+    A PY, RY * 14 cycles
+    SWPB RX * 10 cycles
+    SWPB RY * 10 cycles
+    SWPB PX * 10 cycles
+    SWPB PY * 10 cycles
+
+* Next multiply the Y coordinate by 16 to make it a usable address, as 1 Y unit
+* is equal to 16 bytes in memory
+    SLA RY, 4 * 20 cycles
+* And add the X, Y and MAP registers to see if the address contains the wall
+* we're looking for
+    A RX, RY * 14 cycles
+    A MAP, RY * 14 cycles
+* A2 is used to contain the wall color
+    CLR A2 * 10 cycles
+    MOVB *RY, A2 * 18 cycles
+* If the value pointed to by RY isn't 0, we draw the wall!
+    JNE RNDB1 * 8 or (10 + 3488) cycles, branch from here
+* Otherwise, look for another wall to draw...
+    CLR A2, 0 * 10 cycles
+    MOVB *A1+, A2 * 20 cycles
+    SWPB A2 * 10 cycles
+    A A2, A1 * 14 cycles
+    JMP RNDL1 * 10 cycles, end of tally
+
+RNDEND
+    RT * 14 cycles
+
+* Now time to draw the wall
+* There is a 32/148 chance that a vertical line will be drawn per loop of RNDBL1
+* Meaning 22% of the loops in RNDBL1 will be 1032 cycles long, and 78% of the
+* loops will be 150 cycles long(on a rough average). Now, since RNDBL1 loops
+* on average ~10 times(each wall is made up of on average ~10 vertical lines),
+* RNDBL1 is roughly (1032 * .22 + 150 * .78) * 10 - 2 = 3438 cycles long!
+* minus two for the not taken JNE, and added up with the rest of the code in
+* RNDB1, RNDB1 is, on a rough average, 3488 cycles long
+RNDB1
+* A3 is used to keep track of how many vertical lines need to be drawn
+    CLR A3 * 10 cycles
+    MOVB *A1+, A3 * 20 cycles
+    SWPB A3 * 10 cycles
+
+RNDBL1
+* A6 holds the address to the center of the screenbuffer
+    LI A6, SCRNBH * 12 cycles
+* A7 holds the horizontal position
+    CLR A7 * 10 cycles
+    MOVB *A1+, A7 * 20 cycles
+    SWPB A7 * 10 cycles
+* Check to make sure the vertical line hasn't been drawn
+    LI A5, DRAWNL * 12 cycles
+    A A7, A5 * 14 cycles
+    MOVB *A5, A4 * 18 cycles
+    JEQ RNDB4 * 8 or 10 cycles, branch from here
+    CLR A4 * 10 cycles
+    MOVB A4, *A5 * 18 cycles
+* A4 holds the vertical line's height
+    MOVB *A1+, A4 * 20 cycles
+    SWPB A4 * 10 cycles
+* A5 holds the vertical starting point for the line
+    MOV A4, A5 * 14 cycles
+* Make sure A5 is even, otherwise this won't work
+    ANDI A5, >FFFE * 14 cycles
+* Next, multiply A5 by 32 and divide it by 2 (or just shift it left 4 bits)
+    SLA A5, 4 * 20 cycles
+* After that, subtract A5 from A6 and add A7!
+    S A5, A6 * 14 cycles
+    A A7, A6 * 14 cycles
+* All we need to do is set the wall type to use and then we can draw the line!
+* We use A8 for the wall type/color, so as not to modify A2
+    CLR A8 * 10 cycles
+    MOVB *A1+, A8 * 20 cycles
+    A A2, A8 * 14 cycles
+
+* Loop to draw the vertical line!
+* all the cycles from RNDBL2 to RNDB4R are * the vertical line height, which on
+* average is ~ 14. So, to make it simple, the amount of cycles between RNDBL2
+* and RNDB4R is on average 728 - 2 cycles (the -2 is for the JNE not taken)
+RNDBL2
+* Move the wall value into the address pointed to by A6
+    MOVB A8, *A6 * 18 cycles
+* Add 32 to A6 (each row on the screen is 32 bytes)
+    AI A6, 32 * 14 cycles
+* Decrement the horizontal hight and repeat till A4 is zero!
+    DEC A4 * 10 cycles
+    JNE RNDBL2 * 8 or 10 cycles
+RNDB4R
+* Subtract 3 from A3 and repeat until A3 is zero! (we have to use add-immediate
+* since there's no subtract immediate)
+    AI A3, -3 * 14 cycles
+    JNE RNDBL1 * 8 or 10 cycles
+* Go back to the loop!
+    JMP RNDL1 * 10 cycles, end of tally
+
+* 64 cycles
+RNDB2
+    MOV RX, A2 * 14 cycles
+    MOV RY, RX * 14 cycles
+    MOV A2, RY * 14 cycles
+    NEG RY * 12 cycles
+    JMP RNDB2R * 10 cycles, branch from here
+
+RNDB4
+    INCT A1 * 10 cycles
+    JMP RNDB4R * 10 cycles, branch from here
+
+    PAGE
