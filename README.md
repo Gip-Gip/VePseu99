@@ -44,6 +44,8 @@ development cycle
 
 **Contributors**
 * [Asmusr](https://atariage.com/forums/profile/35226-asmusr/) - made a
-suggestion that brought RNDPSH down to 39,264 cycles! Commit
+suggestion that brought RNDPSH down to 39,264 cycles! Commits
 [6d6249d](https://github.com/Gip-Gip/VePseu99/commit/6d6249d2efa2e430e64105df60e1ee7e93472cfc)
-is to their credit!
+and
+[a1b1ad5](https://github.com/Gip-Gip/VePseu99/commit/a1b1ad58f3fa526cafa3411c905633a4ac65de3d)
+are to their credit!
