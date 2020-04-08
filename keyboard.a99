@@ -36,19 +36,19 @@
 KEYDLY EQU >0500
 
 * Keyboard scanning routine
-* 668 to 952 cycles
+* 628 to 912 cycles
 KEYBRD
 * D Key
-* 104 to 164 cycles
+* 94 to 154 cycles
 KEY1
 * Check to see if the D key is pressed...
     LI A1, >0200 * 12 cycles
     LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
+    LDCR A1, 2 * 26 cycles
     TB ->000A * 12 cycles
     JEQ KEY1NP * 8 or (10 + 32) cycles, branch from here
-    CLR A1 * 10 cycles
 * Also make sure the key isn't pressed already...
+* We don't need to CLR A1 as we know the least significant byte is 0...
     MOVB @KEYP1, A1 * 22 cycles
     JNE KEY1CP * 8 or (10 + 46) cycles, branch from here
     LI A1, KEYDLY * 12 cycles
@@ -67,7 +67,7 @@ KEY1NP
     MOVB A1, @KEYP1 * 22 cycles, end of tally
 
 * A Key
-* 104 to 164 cycles
+* 94 to 154 cycles
 KEY2
 * Check to see if the A key is pressed...
     LI A1, >0500 * 12 cycles
@@ -75,8 +75,8 @@ KEY2
     LDCR A1, 3 * 26 cycles
     TB ->000A * 12 cycles
     JEQ KEY2NP * 8 or (10 + 32) cycles, branch from here
-    CLR A1 * 10 cycles
 * Also make sure the key isn't pressed already...
+* We don't need to CLR A1 as we know the least significant byte is 0...
     MOVB @KEYP2, A1 * 22 cycles
     JNE KEY2CP * 8 or (10 + 46) cycles, branch from here
     LI A1, KEYDLY * 12 cycles
@@ -96,7 +96,7 @@ KEY2NP
 
 
 * W key
-* 158 to 218 cycles
+* 148 to 208 cycles
 KEY3
 
 * Make sure the player angle doesn't go over 3
@@ -112,8 +112,8 @@ KEY3
     LDCR A1, 3 * 26 cycles
     TB ->0009 * 12 cycles
     JEQ KEY3NP * 8 or (10 + 32) cycles, branch from here
-    CLR A1 * 10 cycles
 * Also make sure the key isn't pressed already...
+* We don't need to CLR A1 as we know the least significant byte is 0...
     MOVB @KEYP3, A1 * 22 cycles
     JNE KEY3CP * 8 or (10 + 46) cycles, branch from here
     LI A1, KEYDLY * 12 cycles
@@ -132,7 +132,7 @@ KEY3NP
     MOVB A1, @KEYP3 * 22 cycles, end of tally
 
 * S Key
-* 104 to 164 cycles
+* 94 to 154 cycles
 KEY4
 * Check to see if the S key is pressed...
     LI A1, >0100 * 12 cycles
@@ -140,8 +140,8 @@ KEY4
     LDCR A1, 3 * 26 cycles
     TB ->000A * 12 cycles
     JEQ KEY4NP * 8 or (10 + 32) cycles, branch from here
-    CLR A1 * 10 cycles
 * Also make sure the key isn't pressed already...
+* We don't need to CLR A1 as we know the least significant byte is 0...
     MOVB @KEYP4, A1 * 22 cycles
     JNE KEY4CP * 8 or (10 + 46) cycles, branch from here
     LI A1, KEYDLY * 12 cycles

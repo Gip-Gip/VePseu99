@@ -10,7 +10,10 @@ so (hopefully) some good games can actually be made!
 ## Needed Tools
 
 In order to assemble and run the code I used
-[WinAsm99 and Win994a](http://www.99er.net/win994a.shtml) respectively
+[WinAsm99 and Win994a](http://www.99er.net/win994a.shtml) respectively. However,
+if you just wish to run the program without installing anything
+(js99er.net)[https://js99er.net/#/] works better for emulating than Win994a
+and runs in your browser, you'll need a semi-modern computer for it though..
 
 ## How To Build
 
@@ -18,6 +21,7 @@ Open WinAsm99 and add all the files(in the order specified below) to the
 project. Select both the produce hex and produce bin checkboxes and
 choose the files you want to save both as. Hit assemble and hopefully everything
 works!
+
 
 ## Files
 
