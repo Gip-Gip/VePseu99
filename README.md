@@ -1,4 +1,4 @@
-# VePseu99 4/6/2020
+# VePseu99 4/8/2020
 the **Ve**ry **Pseu**do 3d renderer for the TI-**99**/4a!
 
 ## About
@@ -22,6 +22,14 @@ project. Select both the produce hex and produce bin checkboxes and
 choose the files you want to save both as. Hit assemble and hopefully everything
 works!
 
+##VePseuTool
+
+VePseuTool is the map editor for VePseu99! Controls are as follows:
+
+* Leftclick: Place wall
+* Rightclick: Options menu
+* Scrollwheel Button: Move the grid around with your cursor
+* Scrollwheel: Zoom in/out
 
 ## Files
 
@@ -39,6 +47,7 @@ works!
 
 * screenshots/* - folder full of screenshots, documenting the engine's
 development cycle
+* tools/vepseutool.jar - see VePseuTool
 * filetypes.A99.conf - Geany syntax highlights
 * LICENSE - text file containing license, important!
 * main.bin - binary cart image

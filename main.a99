@@ -191,10 +191,10 @@ LOOP
 * Read the keyboard
     BL @KEYBRD * (20 + 668) to (20 + 952) cycles
 * Render the screen
-    BL @RENDER * (20 + 50,442 to 20 + 56,517) cycles on average
+    BL @RENDER * (20 + 57,387 to 20 + 57,882) cycles on average
 * Push the previously rendered screen to the VDP
     BL @RNDPSH * (20 + 36214) cycles
-* Each frame is around 87,384 to 93743 cycles long, on average.
+* Each frame is around 94,329 to 95,108 cycles long, on average.
 * Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
 * Not terrible, considering making the framerate higher doesn't make the game
 * smoother, but I'm not too impressed with it either. We'll just have to see how

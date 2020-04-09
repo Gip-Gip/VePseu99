@@ -57,13 +57,18 @@ RNDPL1
     RT * 18 cycles, end of tally
 
 * RENDER: Render the screen!
-* 50442 to 56517 cycles on average
+* 57387 to 57882 cycles on average
 RENDER
 * First, make a 2 character high horizontal line across the screen
-* 2594 cycles
+* 2664 cycles
     LI A1, SCRNBH-32 * 12 cycles
     LI A2, 64 * 12 cycles
-    LI A3, >0800 * 12 cycles
+* Swap wall color if the player angle is odd
+    MOV PA, A3 * 14 cycles
+    ANDI A3, 1 * 14 cycles
+    SLA A3, 3 * 18 cycles
+    SWPB A3 * 10 cycles
+    AI A3, >0800 * 14 cycles
 RNDL3
     MOVB A3, *A1+ * (20 * 64) = 1280 cycles
     DEC A2 * (10 * 64) = 640 cycles
@@ -82,11 +87,11 @@ RNDL4
 * Speed up or slow down execution depending on which walls are rendered.
 * Assuming the most calculation-intensive map style is use(one-unit-wide
 * hallway), there is a 13/15 chance that a wall will attempt to be drawn.
-* Meaning 87% of the loops will be 3488 to 3954 cycles long and 13% of the loops
+* Meaning 87% of the loops will be 4020 to 4058 cycles long and 13% of the loops
 * will be 440 to 528 cycles long. Meaning RNDL1 on average takes
-* (3488 * .87 + 440 * .13) = 3092 to (3954 * .87 + 440 * .13) = 3497 cycles per
+* (4020 * .87 + 440 * .13) = 3555 to (4058 * .87 + 440 * .13) = 3588 cycles per
 * loop. taking that RNDL1 loops around 15 times, RNDL1 takes, on average,
-* (46380 + 166) = 46546 to (52455 + 166) = 52621 cycles. That's a lot of cycles!
+* (53325 + 166) = 53491 to (53820 + 166) = 53986 cycles. That's a lot of cycles!
 
 * A1 will point to the wall table
     LI A1, WALTBL * 12 cycles
@@ -138,7 +143,7 @@ RNDB3
     CLR A2 * 10 cycles
     MOVB *RY, A2 * 18 cycles
 * If the value pointed to by RY isn't 0, we draw the wall!
-    JNE RNDB1 * 8 or (10 + 3488) cycles, branch from here
+    JNE RNDB1 * 8 or (10 + 3642) cycles, branch from here
 * Otherwise, look for another wall to draw...
     CLR A2, 0 * 10 cycles
     MOVB *A1+, A2 * 20 cycles
@@ -151,12 +156,12 @@ RNDEND
 
 * Now time to draw the wall
 * There is a 32/148 chance that a vertical line will be drawn per loop of RNDBL1
-* Meaning 22% of the loops in RNDBL1 will be 1032 cycles long, and 78% of the
+* Meaning 22% of the loops in RNDBL1 will be 1102 cycles long, and 78% of the
 * loops will be 150 cycles long(on a rough average). Now, since RNDBL1 loops
 * on average ~10 times(each wall is made up of on average ~10 vertical lines),
-* RNDBL1 is roughly (1032 * .22 + 150 * .78) * 10 - 2 = 3438 cycles long!
+* RNDBL1 is roughly (1102 * .22 + 150 * .78) * 10 - 2 = 3592 cycles long!
 * minus two for the not taken JNE, and added up with the rest of the code in
-* RNDB1, RNDB1 is, on a rough average, 3488 cycles long
+* RNDB1, RNDB1 is, on a rough average, 3642 cycles long
 RNDB1
 * A3 is used to keep track of how many vertical lines need to be drawn
     CLR A3 * 10 cycles
@@ -193,6 +198,12 @@ RNDBL1
 * We use A8 for the wall type/color, so as not to modify A2
     CLR A8 * 10 cycles
     MOVB *A1+, A8 * 20 cycles
+* Swap the wall color if the player angle is odd..
+    MOV PA, A5 * 14 cycles
+    ANDI A5, 1 * 14 cycles
+    SLA A5, 3 * 18 cycles
+    SWPB A5 * 10 cycles
+    XOR A5, A8 * 14 cycles
     A A2, A8 * 14 cycles
 
 * Loop to draw the vertical line!
