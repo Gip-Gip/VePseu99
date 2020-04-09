@@ -22,7 +22,7 @@ project. Select both the produce hex and produce bin checkboxes and
 choose the files you want to save both as. Hit assemble and hopefully everything
 works!
 
-##VePseuTool
+## VePseuTool
 
 VePseuTool is the map editor for VePseu99! Controls are as follows:
 
