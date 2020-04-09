@@ -114,7 +114,7 @@ VDCSRA
     SWPB A5 * 10 cycles
     B @VDCCMD * 16 cycles + 66 cycles
 
-* INIT takes an estimated 1522 cycles in total!
+* INIT takes an estimated 12394 cycles in total!
 INIT
 * Make sure the workspace registers are in the right place
     LWPI WSREGS * 10 cycles
@@ -160,11 +160,9 @@ CLRTL1
     JNE CLRTL1 * (10 * color table length) - 2 = est. 98 cycles
 * The -2 cycles is for the not taken JNE at the end of the loop
 
-* Load the player position and map
-    LI PX, 1 * 12 cycles
-    LI PY, 1 * 12 cycles
+* Decompress the demo map into memory
     LI MAP, MAP1 * 12 cycles
-    CLR PA * 10 cycles
+    BL @LDMAP * 10804 cycles
 
 * Set the screen blank counter to an odd number so the screen doesn't go blank
     LI A1, 1 * 12 cycles

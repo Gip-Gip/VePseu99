@@ -6,9 +6,6 @@ import java.awt.event.ComponentEvent;
 public class GUI
 {
     private static Frame frame = null;
-    // This dialog is self-setting up and self-terminating
-    @SuppressWarnings("unused")
-    private static ErrorDialog errorDialog = null;
     private static Workspace workspace = null;
     private static final String frameName = "VePseuTool " + Main.version;
     private static Dimension screenSize = null;
@@ -29,7 +26,7 @@ public class GUI
     {
       αε.printStackTrace();
       System.err.println("Error! " + αε.toString());
-      errorDialog = new ErrorDialog(frame, αε);
+      new ErrorDialog(frame, αε);
     }
   
     public static void start()

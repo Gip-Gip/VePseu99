@@ -1,5 +1,5 @@
 *##############################################################################*
-* ram.a99 - general ram layout for the upper 4k of the cart                    *
+* ldmap.a99 - code used to decompress map data into ram                        *
 *==============================================================================*
 * This file is a part of VePseu 99!                                            *
 *                                                                              *
@@ -30,21 +30,58 @@
 * POSSIBILITY OF SUCH DAMAGE.                                                  *
 *##############################################################################*
 
-*The screen buffer, extends from >7000 to >7300
-SCRNBF  EQU >7000
-SCRNBH  EQU >7180
-SCRNBL  EQU >300
+* LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
+* MAP = pointer to compressed map data
+* 10804 cycles in total
+LDMAP
+    CLR PX * 10 cycles
+    CLR PY * 10 cycles
+    CLR PA * 10 cycles
+    CLR A1 * 10 cycles
+    MOVB *MAP+, PX * 20 cycles
+    SWPB PX * 10 cycles
+    MOVB *MAP+, PY * 20 cycles
+    SWPB PY * 10 cycles
+    MOVB *MAP+, PA * 20 cycles
+    SWPB PA * 10 cycles
+* A1 will hold the size of the LZ dictionary
+    MOVB *MAP+, A1 * 20 cycles
+    SWPB A1 * 10 cycles
+* A2 will be the pointer to the LZ dictionary
+    LI A2, LZDICT * 12 cycles
 
-KEYP1 EQU >7320
-KEYP2 EQU >7321
-KEYP3 EQU >7322
-KEYP4 EQU >7323
-KEYP5 EQU >7324
-KEYP6 EQU >7325
+* Load the dictionary!
+* We move 2 bytes at a time to make things faster. Consequentially, the map
+* has to be at an even address for this to work...
+* 80 cycles per loop, and given most dictionaries should be around 16 entries,
+* this will take (1280 - 2) cycles, typically
+LDML1
+    MOV *MAP+, *A2+ * 30 cycles
+    MOV *MAP+, *A2+ * 30 cycles
+    DEC A1 * 10 cycles
+    JNE LDML1 * 8 or 10 cycles
 
-DRAWNL EQU >7300
+* A2 will be the pointer to the decompressed map
+    LI A2, RAMMAP * 12 cycles
+* A3 will be the length of the compressed data (always 64)
+    LI A3, 64
 
-LZDICT EQU >7E00
-RAMMAP EQU >7F00
+* Load the map!
+* 146 cycles per loop, and since this loops 64 times, this will take up 9344 - 2
+* cycles in total!
+LDML2
+    CLR A1 * 10 cycles
+    MOVB *MAP+, A1 * 20 cycles
+    SWPB A1 * 10 cycles
+    SLA A1, 2 * 16 cycles
+    AI A1, LZDICT * 14 cycles
+    MOV *A1+, *A2+ * 30 cycles
+    MOV *A1, *A2+ * 26 cycles
+    DEC A3 * 10 cycles
+    JNE LDML2 * 8 or 10 cycles
 
-    PAGE
+* Set MAP to the location of the RAMMAP and we're done
+    LI MAP, RAMMAP * 12 cycles
+
+    RT
+

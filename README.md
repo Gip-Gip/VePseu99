@@ -1,4 +1,4 @@
-# VePseu99 4/8/2020
+# VePseu99 4/9/2020
 the **Ve**ry **Pseu**do 3d renderer for the TI-**99**/4a!
 
 ## About
@@ -38,6 +38,7 @@ VePseuTool is the map editor for VePseu99! Controls are as follows:
 1. main.a99 - code that initializes the ti and establishes a game loop
 2. keyboard.a99 - code used to take and utilize input from the keyboard
 3. render.a99 - code used to render a picture to the VDP
+4. ldmap.a99 - code used to decompress map data into ram
 4. maps.a99 - map data
 5. tables.a99 - multiple collections of important non-code data
 6. ram.a99 - general ram layout for the upper 4k of the cart

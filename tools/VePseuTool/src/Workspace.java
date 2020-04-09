@@ -23,6 +23,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     private PopupMenu rClickMenu = null;
     private Save save = null;
     private Load load = null;
+    private Properties properties = null;
     private Map map = null;
     private String notification = null;
     private boolean shift = false;
@@ -59,6 +60,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
         rClickMenu = new PopupMenu();
         save = new Save();
         load = new Load();
+        properties = new Properties();
         notification = new String();
         
         setFont(new Font("Arial", Font.PLAIN, 12));
@@ -66,6 +68,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
         // Add all the menu items
         rClickMenu.add(save);
         rClickMenu.add(load);
+        rClickMenu.add(properties);
         // Add all the listeners
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -124,6 +127,53 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                     graphics.fillRect(point.x, point.y, scale, scale);
                     graphics.setColor(Color.WHITE);
                     graphics.drawRect(point.x, point.y, scale, scale);
+                }
+                
+                // Draw the player
+                graphics.setColor(Color.BLUE);
+                int playerX = map.getPlayerX(); int playerY = map.getPlayerY();
+                playerX *= scale; playerY *= scale;
+                playerX += relativeX + scale / 2;
+                playerY += relativeY + scale / 2;
+                
+                switch(map.getPlayerAngle())
+                {
+                    case(0):
+                        graphics.drawLine
+                        (
+                            playerX,
+                            playerY,
+                            playerX,
+                            playerY + scale / 2
+                        );
+                        break;
+                    case(1):
+                        graphics.drawLine
+                        (
+                            playerX,
+                            playerY,
+                            playerX + scale / 2,
+                            playerY
+                        );
+                        break;
+                    case(2):
+                        graphics.drawLine
+                        (
+                            playerX,
+                            playerY,
+                            playerX,
+                            playerY - scale / 2
+                        );
+                        break;
+                    case(3):
+                        graphics.drawLine
+                        (
+                            playerX,
+                            playerY,
+                            playerX - scale / 2,
+                            playerY
+                        );
+                        break;
                 }
                 
                 // And finally the notification bar

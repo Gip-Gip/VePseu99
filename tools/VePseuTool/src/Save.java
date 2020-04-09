@@ -23,10 +23,7 @@ public class Save extends MenuItem
             {
                 if(GUI.getWorkspace().getMap().getMapName() == null)
                 {
-                    //This dialog is self-setting up and self-terminating
-                    @SuppressWarnings("unused")
-                    MapNameDialog mapNameDialog = 
-                            new MapNameDialog(GUI.getFrame());
+                    new MapNameDialog(GUI.getFrame());
                     return;
                 }
                 
