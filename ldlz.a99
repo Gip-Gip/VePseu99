@@ -1,5 +1,5 @@
 *##############################################################################*
-* ldmap.a99 - code used to decompress map data into ram                        *
+* ldlz.a99 - decompresses data into memory                                     *
 *==============================================================================*
 * This file is a part of VePseu 99!                                            *
 *                                                                              *
@@ -30,27 +30,36 @@
 * POSSIBILITY OF SUCH DAMAGE.                                                  *
 *##############################################################################*
 
-* LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
-* MAP = pointer to compressed map data
-* 10804 cycles in total
-LDMAP
-    CLR PX * 10 cycles
-    CLR PY * 10 cycles
-    CLR PA * 10 cycles
-    MOVB *MAP+, PX * 20 cycles
-    SWPB PX * 10 cycles
-    MOVB *MAP+, PY * 20 cycles
-    SWPB PY * 10 cycles
-    MOVB *MAP+, PA * 20 cycles
-    SWPB PA * 10 cycles
+* LDLZ - decompresses data into memory
+* A5 = point in memory containing compressed data, A6 = point in memory to
+* decompress data to
+LDLZ
+    CLR A7
+    MOVB *A5+, A7
+    SWPB A7
+    LI A8, LZDICT
+* Load the dictionary!
+LDL1
+    MOVB *A5+, *A8+
+    MOVB *A5+, *A8+
+    MOVB *A5+, *A8+
+    MOVB *A5+, *A8+
+    DEC A7
+    JNE LDL1
 
-    MOV RTADDR, A1
-    MOV MAP, A5
-    LI A6, RAMMAP
-    BL @LDLZ
-
-    LI MAP, RAMMAP
-
-    B *A1
-
-
+    CLR A7
+    MOVB *A5+, A7
+    SWPB A7
+LDL2
+    CLR A8
+    MOVB *A5+, A8
+    SWPB A8
+    SLA A8, 2
+    AI A8, LZDICT
+    MOVB *A8+, *A6+
+    MOVB *A8+, *A6+
+    MOVB *A8+, *A6+
+    MOVB *A8+, *A6+
+    DEC A7
+    JNE LDL2
+    RT
