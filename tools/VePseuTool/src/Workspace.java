@@ -25,6 +25,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     private Load load = null;
     private Properties properties = null;
     private Map map = null;
+    private WallStyle wallStyle = null;
+    private TiColors tiColors = null;
     private String notification = null;
     private boolean shift = false;
     private boolean ctrl = false;
@@ -34,6 +36,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     private int relativeY = 0;
     private int mouseX = 0;
     private int mouseY = 0;
+    private byte selectedTexture = 0;
+    private byte selectedColor = 0;
     
     public Map getMap()
     {
@@ -43,6 +47,16 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     public Save getSave()
     {
         return save;
+    }
+    
+    public void setWallStyle(WallStyle αwallStyle)
+    {
+        wallStyle = αwallStyle;
+    }
+    
+    public WallStyle getWallStyle()
+    {
+        return wallStyle;
     }
     
     public void setNotification(String αnotification)
@@ -57,6 +71,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     public Workspace()
     {
         map = new Map();
+        wallStyle = new WallStyle();
+        tiColors = new TiColors();
         rClickMenu = new PopupMenu();
         save = new Save();
         load = new Load();
@@ -119,12 +135,50 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 // Draw all the walls
                 for(Point point : map.getPoints())
                 {
-                    // My inner programmer tells me to put this all on one line,
-                    // but for the sake of readability I've put this on 3
+                    // Draw wall texture
+                    byte wall = map.getWall(point.x, point.y);
                     point.x *= scale; point.y *= scale;    
                     point.x += relativeX; point.y += relativeY;
-                    graphics.setColor(Color.GRAY);
+                    int background = wallStyle.getColor(wall >> 3) & 0xF;
+                    background = tiColors.TItoRGB((byte)background);
+                    
+                    graphics.setColor(new Color(background));
                     graphics.fillRect(point.x, point.y, scale, scale);
+                    
+                    int foreground = (wallStyle.getColor(wall >> 3) & 0xF0) >> 4;
+                    foreground = tiColors.TItoRGB((byte)foreground);
+                    graphics.setColor(new Color(foreground));
+                    
+                    for
+                    (
+                        Point texPoint :
+                        wallStyle.getPointsFromTexture(wall & 7)
+                    )
+                    {
+                        texPoint.x = Math.round
+                        (
+                            (float)texPoint.x *
+                            (float)scale /
+                            (float)WallStyle.TEXWIDTH
+                        );
+                        texPoint.y = Math.round
+                        (
+                            (float)texPoint.y *
+                            (float)scale /
+                            (float)WallStyle.TEXHEIGHT
+                        );
+                        texPoint.x += point.x; texPoint.y += point.y;
+                        graphics.fillRect
+                        (
+                            texPoint.x,
+                            texPoint.y,
+                            Math.round
+                                ((float)scale / (float)WallStyle.TEXWIDTH),
+                            Math.round
+                                ((float)scale / (float)WallStyle.TEXHEIGHT)
+                        );
+                    }
+                    
                     graphics.setColor(Color.WHITE);
                     graphics.drawRect(point.x, point.y, scale, scale);
                 }
@@ -229,7 +283,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 int wallX = (mouseX - relativeX) / scale;
                 int wallY = (mouseY - relativeY) / scale;
                 if(shift) map.removeWall(wallX, wallY);
-                else map.placeWall(wallX, wallY, (byte)0x08);
+                else map.placeWall(wallX, wallY, (byte)(selectedTexture | selectedColor << 3));
                 repaint();
                 break;
                 
@@ -270,7 +324,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 int wallY = (mouseY - relativeY) / scale;
                 
                 if(shift) map.removeWall(wallX, wallY);
-                else map.placeWall(wallX, wallY, (byte)0x08);
+                else map.placeWall(wallX, wallY, (byte)(selectedTexture | selectedColor << 3));
                 
                 repaint();
                 break;
@@ -333,6 +387,38 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                     save.run();
                 }
                 break;
+            case(KeyEvent.VK_1):
+                if(shift) selectedColor = 0;
+                else selectedTexture = 0;
+                break;
+            case(KeyEvent.VK_2):
+                if(shift) selectedColor = 2;
+                else selectedTexture = 1;
+                break;
+            case(KeyEvent.VK_3):
+                if(shift) selectedColor = 4;
+                else selectedTexture = 2;
+                break;
+            case(KeyEvent.VK_4):
+                if(shift) selectedColor = 6;
+                else selectedTexture = 3;
+                break;
+            case(KeyEvent.VK_5):
+                if(shift) selectedColor = 8;
+                else selectedTexture = 4;
+                break;
+            case(KeyEvent.VK_6):
+                if(shift) selectedColor = 10;
+                else selectedTexture = 5;
+                break;
+            case(KeyEvent.VK_7):
+                if(shift) selectedColor = 12;
+                else selectedTexture = 6;
+                break;
+            case(KeyEvent.VK_8):
+                if(shift) selectedColor = 14;
+                else selectedTexture = 7;
+                break;
         }
     }
 
@@ -346,7 +432,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 break;
             
             case(KeyEvent.VK_CONTROL):
-                ctrl = true;
+                ctrl = false;
         }
     }
 

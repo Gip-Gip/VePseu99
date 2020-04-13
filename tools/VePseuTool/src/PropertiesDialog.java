@@ -1,3 +1,4 @@
+import java.awt.Button;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Label;
@@ -59,6 +60,15 @@ implements ActionListener, WindowListener
         pyTextField.setBounds(270, 112, 25, 25);
         pyTextField.addActionListener(this);
         
+        // Wall styles load button
+        Button wslButton = new Button("Load Wallstyle");
+        wslButton.setBounds(10, 175, 100, 25);
+        wslButton.addActionListener(new LoadWallStyle());
+        
+        Button wseButton = new Button("Export Wallstyle");
+        wseButton.setBounds(170, 175, 100, 25);
+        wseButton.addActionListener(new ExportWallStyle());
+        
         add(mnLabel);
         add(paLabel);
         add(pxLabel);
@@ -67,6 +77,8 @@ implements ActionListener, WindowListener
         add(paTextField);
         add(pxTextField);
         add(pyTextField);
+        add(wslButton);
+        add(wseButton);
         
         addWindowListener(this);
         setSize(480, 320);

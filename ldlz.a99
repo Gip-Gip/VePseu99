@@ -34,32 +34,32 @@
 * A5 = point in memory containing compressed data, A6 = point in memory to
 * decompress data to
 LDLZ
-    CLR A7
-    MOVB *A5+, A7
-    SWPB A7
-    LI A8, LZDICT
+    CLR A7 * 10 cycles
+    MOVB *A5+, A7 * 20 cycles
+    SWPB A7 * 10 cycles
+    LI A8, LZDICT * 10 cycles
 * Load the dictionary!
 LDL1
-    MOVB *A5+, *A8+
-    MOVB *A5+, *A8+
-    MOVB *A5+, *A8+
-    MOVB *A5+, *A8+
-    DEC A7
-    JNE LDL1
+    MOVB *A5+, *A8+ * 26 cycles
+    MOVB *A5+, *A8+ * 26 cycles
+    MOVB *A5+, *A8+ * 26 cycles
+    MOVB *A5+, *A8+ * 26 cycles
+    DEC A7 * 10 cycles
+    JNE LDL1 * 8 or 10 cycles
 
-    CLR A7
-    MOVB *A5+, A7
-    SWPB A7
+    CLR A7 * 10 cycles
+    MOVB *A5+, A7 * 20 cycles
+    SWPB A7 * 10 cycles
 LDL2
-    CLR A8
-    MOVB *A5+, A8
-    SWPB A8
-    SLA A8, 2
-    AI A8, LZDICT
-    MOVB *A8+, *A6+
-    MOVB *A8+, *A6+
-    MOVB *A8+, *A6+
-    MOVB *A8+, *A6+
-    DEC A7
-    JNE LDL2
-    RT
+    CLR A8 * 10 cycles
+    MOVB *A5+, A8 * 20 cycles
+    SWPB A8 * 10 cycles
+    SLA A8, 2 * 16 cycles
+    AI A8, LZDICT * 14 cycles
+    MOVB *A8+, *A6+ * 26 cycles
+    MOVB *A8+, *A6+ * 26 cycles
+    MOVB *A8+, *A6+ * 26 cycles
+    MOVB *A8+, *A6+ * 26 cycles
+    DEC A7 * 10 cycles
+    JNE LDL2 * 8 or 10 cycles
+    RT * 12 cycles

@@ -9,7 +9,7 @@ public class AsmData
     public AsmData()
     {
         asmData = new String();
-        asmData += "    EVEN\r\n    BYTE";
+        asmData += "    BYTE";
     }
     
     public AsmData(byte[] αdata)
@@ -55,13 +55,13 @@ public class AsmData
         while
         (
             index < asmData.length() &&
-            !Character.isDigit(asmData.charAt(index))
+            (!Character.isDigit(asmData.charAt(index)) && asmData.charAt(index) != '-')
         )
             index++;
         while
         (
             index < asmData.length() &&
-            Character.isDigit(asmData.charAt(index))
+            (Character.isDigit(asmData.charAt(index)) || asmData.charAt(index) == '-')
         )
             byteStr += asmData.charAt(index++);
         

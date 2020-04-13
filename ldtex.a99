@@ -1,5 +1,5 @@
 *##############################################################################*
-* ram.a99 - general ram layout for the upper 4k of the cart                    *
+* ldtex.a99 - loads compressed textures                                        *
 *==============================================================================*
 * This file is a part of VePseu 99!                                            *
 *                                                                              *
@@ -30,22 +30,21 @@
 * POSSIBILITY OF SUCH DAMAGE.                                                  *
 *##############################################################################*
 
-*The screen buffer, extends from >7000 to >7300
-SCRNBF  EQU >7000
-SCRNBH  EQU >7180
-SCRNBL  EQU >300
+* A5 = pointer to textures
+LDTEX
+    MOV A5, A1
+    MOV RTADDR, A2
+    LI A5, >0400
+    BL @VDCSWA
+    LI A3, 16
+LDTL1
+    MOV A1, A5
+    LI A4, 8*8
+LDTL2
+    MOVB *A5+, @VWRIT
+    DEC A4
+    JNE LDTL2
+    DEC A3
+    JNE LDTL1
 
-KEYP1 EQU >7320
-KEYP2 EQU >7321
-KEYP3 EQU >7322
-KEYP4 EQU >7323
-KEYP5 EQU >7324
-KEYP6 EQU >7325
-
-DRAWNL EQU >7300
-
-LZDICT EQU >7D00
-LZDEC EQU >7E00
-RAMMAP EQU >7F00
-
-    PAGE
+    B *A2

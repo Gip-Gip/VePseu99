@@ -59,29 +59,15 @@ RNDPL1
 * RENDER: Render the screen!
 * 57387 to 57882 cycles on average
 RENDER
-* First, make a 2 character high horizontal line across the screen
-* 2664 cycles
-    LI A1, SCRNBH-32 * 12 cycles
-    LI A2, 64 * 12 cycles
-* Swap wall color if the player angle is odd
-    MOV PA, A3 * 14 cycles
-    ANDI A3, 1 * 14 cycles
-    SLA A3, 3 * 18 cycles
-    SWPB A3 * 10 cycles
-    AI A3, >0800 * 14 cycles
-RNDL3
-    MOVB A3, *A1+ * (20 * 64) = 1280 cycles
-    DEC A2 * (10 * 64) = 640 cycles
-    JNE RNDL3 * (10 * 64) - 2 = 638 cycles, end of tally
 
 * Second, make sure all vertical lines are reset
 * 1302 cycles
     LI A1, DRAWNL * 12 cycles
     LI A2, 32 * 12 cycles
-RNDL4
+RNDL3
     MOVB A3, *A1+ * (20 * 32) = 640 cycles
     DEC A2 * (10 * 32) = 320 cycles
-    JNE RNDL4 * (10 * 32) - 2 = 318 cycles
+    JNE RNDL3 * (10 * 32) - 2 = 318 cycles
 
 * Calculating the cycles for this was a pain! There are many branches that can
 * Speed up or slow down execution depending on which walls are rendered.

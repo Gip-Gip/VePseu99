@@ -151,7 +151,7 @@ INIT
     BL @VDCSRG * 20 cycles + 120 cycles
 
 * Load the color table onto the VDP
-    LI A5, >0B00 * 12 cycles
+    LI A5, >0B10 * 12 cycles
     BL @VDCSWA * 20 cycles + 120 cycles
     LI A1, CLRTBL * 12 cycles
 
@@ -160,9 +160,12 @@ CLRTL1
     JNE CLRTL1 * (10 * color table length) - 2 = est. 98 cycles
 * The -2 cycles is for the not taken JNE at the end of the loop
 
+    LI A5, TEXTBL
+    BL @LDTEX
+
 * Decompress the demo map into memory
     LI MAP, MAP1 * 12 cycles
-    BL @LDMAP * 10804 cycles
+    BL @LDMAP
 
 * Set the screen blank counter to an odd number so the screen doesn't go blank
     LI A1, 1 * 12 cycles
