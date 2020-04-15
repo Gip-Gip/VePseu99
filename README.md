@@ -1,4 +1,4 @@
-# VePseu99 4/9/2020
+# VePseu99 4/14/2020
 the **Ve**ry **Pseu**do 3d renderer for the TI-**99**/4a!
 
 ## About
@@ -17,10 +17,11 @@ and runs in your browser, you'll need a semi-modern computer for it though..
 
 ## How To Build
 
-Open WinAsm99 and add all the files(in the order specified below) to the
-project. Select both the produce hex and produce bin checkboxes and
-choose the files you want to save both as. Hit assemble and hopefully everything
-works!
+**Windows**
+1. Click on concat.bat to load all of the assembly files into one large file
+called vepseu.a99
+2. Use WinAsm99 or your assembler of choice to assemble vepseu.a99 into a binary
+cart file
 
 ## VePseuTool
 
@@ -33,28 +34,19 @@ VePseuTool is the map editor for VePseu99! Controls are as follows:
 
 ## Files
 
-**Assembly Files(in order)**
-
-1. main.a99 - code that initializes the ti and establishes a game loop
-2. keyboard.a99 - code used to take and utilize input from the keyboard
-3. render.a99 - code used to render a picture to the VDP
-4. ldmap.a99 - code used to decompress map data into ram
-4. maps.a99 - map data
-5. tables.a99 - multiple collections of important non-code data
-6. ram.a99 - general ram layout for the upper 4k of the cart
-7. end.a99 - code and data that must be placed at the end of the code
-
-**Misc Files**
-
 * screenshots/* - folder full of screenshots, documenting the engine's
 development cycle
+* src/ - sourcecode for VePseu99!
 * tools/vepseutool.jar - see VePseuTool
+* concat.bat - Script that combines all the files under src/ into vepseu.a99
 * filetypes.A99.conf - Geany syntax highlights
 * LICENSE - text file containing license, important!
-* main.bin - binary cart image
-* main.obj - cart obj
 * README.md - the file you're reading now!
 * template.a99 - simple header template for all .a99 files
+* vepseu.a99 - concatination of all the files under src/
+* vepseu.bin - binary cart image
+* vepseu.obj - cart obj
+* wallstyles.png - Texture and pallet info for VePseu
 
 **Contributors**
 * [Asmusr](https://atariage.com/forums/profile/35226-asmusr/) - made a

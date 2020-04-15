@@ -132,8 +132,6 @@ public class LZ
     {
         byte[] data = new byte[lzData.size() * LZWORD];
         
-        System.out.print(lzData.size());
-        
         int ι = 0;
         
         for(byte κ : lzData)

@@ -37,29 +37,26 @@ VCOMM EQU >8C02
 SHGHT EQU 24
 SWDTH EQU 32
 
-
-    DORG >0000
-
 WSREGS EQU >8300
 
-A1 BYTE 0 * Accumulator register 1
-A2 BYTE 0 * Accumulator register 2
-A3 BYTE 0 * Accumulator register 3
-A4 BYTE 0 * Accumulator register 4
-A5 BYTE 0 * Accumulator register 5
-A6 BYTE 0 * Accumulator register 6
-A7 BYTE 0 * Accumulator register 7
-A8 BYTE 0 * Accumulator register 8
-MAP BYTE 0 * Map pointer register
-RX BYTE 0 * Ray X register
-RY BYTE 0 * Ray Y register
-RTADDR BYTE 0 * Return address register
-CRU BYTE 0 * CRU address register
-PX BYTE 0 * Player X register
-PY BYTE 0 * Player Y register
-PA BYTE 0 * Player angle register
-
     AORG >6000
+
+A1 EQU 0     * Accumulator register 1
+A2 EQU 1 * Accumulator register 2
+A3 EQU 2 * Accumulator register 3
+A4 EQU 3 * Accumulator register 4
+A5 EQU 4 * Accumulator register 5
+A6 EQU 5 * Accumulator register 6
+A7 EQU 6 * Accumulator register 7
+A8 EQU 7 * Accumulator register 8
+MAP EQU 8 * Map pointer register
+RX EQU 9 * Ray X register
+RY EQU 10 * Ray Y register
+RTADDR EQU 11 * Return address register
+CRU EQU 12 * CRU address register
+PX EQU 13 * Player X register
+PY EQU 14 * Player Y register
+PA EQU 15 * Player angle register
 
 CRTHED
     BYTE >AA    * Standard header n stuff
