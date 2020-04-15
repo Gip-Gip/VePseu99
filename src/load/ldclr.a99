@@ -1,5 +1,5 @@
 *##############################################################################*
-* ldmap.a99 - code used to decompress map data into ram                        *
+* ldclr.a99 - code that loads the color table                                  *
 *==============================================================================*
 * This file is a part of VePseu 99!                                            *
 *                                                                              *
@@ -30,28 +30,24 @@
 * POSSIBILITY OF SUCH DAMAGE.                                                  *
 *##############################################################################*
 
-* LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
-* MAP = pointer to compressed map data
-LDMAP
-* First load the scenes
-    MOV *MAP+, @CURSCN
-    CLR PX * 10 cycles
-    CLR PY * 10 cycles
-    CLR PA * 10 cycles
-    MOVB *MAP+, PX * 20 cycles
-    SWPB PX * 10 cycles
-    MOVB *MAP+, PY * 20 cycles
-    SWPB PY * 10 cycles
-    MOVB *MAP+, PA * 20 cycles
-    SWPB PA * 10 cycles
+LDCLR
+* Load the color table onto the VDP
+    MOV RTADDR, A2
+    LI A5, >0B00 * 12 cycles
+    BL @VDCSWA * 20 cycles + 120 cycles
+* First make all the text white on black
+    LI A1, >F100
+    LI A3, >10
+LDCL1
+    MOVB A1, @VWRIT
+    DEC A3
+    JNE LDCL1
 
-    MOV RTADDR, A1 * 14 cycles
-    MOV MAP, A5 * 14 cycles
-    LI A6, RAMMAP * 12 cycles
-    BL @LDLZ
-
-    LI MAP, RAMMAP * 12 cycles
-
-    B *A1 * 12 cycles
-
-
+    LI A1, CLRTBL
+    LI A3, >10
+LDCL2
+    MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
+    DEC A3
+    JNE LDCL2 * (10 * color table length) - 2 = est. 98 cycles
+* The -2 cycles is for the not taken JNE at the end of the loop
+    B *A2

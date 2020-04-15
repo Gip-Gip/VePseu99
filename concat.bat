@@ -1,5 +1,5 @@
 set rt=%cd%
-del %rt%\concat.a99
+del vepseu.a99
 call :LOADDIR src
 echo     END >> %rt%\vepseu.a99
 cd %rt%

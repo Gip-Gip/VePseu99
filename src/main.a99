@@ -39,9 +39,7 @@ SWDTH EQU 32
 
 WSREGS EQU >8300
 
-    AORG >6000
-
-A1 EQU 0     * Accumulator register 1
+A1 EQU 0 * Accumulator register 1
 A2 EQU 1 * Accumulator register 2
 A3 EQU 2 * Accumulator register 3
 A4 EQU 3 * Accumulator register 4
@@ -57,6 +55,8 @@ CRU EQU 12 * CRU address register
 PX EQU 13 * Player X register
 PY EQU 14 * Player Y register
 PA EQU 15 * Player angle register
+
+    AORG >6000
 
 CRTHED
     BYTE >AA    * Standard header n stuff
@@ -116,6 +116,27 @@ INIT
 * Make sure the workspace registers are in the right place
     LWPI WSREGS * 10 cycles
 
+* Move the old characters to the new character space. Default location is >0800
+    LI A5, >0800
+    BL @VDCSRA
+
+    LI A1, INTTMP
+    LI A2, >0800
+INITL1
+    MOVB @VREAD, *A1+
+    DEC A2
+    JNE INITL1
+
+    LI A5, >0000
+    BL @VDCSWA
+
+    LI A1, INTTMP
+    LI A2, >0800
+INITL2
+    MOVB *A1+, @VWRIT
+    DEC A2
+    JNE INITL2
+
 * Set the 0th register to all 0s
     CLR A5 * 10 cycles
     CLR A6 * 10 cycles
@@ -124,7 +145,7 @@ INIT
 * Enable the 1st and 2nd bit on the first register
 * (enable the screen and vdp interrupts)
     LI A5, >01 * 12 cycles
-    LI A6, >60 * 12 cycles
+    LI A6, >61 * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
 * Set the video buffer to the address 2*>400, aka >800
@@ -137,25 +158,27 @@ INIT
     LI A6, >00 * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
+* Set the sprite attributes table to >18*>80, aka >0C00
+    LI A5, >05 * 12 cycles
+    LI A6, >18 * 12 cycles
+    BL @VDCSRG * 20 cycles + 120 cycles
+
+* Set the sprite pattern address to 2*>800, aka 1000
+    LI A5, >06 * 12 cycles
+    LI A6, >02 * 12 cycles
+    BL @VDCSRG * 20 cycles + 120 cycles
+
 * Set the background color to black
     LI A5, >07 * 12 cycles
     LI A6, >11 * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
-* Place the color table behind the screen at address >2C * >40, aka >0B00
+* Place the color table behind the screen at address >2C*>40, aka >0B00
     LI A5, >03 * 12 cycles
     LI A6, >2C * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
-* Load the color table onto the VDP
-    LI A5, >0B10 * 12 cycles
-    BL @VDCSWA * 20 cycles + 120 cycles
-    LI A1, CLRTBL * 12 cycles
-
-CLRTL1
-    MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
-    JNE CLRTL1 * (10 * color table length) - 2 = est. 98 cycles
-* The -2 cycles is for the not taken JNE at the end of the loop
+    BL @LDCLR
 
     LI A5, TEXTBL
     BL @LDTEX
@@ -190,6 +213,8 @@ LOOP
     BL @KEYBRD * (20 + 668) to (20 + 952) cycles
 * Render the screen
     BL @RENDER * (20 + 57,387 to 20 + 57,882) cycles on average
+    BL @SCENES
+    BL @ACT
 * Push the previously rendered screen to the VDP
     BL @RNDPSH * (20 + 36214) cycles
 * Each frame is around 94,329 to 95,108 cycles long, on average.

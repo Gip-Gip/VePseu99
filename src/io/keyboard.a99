@@ -38,6 +38,11 @@ KEYDLY EQU >0500
 * Keyboard scanning routine
 * 628 to 912 cycles
 KEYBRD
+* Make sure bit 8 of STAT2 is set to 0
+    CLR A1
+    MOVB @STAT2, A1
+    ANDI A1, >FE00
+    MOVB A1, @STAT2
 * D Key
 * 94 to 154 cycles
 KEY1
@@ -161,6 +166,18 @@ KEY4NP
 
 * There is no key 5 yet, but just in case...
 KEY5
+* Check to see if the 1 key is pressed...
+    LI A1, >0500 * 12 cycles
+    LI CRU, >0024 * 12 cycles
+    LDCR A1, 3 * 26 cycles
+    TB ->000B * 12 cycles
+    JEQ KEY5NP * 8 or (10 + 32) cycles, branch from here
+    MOVB @STAT2, A1
+    ORI A1, >0100
+    MOVB A1, @STAT2
+    JMP KEY5 * 10 cycles, end of tally
+* If the button wasn't pressed at all, reset the timer
+KEY5NP
 
 * Modify the player displacement based on angle...
 * 90 to 108 cycles

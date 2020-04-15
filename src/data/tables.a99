@@ -44,53 +44,53 @@ WAL1
     BYTE 1 * y offset
     BYTE 0 * x offset
     BYTE 96 * length of the vertical line draw list in bytes
-    BYTE 0, 24, 0 * vertical line draw list
-    BYTE 1, 24, 0
-    BYTE 2, 24, 0
-    BYTE 3, 24, 0
-    BYTE 4, 24, 0
-    BYTE 5, 24, 0
-    BYTE 6, 24, 0
-    BYTE 7, 24, 0
-    BYTE 8, 24, 0
-    BYTE 9, 24, 0
-    BYTE 10, 24, 0
-    BYTE 11, 24, 0
-    BYTE 12, 24, 0
-    BYTE 13, 24, 0
-    BYTE 14, 24, 0
-    BYTE 15, 24, 0
-    BYTE 16, 24, 0
-    BYTE 17, 24, 0
-    BYTE 18, 24, 0
-    BYTE 19, 24, 0
-    BYTE 20, 24, 0
-    BYTE 21, 24, 0
-    BYTE 22, 24, 0
-    BYTE 23, 24, 0
-    BYTE 24, 24, 0
-    BYTE 25, 24, 0
-    BYTE 26, 24, 0
-    BYTE 27, 24, 0
-    BYTE 28, 24, 0
-    BYTE 29, 24, 0
-    BYTE 30, 24, 0
-    BYTE 31, 24, 0
+    BYTE 0, 22, 0 * vertical line draw list
+    BYTE 1, 22, 0
+    BYTE 2, 22, 0
+    BYTE 3, 22, 0
+    BYTE 4, 22, 0
+    BYTE 5, 22, 0
+    BYTE 6, 22, 0
+    BYTE 7, 22, 0
+    BYTE 8, 22, 0
+    BYTE 9, 22, 0
+    BYTE 10, 22, 0
+    BYTE 11, 22, 0
+    BYTE 12, 22, 0
+    BYTE 13, 22, 0
+    BYTE 14, 22, 0
+    BYTE 15, 22, 0
+    BYTE 16, 22, 0
+    BYTE 17, 22, 0
+    BYTE 18, 22, 0
+    BYTE 19, 22, 0
+    BYTE 20, 22, 0
+    BYTE 21, 22, 0
+    BYTE 22, 22, 0
+    BYTE 23, 22, 0
+    BYTE 24, 22, 0
+    BYTE 25, 22, 0
+    BYTE 26, 22, 0
+    BYTE 27, 22, 0
+    BYTE 28, 22, 0
+    BYTE 29, 22, 0
+    BYTE 30, 22, 0
+    BYTE 31, 22, 0
 
 WAL2
     BYTE 0
     BYTE -1
     BYTE 9
     BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
+    BYTE 30, 22, 8
+    BYTE 31, 22, 8
 
 WAL3
     BYTE 0
     BYTE 1
     BYTE 9
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
+    BYTE 0, 22, 8
+    BYTE 1, 22, 8
     BYTE 2, 22, 8
 
 WAL4
@@ -105,15 +105,15 @@ WAL4
     BYTE 27, 19, 8
     BYTE 28, 20, 8
     BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
+    BYTE 30, 22, 8
+    BYTE 31, 22, 8
 
 WAL5
     BYTE 1
     BYTE 1
     BYTE 30
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
+    BYTE 0, 22, 8
+    BYTE 1, 22, 8
     BYTE 2, 22, 8
     BYTE 3, 20, 8
     BYTE 4, 19, 8

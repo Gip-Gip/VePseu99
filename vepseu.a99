@@ -39,9 +39,7 @@ SWDTH EQU 32
 
 WSREGS EQU >8300
 
-    AORG >6000
-
-A1 EQU 0     * Accumulator register 1
+A1 EQU 0 * Accumulator register 1
 A2 EQU 1 * Accumulator register 2
 A3 EQU 2 * Accumulator register 3
 A4 EQU 3 * Accumulator register 4
@@ -57,6 +55,8 @@ CRU EQU 12 * CRU address register
 PX EQU 13 * Player X register
 PY EQU 14 * Player Y register
 PA EQU 15 * Player angle register
+
+    AORG >6000
 
 CRTHED
     BYTE >AA    * Standard header n stuff
@@ -116,1156 +116,26 @@ INIT
 * Make sure the workspace registers are in the right place
     LWPI WSREGS * 10 cycles
 
-* Set the 0th register to all 0s
-    CLR A5 * 10 cycles
-    CLR A6 * 10 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+* Move the old characters to the new character space. Default location is >0800
+    LI A5, >0800
+    BL @VDCSRA
 
-* Enable the 1st and 2nd bit on the first register
-* (enable the screen and vdp interrupts)
-    LI A5, >01 * 12 cycles
-    LI A6, >60 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+    LI A1, INTTMP
+    LI A2, >0800
+INITL1
+    MOVB @VREAD, *A1+
+    DEC A2
+    JNE INITL1
 
-* Set the video buffer to the address 2*>400, aka >800
-    LI A5, >02 * 12 cycles
-    LI A6, >02 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Set the character pattern address to 0
-    LI A5, >04 * 12 cycles
-    LI A6, >00 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Set the background color to black
-    LI A5, >07 * 12 cycles
-    LI A6, >11 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Place the color table behind the screen at address >2C * >40, aka >0B00
-    LI A5, >03 * 12 cycles
-    LI A6, >2C * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Load the color table onto the VDP
-    LI A5, >0B10 * 12 cycles
-    BL @VDCSWA * 20 cycles + 120 cycles
-    LI A1, CLRTBL * 12 cycles
-
-CLRTL1
-    MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
-    JNE CLRTL1 * (10 * color table length) - 2 = est. 98 cycles
-* The -2 cycles is for the not taken JNE at the end of the loop
-
-    LI A5, TEXTBL
-    BL @LDTEX
-
-* Decompress the demo map into memory
-    LI MAP, MAP1 * 12 cycles
-    BL @LDMAP
-
-* Set the screen blank counter to an odd number so the screen doesn't go blank
-    LI A1, 1 * 12 cycles
-    MOV A1, @>83D6 * 22 cycles
-
-* Tell the ISR to call LOOP every frame
-    LI A1, LOOP * 12 cycles
-    MOV A1, @>83C4 * 22 cycles
-
-* Enable interrupts (officially)
-    LIMI 2 * 16 cycles
-
-* Wait for LOOP to be called!
-WAIT
-    B @WAIT * 16 cycles, not that it really matters though...
-
-* Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
-* VDP unfortunately kinda slows that down a bit..
-LOOP
-* Load our workspace registers
-    LWPI WSREGS * 10 cycles
-* Disable interrupts while we're in an interrupt...
-    LIMI 0 * 16 cycles
-* Read the keyboard
-    BL @KEYBRD * (20 + 668) to (20 + 952) cycles
-* Render the screen
-    BL @RENDER * (20 + 57,387 to 20 + 57,882) cycles on average
-* Push the previously rendered screen to the VDP
-    BL @RNDPSH * (20 + 36214) cycles
-* Each frame is around 94,329 to 95,108 cycles long, on average.
-* Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
-* Not terrible, considering making the framerate higher doesn't make the game
-* smoother, but I'm not too impressed with it either. We'll just have to see how
-* optimization goes
-
-* Go back to the ISR's workspace registers
-    LWPI >83E0 * 10 cycles
-* Return to the ISR
-    RT
-
-    PAGE
- 
-MAP1
-    BYTE 9, 8, 0, 33, -128, -128, -112, -96, -80, -64, -48, -32, -16, -128, -128, -128
-    BYTE -128, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0, -128, 0
-    BYTE 0, 0, 0, -128, -128, -127, -111, -95, -79, -63, -47, -31, -15, 0, -128, 0
-    BYTE -128, -126, -110, -94, -78, -62, -46, -30, -14, 0, -128, 0, -128, 0, -128, -128
-    BYTE -128, 0, -128, 0, -128, -125, -109, -93, -77, -61, -45, -29, -13, 0, -128, 0
-    BYTE 0, 0, -128, -128, -128, -124, -108, -92, -76, -60, -44, -28, -12, 0, 0, 0
-    BYTE -128, -123, -107, -91, -75, -59, -43, -27, -11, 0, -128, 0, -128, -122, -106, -90
-    BYTE -74, -58, -42, -26, -10, 0, -128, 0, -128, -121, -105, -89, -73, -57, -41, -25
-    BYTE -9, 0, -128, 0, -128, -128, -128, 0, 64, 0, 1, 2, 3, 4, 5, 6
-    BYTE 7, 8, 9, 10, 7, 4, 5, 6, 7, 11, 12, 13, 14, 4, 5, 6
-    BYTE 15, 16, 17, 18, 15, 4, 5, 19, 15, 20, 21, 22, 15, 4, 5, 6
-    BYTE 15, 23, 24, 25, 15, 4, 5, 6, 15, 26, 27, 28, 15, 4, 5, 6
-    BYTE 15, 29, 30, 31, 6, 3, 3, 3, 32 
-*##############################################################################*
-* ram.a99 - general ram layout for the upper 4k of the cart                    *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-*The screen buffer, extends from >7000 to >7300
-SCRNBF  EQU >7000
-SCRNBH  EQU >7180
-SCRNBL  EQU >300
-
-KEYP1 EQU >7320
-KEYP2 EQU >7321
-KEYP3 EQU >7322
-KEYP4 EQU >7323
-KEYP5 EQU >7324
-KEYP6 EQU >7325
-
-DRAWNL EQU >7300
-
-LZDICT EQU >7D00
-LZDEC EQU >7E00
-RAMMAP EQU >7F00
-
-    PAGE
- 
-*##############################################################################*
-* tables.a99 - multiple collections of important non-code data                 *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-CLRTBL
-    BYTE -31, -2, -127, -106, -95, -70, -63, 49, -20, -13, -24, -7, -84, -77, -88, -71, 0
-TEXTBL
-    BYTE 0, 36, 36, 126, 36, 126, 36, 36, 0, 16, 56, 80, 56, 20, 56, 16
-    BYTE 0, 0, 16, 16, 124, 16, 16, 0, 0, 0, 0, 0, 56, 0, 0, 0
-    BYTE 0, 28, 34, 90, 86, 92, 32, 30, 0, 16, 84, 56, 124, 56, 84, 16
-    BYTE 0, 0, 98, 100, 8, 16, 38, 70, 0, 48, 72, 72, 48, 74, 68, 58
-
-* Wall style table, formatted as follows:
-* y offset(if 0, end of wall table is signaled)
-* x offset
-* color a
-* color b
-* vertical line draw list size in bytes
-* vertical line draw list, position, height, and color selection(boolean 0 or 8)
-
-WALTBL
-
-WAL1
-    BYTE 1 * y offset
-    BYTE 0 * x offset
-    BYTE 96 * length of the vertical line draw list in bytes
-    BYTE 0, 24, 0 * vertical line draw list
-    BYTE 1, 24, 0
-    BYTE 2, 24, 0
-    BYTE 3, 24, 0
-    BYTE 4, 24, 0
-    BYTE 5, 24, 0
-    BYTE 6, 24, 0
-    BYTE 7, 24, 0
-    BYTE 8, 24, 0
-    BYTE 9, 24, 0
-    BYTE 10, 24, 0
-    BYTE 11, 24, 0
-    BYTE 12, 24, 0
-    BYTE 13, 24, 0
-    BYTE 14, 24, 0
-    BYTE 15, 24, 0
-    BYTE 16, 24, 0
-    BYTE 17, 24, 0
-    BYTE 18, 24, 0
-    BYTE 19, 24, 0
-    BYTE 20, 24, 0
-    BYTE 21, 24, 0
-    BYTE 22, 24, 0
-    BYTE 23, 24, 0
-    BYTE 24, 24, 0
-    BYTE 25, 24, 0
-    BYTE 26, 24, 0
-    BYTE 27, 24, 0
-    BYTE 28, 24, 0
-    BYTE 29, 24, 0
-    BYTE 30, 24, 0
-    BYTE 31, 24, 0
-
-WAL2
-    BYTE 0
-    BYTE -1
-    BYTE 9
-    BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
-
-WAL3
-    BYTE 0
-    BYTE 1
-    BYTE 9
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
-    BYTE 2, 22, 8
-
-WAL4
-    BYTE 1
-    BYTE -1
-    BYTE 30
-    BYTE 22, 13, 8
-    BYTE 23, 14, 8
-    BYTE 24, 16, 8
-    BYTE 25, 17, 8
-    BYTE 26, 18, 8
-    BYTE 27, 19, 8
-    BYTE 28, 20, 8
-    BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
-
-WAL5
-    BYTE 1
-    BYTE 1
-    BYTE 30
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
-    BYTE 2, 22, 8
-    BYTE 3, 20, 8
-    BYTE 4, 19, 8
-    BYTE 5, 18, 8
-    BYTE 6, 17, 8
-    BYTE 7, 16, 8
-    BYTE 8, 14, 8
-    BYTE 9, 13, 8
-
-WAL6
-    BYTE 2
-    BYTE 0
-    BYTE 36
-    BYTE 10, 12, 0
-    BYTE 11, 12, 0
-    BYTE 12, 12, 0
-    BYTE 13, 12, 0
-    BYTE 14, 12, 0
-    BYTE 15, 12, 0
-    BYTE 16, 12, 0
-    BYTE 17, 12, 0
-    BYTE 18, 12, 0
-    BYTE 19, 12, 0
-    BYTE 20, 12, 0
-    BYTE 21, 12, 0
-
-WAL7
-    BYTE 2
-    BYTE -1
-    BYTE 39
-    BYTE 19, 8, 8
-    BYTE 20, 10, 8
-    BYTE 21, 12, 8
-    BYTE 22, 12, 0
-    BYTE 23, 12, 0
-    BYTE 24, 12, 0
-    BYTE 25, 12, 0
-    BYTE 26, 12, 0
-    BYTE 27, 12, 0
-    BYTE 28, 12, 0
-    BYTE 29, 12, 0
-    BYTE 30, 12, 0
-    BYTE 31, 12, 0
-
-WAL8
-    BYTE 2
-    BYTE 1
-    BYTE 39
-    BYTE 0, 12, 0
-    BYTE 1, 12, 0
-    BYTE 2, 12, 0
-    BYTE 3, 12, 0
-    BYTE 4, 12, 0
-    BYTE 5, 12, 0
-    BYTE 6, 12, 0
-    BYTE 7, 12, 0
-    BYTE 8, 12, 0
-    BYTE 9, 12, 0
-    BYTE 10, 12, 8
-    BYTE 11, 10, 8
-    BYTE 12, 8, 8
-
-WAL9
-    BYTE 2
-    BYTE -2
-    BYTE 18
-    BYTE 26, 7, 8
-    BYTE 27, 8, 8
-    BYTE 28, 9, 8
-    BYTE 29, 10, 8
-    BYTE 30, 11, 8
-    BYTE 31, 12, 8
-
-WALA
-    BYTE 2
-    BYTE 2
-    BYTE 18
-    BYTE 0, 12, 8
-    BYTE 1, 11, 8
-    BYTE 2, 10, 8
-    BYTE 3, 9, 8
-    BYTE 4, 8, 8
-    BYTE 5, 7, 8
-
-WALB
-    BYTE 3
-    BYTE 0
-    BYTE 18
-    BYTE 13, 6, 0
-    BYTE 14, 6, 0
-    BYTE 15, 6, 0
-    BYTE 16, 6, 0
-    BYTE 17, 6, 0
-    BYTE 18, 6, 0
-
-WALC
-    BYTE 3
-    BYTE -1
-    BYTE 27
-    BYTE 17, 4, 8
-    BYTE 18, 6, 8
-    BYTE 19, 6, 0
-    BYTE 20, 6, 0
-    BYTE 21, 6, 0
-    BYTE 22, 6, 0
-    BYTE 23, 6, 0
-    BYTE 24, 6, 0
-    BYTE 25, 6, 0
-
-WALD
-    BYTE 3
-    BYTE 1
-    BYTE 27
-    BYTE 6, 6, 0
-    BYTE 7, 6, 0
-    BYTE 8, 6, 0
-    BYTE 9, 6, 0
-    BYTE 10, 6, 0
-    BYTE 11, 6, 0
-    BYTE 12, 6, 0
-    BYTE 13, 6, 8
-    BYTE 14, 4, 8
-
-WALE
-    BYTE 3
-    BYTE -2
-    BYTE 24
-    BYTE 24, 4, 8
-    BYTE 25, 6, 8
-    BYTE 26, 6, 0
-    BYTE 27, 6, 0
-    BYTE 28, 6, 0
-    BYTE 29, 6, 0
-    BYTE 30, 6, 0
-    BYTE 31, 6, 0
-
-WALF
-    BYTE 3
-    BYTE 2
-    BYTE 24
-    BYTE 0, 6, 0
-    BYTE 1, 6, 0
-    BYTE 2, 6, 0
-    BYTE 3, 6, 0
-    BYTE 4, 6, 0
-    BYTE 5, 6, 0
-    BYTE 6, 6, 8
-    BYTE 7, 6, 8
-
-    BYTE 0, 0
-
-    PAGE
- 
-*##############################################################################*
-* keyboard.a99 - code used to take and utilize input from the keyboard         *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* The amount of frames between repeating a key. Since we get on average 30fps
-* and we want a key to repeat every 1/4 of a second, we'll set the delay to
-* 7 frames
-KEYDLY EQU >0500
-
-* Keyboard scanning routine
-* 628 to 912 cycles
-KEYBRD
-* D Key
-* 94 to 154 cycles
-KEY1
-* Check to see if the D key is pressed...
-    LI A1, >0200 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 2 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY1NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP1, A1 * 22 cycles
-    JNE KEY1CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP1 * 22 cycles
-    DEC PA * 10 cycles
-    JMP KEY2 * 10 cycles, branch from here
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY1CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP1 * 22 cycles
-    JMP KEY2 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY1NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP1 * 22 cycles, end of tally
-
-* A Key
-* 94 to 154 cycles
-KEY2
-* Check to see if the A key is pressed...
-    LI A1, >0500 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY2NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP2, A1 * 22 cycles
-    JNE KEY2CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP2 * 22 cycles
-    INC PA * 10 cycles
-    JMP KEY3 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY2CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP2 * 22 cycles
-    JMP KEY3 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY2NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP2 * 22 cycles, end of tally
-
-
-* W key
-* 148 to 208 cycles
-KEY3
-
-* Make sure the player angle doesn't go over 3
-    ANDI PA, >0003 * 14 cycles
-    MOV PX, RX * 14 cycles
-    MOV PY, RY * 14 cycles
-* Use A2 as the player displacement register
-    LI A2, 0 * 12 cycles
-
-* Check to see if the W key is pressed...
-    LI A1, >0100 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->0009 * 12 cycles
-    JEQ KEY3NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP3, A1 * 22 cycles
-    JNE KEY3CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP3 * 22 cycles
-    INC A2 * 10 cycles
-    JMP KEY4 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY3CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP3 * 22 cycles
-    JMP KEY4 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY3NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP3 * 22 cycles, end of tally
-
-* S Key
-* 94 to 154 cycles
-KEY4
-* Check to see if the S key is pressed...
-    LI A1, >0100 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY4NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP4, A1 * 22 cycles
-    JNE KEY4CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP4 * 22 cycles
-    DEC A2 * 10 cycles
-    JMP KEY5 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY4CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP4 * 22 cycles
-    JMP KEY5 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY4NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP4 * 22 cycles, end of tally
-
-* There is no key 5 yet, but just in case...
-KEY5
-
-* Modify the player displacement based on angle...
-* 90 to 108 cycles
-    MOV PA, A1 * 14 cycles
-* If neg(bit 6) is set, make A2 negative
-    ANDI A1, >0002 * 14 cycles
-    JEQ KEYNN * 8 or 10 cycles, branch from here
-    NEG A2 * 12 cycles
-KEYNN
-    MOV PA, A1 * 14 cycles
-* if swap(bit 7) is set add A2 to RX instead of RY
-    ANDI A1, >0001 * 14 cycles
-    JNE KEYSWP * 8 or (10 + 14) cycles, branch from here
-    A A2, RY * 14 cycles
-    JMP KEYB1 * 10 cycles, end of tally
-KEYSWP
-    A A2, RX * 14 cycles, end of tally
-
-* Now we see if we can move the player without running into a wall...
-* 90 to 116 cycles
-KEYB1
-    MOV RY, A1 * 14 cycles
-    SLA A1, 4 * 20 cycles
-    A RX, A1 * 14 cycles
-    A MAP, A1 * 14 cycles
-    MOVB *A1, A2 * 18 cycles
-    JNE KEYHTW * 8 or 10 cycles, branch from here
-    MOV RX, PX * 14 cycles
-    MOV RY, PY * 14 cycles
-KEYHTW
-* end of tally
-
-    RT * 18 cycles
-
-    PAGE
- 
-*##############################################################################*
-* ldlz.a99 - decompresses data into memory                                     *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* LDLZ - decompresses data into memory
-* A5 = point in memory containing compressed data, A6 = point in memory to
-* decompress data to
-LDLZ
-    CLR A7 * 10 cycles
-    MOVB *A5+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-    LI A8, LZDICT * 10 cycles
-* Load the dictionary!
-LDL1
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    DEC A7 * 10 cycles
-    JNE LDL1 * 8 or 10 cycles
-
-    CLR A7 * 10 cycles
-    MOVB *A5+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-LDL2
-    CLR A8 * 10 cycles
-    MOVB *A5+, A8 * 20 cycles
-    SWPB A8 * 10 cycles
-    SLA A8, 2 * 16 cycles
-    AI A8, LZDICT * 14 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    DEC A7 * 10 cycles
-    JNE LDL2 * 8 or 10 cycles
-    RT * 12 cycles
- 
-*##############################################################################*
-* ldmap.a99 - code used to decompress map data into ram                        *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
-* MAP = pointer to compressed map data
-LDMAP
-    CLR PX * 10 cycles
-    CLR PY * 10 cycles
-    CLR PA * 10 cycles
-    MOVB *MAP+, PX * 20 cycles
-    SWPB PX * 10 cycles
-    MOVB *MAP+, PY * 20 cycles
-    SWPB PY * 10 cycles
-    MOVB *MAP+, PA * 20 cycles
-    SWPB PA * 10 cycles
-
-    MOV RTADDR, A1 * 14 cycles
-    MOV MAP, A5 * 14 cycles
-    LI A6, RAMMAP * 12 cycles
-    BL @LDLZ
-
-    LI MAP, RAMMAP * 12 cycles
-
-    B *A1 * 12 cycles
-
-
- 
-*##############################################################################*
-* ldtex.a99 - loads compressed textures                                        *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* A5 = pointer to textures
-LDTEX
-    MOV A5, A1
-    MOV RTADDR, A2
-    LI A5, >0400
+    LI A5, >0000
     BL @VDCSWA
-    LI A3, 16
-LDTL1
-    MOV A1, A5
-    LI A4, 8*8
-LDTL2
-    MOVB *A5+, @VWRIT
-    DEC A4
-    JNE LDTL2
-    DEC A3
-    JNE LDTL1
 
-    B *A2
- 
-*##############################################################################*
-* render.a99 - code used to render a picture to the VDP                        *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-*RNDPSH: Pushes the rendered screen to the VDC
-* 36,214 cycles in total
-RNDPSH
-* A1 is the pointer to the screen buffer
-    LI A1, SCRNBF * 12 cycles
-* A2 is the length of the screen buffer
-    LI A2, SCRNBL * 12 cycles
-* First set the VDC write address (See VDPSWA for comments, this is the same)
-* The ORI and SWPB have been done beforehand
-* A3 is used as a general-purpose register here
-    LI A3, >0048 * 12 cycles
-    MOVB A3, @VCOMM * 22 cycles
-    SWPB A3 * 10 cycles
-    MOVB A3, @VCOMM * 22 cycles
-    LI A3, SCRNBF * 12 cycles
-* Then we just loop `n` write
-RNDPL1
-    MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
-    MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
-* We also clear the screen buffer as we write to the vdp
-    CLR *A3+ * (18 cycles * half screen buffer size) = 6912
-    DECT A2 * (10 * half screen buffer size) = 3840 cycles
-    JNE RNDPL1 * (10 * half screen buffer size) - 2 = 3838 cycles
-* The -2 cycles is for the not taken JNE at the end of the loop
-    RT * 18 cycles, end of tally
-
-* RENDER: Render the screen!
-* 57387 to 57882 cycles on average
-RENDER
-
-* Second, make sure all vertical lines are reset
-* 1302 cycles
-    LI A1, DRAWNL * 12 cycles
-    LI A2, 32 * 12 cycles
-RNDL3
-    MOVB A3, *A1+ * (20 * 32) = 640 cycles
-    DEC A2 * (10 * 32) = 320 cycles
-    JNE RNDL3 * (10 * 32) - 2 = 318 cycles
-
-* Calculating the cycles for this was a pain! There are many branches that can
-* Speed up or slow down execution depending on which walls are rendered.
-* Assuming the most calculation-intensive map style is use(one-unit-wide
-* hallway), there is a 13/15 chance that a wall will attempt to be drawn.
-* Meaning 87% of the loops will be 4020 to 4058 cycles long and 13% of the loops
-* will be 440 to 528 cycles long. Meaning RNDL1 on average takes
-* (4020 * .87 + 440 * .13) = 3555 to (4058 * .87 + 440 * .13) = 3588 cycles per
-* loop. taking that RNDL1 loops around 15 times, RNDL1 takes, on average,
-* (53325 + 166) = 53491 to (53820 + 166) = 53986 cycles. That's a lot of cycles!
-
-* A1 will point to the wall table
-    LI A1, WALTBL * 12 cycles
-
-RNDL1
-* First, check to make sure we're not at the end of the wall table
-    CLR RX * 10 cycles
-    CLR RY * 10 cycles
-    CLR A2 * 10 cycles
-    MOVB *A1+, RY * 20 cycles
-    MOVB *A1+, RX * 20 cycles
-    A RX, A2 * 14 cycles
-    SWPB A2 * 10 cycles
-    A RY, A2 * 14 cycles
-    CI A2, 0 * 14 cycles
-    JEQ RNDEND * 8 to (10 + 14) cycles, branch from here
-
-    MOV PA, A2 * 14 cycles
-* If swap(bit 15 of PA) is true, swap +x and +y
-    ANDI A2, >01 * 14 cycles
-    JNE RNDB2 * 8 or (10 + 64) cycles, branch from here
-RNDB2R
-    MOV PA, A2 * 14 cycles
-* If neg(bit 14 of PA) is true, make the ray's advances negative
-    ANDI A2, >02 * 14 cycles
-    JEQ RNDB3 * 8 to 10 cycles, branch from here
-    NEG RX * 12 cycles
-    NEG RY * 12 cycles
-RNDB3
-* I hate this code with every fiber in my being
-* Can't SWPB while keeping the sign bit intact...
-    SWPB PX * 10 cycles
-    SWPB PY * 10 cycles
-    A PX, RX * 14 cycles
-    A PY, RY * 14 cycles
-    SWPB RX * 10 cycles
-    SWPB RY * 10 cycles
-    SWPB PX * 10 cycles
-    SWPB PY * 10 cycles
-
-* Next multiply the Y coordinate by 16 to make it a usable address, as 1 Y unit
-* is equal to 16 bytes in memory
-    SLA RY, 4 * 20 cycles
-* And add the X, Y and MAP registers to see if the address contains the wall
-* we're looking for
-    A RX, RY * 14 cycles
-    A MAP, RY * 14 cycles
-* A2 is used to contain the wall color
-    CLR A2 * 10 cycles
-    MOVB *RY, A2 * 18 cycles
-* If the value pointed to by RY isn't 0, we draw the wall!
-    JNE RNDB1 * 8 or (10 + 3642) cycles, branch from here
-* Otherwise, look for another wall to draw...
-    CLR A2, 0 * 10 cycles
-    MOVB *A1+, A2 * 20 cycles
-    SWPB A2 * 10 cycles
-    A A2, A1 * 14 cycles
-    JMP RNDL1 * 10 cycles, end of tally
-
-RNDEND
-    RT * 14 cycles
-
-* Now time to draw the wall
-* There is a 32/148 chance that a vertical line will be drawn per loop of RNDBL1
-* Meaning 22% of the loops in RNDBL1 will be 1102 cycles long, and 78% of the
-* loops will be 150 cycles long(on a rough average). Now, since RNDBL1 loops
-* on average ~10 times(each wall is made up of on average ~10 vertical lines),
-* RNDBL1 is roughly (1102 * .22 + 150 * .78) * 10 - 2 = 3592 cycles long!
-* minus two for the not taken JNE, and added up with the rest of the code in
-* RNDB1, RNDB1 is, on a rough average, 3642 cycles long
-RNDB1
-* A3 is used to keep track of how many vertical lines need to be drawn
-    CLR A3 * 10 cycles
-    MOVB *A1+, A3 * 20 cycles
-    SWPB A3 * 10 cycles
-
-RNDBL1
-* A6 holds the address to the center of the screenbuffer
-    LI A6, SCRNBH * 12 cycles
-* A7 holds the horizontal position
-    CLR A7 * 10 cycles
-    MOVB *A1+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-* Check to make sure the vertical line hasn't been drawn
-    LI A5, DRAWNL * 12 cycles
-    A A7, A5 * 14 cycles
-    MOVB *A5, A4 * 18 cycles
-    JEQ RNDB4 * 8 or 10 cycles, branch from here
-    CLR A4 * 10 cycles
-    MOVB A4, *A5 * 18 cycles
-* A4 holds the vertical line's height
-    MOVB *A1+, A4 * 20 cycles
-    SWPB A4 * 10 cycles
-* A5 holds the vertical starting point for the line
-    MOV A4, A5 * 14 cycles
-* Make sure A5 is even, otherwise this won't work
-    ANDI A5, >FFFE * 14 cycles
-* Next, multiply A5 by 32 and divide it by 2 (or just shift it left 4 bits)
-    SLA A5, 4 * 20 cycles
-* After that, subtract A5 from A6 and add A7!
-    S A5, A6 * 14 cycles
-    A A7, A6 * 14 cycles
-* All we need to do is set the wall type to use and then we can draw the line!
-* We use A8 for the wall type/color, so as not to modify A2
-    CLR A8 * 10 cycles
-    MOVB *A1+, A8 * 20 cycles
-* Swap the wall color if the player angle is odd..
-    MOV PA, A5 * 14 cycles
-    ANDI A5, 1 * 14 cycles
-    SLA A5, 3 * 18 cycles
-    SWPB A5 * 10 cycles
-    XOR A5, A8 * 14 cycles
-    A A2, A8 * 14 cycles
-
-* Loop to draw the vertical line!
-* all the cycles from RNDBL2 to RNDB4R are * the vertical line height, which on
-* average is ~ 14. So, to make it simple, the amount of cycles between RNDBL2
-* and RNDB4R is on average 728 - 2 cycles (the -2 is for the JNE not taken)
-RNDBL2
-* Move the wall value into the address pointed to by A6
-    MOVB A8, *A6 * 18 cycles
-* Add 32 to A6 (each row on the screen is 32 bytes)
-    AI A6, 32 * 14 cycles
-* Decrement the horizontal hight and repeat till A4 is zero!
-    DEC A4 * 10 cycles
-    JNE RNDBL2 * 8 or 10 cycles
-RNDB4R
-* Subtract 3 from A3 and repeat until A3 is zero! (we have to use add-immediate
-* since there's no subtract immediate)
-    AI A3, -3 * 14 cycles
-    JNE RNDBL1 * 8 or 10 cycles
-* Go back to the loop!
-    JMP RNDL1 * 10 cycles, end of tally
-
-* 64 cycles
-RNDB2
-    MOV RX, A2 * 14 cycles
-    MOV RY, RX * 14 cycles
-    MOV A2, RY * 14 cycles
-    NEG RY * 12 cycles
-    JMP RNDB2R * 10 cycles, branch from here
-
-RNDB4
-    INCT A1 * 10 cycles
-    JMP RNDB4R * 10 cycles, branch from here
-
-    PAGE
- 
-    END 
-*##############################################################################*
-* main.a99 - code that initializes the ti and establishes a game loop          *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-VREAD EQU >8800
-VSTAT EQU >8802
-VWRIT EQU >8C00
-VCOMM EQU >8C02
-SHGHT EQU 24
-SWDTH EQU 32
-
-WSREGS EQU >8300
-
-    AORG >6000
-
-A1 EQU 0     * Accumulator register 1
-A2 EQU 1 * Accumulator register 2
-A3 EQU 2 * Accumulator register 3
-A4 EQU 3 * Accumulator register 4
-A5 EQU 4 * Accumulator register 5
-A6 EQU 5 * Accumulator register 6
-A7 EQU 6 * Accumulator register 7
-A8 EQU 7 * Accumulator register 8
-MAP EQU 8 * Map pointer register
-RX EQU 9 * Ray X register
-RY EQU 10 * Ray Y register
-RTADDR EQU 11 * Return address register
-CRU EQU 12 * CRU address register
-PX EQU 13 * Player X register
-PY EQU 14 * Player Y register
-PA EQU 15 * Player angle register
-
-CRTHED
-    BYTE >AA    * Standard header n stuff
-    BYTE >01    * Program version (I think?)
-    BYTE >00    * Number of programs on the cart
-    BYTE 'R'    * This tells FinalGROM to use RAM mode(4k ROM, 4k RAM)
-    DATA >0000  * Pointer to the powerup list (n/a)
-    DATA MENU   * Pointer to the program list
-    DATA >0000  * Pointer to the DSLR list (n/a)
-    DATA >0000  * Pointer to the subroutine list (n/a)
-
-MENU
-ITEM1
-    DATA >0000  * Pointer to the second menu item (n/a)
-    DATA INIT   * Pointer to the main label
-    BYTE 9     * Length of the text
-    TEXT 'VEPSEU 99' * Text
-    EVEN
-
-* VDCCMD: Send a command to the VDC
-* A5 = complete 2-byte command
-* 66 cycles in total
-VDCCMD
-    MOVB A5, @VCOMM * 22 cycles
-    SWPB A5 * 10 cycles
-    MOVB A5, @VCOMM * 22 cycles
-    RT * 12 cycles
-
-* VDCSRG: Set the value of a VDC register
-* A5 = register number, A6 = register value
-* 120 cycles in total
-VDCSRG
-    SWPB A6 * 10 cycles
-    SOC A6, A5 * 14 cycles
-    ORI A5, >80 * 14 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
-
-* VDCSWA: Set the write address pointer of the VDC
-* A5 = address
-* 120 cycles in total
-VDCSWA
-    ANDI A5, >7FFF * 14 cycles
-    ORI A5, >4000 * 14 cycles
-    SWPB A5 * 10 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
-
-* VDCSRA: Set the read address pointer of the VDC
-* A5 = address
-* 90 cycles in total
-VDCSRA
-    ANDI A5, >7FFF * 14 cycles
-    SWPB A5 * 10 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
-
-* INIT takes an estimated 12394 cycles in total!
-INIT
-* Make sure the workspace registers are in the right place
-    LWPI WSREGS * 10 cycles
+    LI A1, INTTMP
+    LI A2, >0800
+INITL2
+    MOVB *A1+, @VWRIT
+    DEC A2
+    JNE INITL2
 
 * Set the 0th register to all 0s
     CLR A5 * 10 cycles
@@ -1275,7 +145,7 @@ INIT
 * Enable the 1st and 2nd bit on the first register
 * (enable the screen and vdp interrupts)
     LI A5, >01 * 12 cycles
-    LI A6, >60 * 12 cycles
+    LI A6, >61 * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
 * Set the video buffer to the address 2*>400, aka >800
@@ -1288,25 +158,27 @@ INIT
     LI A6, >00 * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
+* Set the sprite attributes table to >18*>80, aka >0C00
+    LI A5, >05 * 12 cycles
+    LI A6, >18 * 12 cycles
+    BL @VDCSRG * 20 cycles + 120 cycles
+
+* Set the sprite pattern address to 2*>800, aka 1000
+    LI A5, >06 * 12 cycles
+    LI A6, >02 * 12 cycles
+    BL @VDCSRG * 20 cycles + 120 cycles
+
 * Set the background color to black
     LI A5, >07 * 12 cycles
     LI A6, >11 * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
-* Place the color table behind the screen at address >2C * >40, aka >0B00
+* Place the color table behind the screen at address >2C*>40, aka >0B00
     LI A5, >03 * 12 cycles
     LI A6, >2C * 12 cycles
     BL @VDCSRG * 20 cycles + 120 cycles
 
-* Load the color table onto the VDP
-    LI A5, >0B10 * 12 cycles
-    BL @VDCSWA * 20 cycles + 120 cycles
-    LI A1, CLRTBL * 12 cycles
-
-CLRTL1
-    MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
-    JNE CLRTL1 * (10 * color table length) - 2 = est. 98 cycles
-* The -2 cycles is for the not taken JNE at the end of the loop
+    BL @LDCLR
 
     LI A5, TEXTBL
     BL @LDTEX
@@ -1341,6 +213,8 @@ LOOP
     BL @KEYBRD * (20 + 668) to (20 + 952) cycles
 * Render the screen
     BL @RENDER * (20 + 57,387 to 20 + 57,882) cycles on average
+    BL @SCENES
+    BL @ACT
 * Push the previously rendered screen to the VDP
     BL @RNDPSH * (20 + 36214) cycles
 * Each frame is around 94,329 to 95,108 cycles long, on average.
@@ -1388,1170 +262,28 @@ LOOP
 * POSSIBILITY OF SUCH DAMAGE.                                                  *
 *##############################################################################*
 
-*The screen buffer, extends from >7000 to >7300
-SCRNBF  EQU >7000
-SCRNBH  EQU >7180
-SCRNBL  EQU >300
-
-KEYP1 EQU >7320
-KEYP2 EQU >7321
-KEYP3 EQU >7322
-KEYP4 EQU >7323
-KEYP5 EQU >7324
-KEYP6 EQU >7325
-
-DRAWNL EQU >7300
-
-LZDICT EQU >7D00
-LZDEC EQU >7E00
-RAMMAP EQU >7F00
-
-    PAGE
- 
-*##############################################################################*
-* tables.a99 - multiple collections of important non-code data                 *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-CLRTBL
-    BYTE -31, -2, -127, -106, -95, -70, -63, 49, -20, -13, -24, -7, -84, -77, -88, -71, 0
-TEXTBL
-    BYTE 0, 36, 36, 126, 36, 126, 36, 36, 0, 16, 56, 80, 56, 20, 56, 16
-    BYTE 0, 0, 16, 16, 124, 16, 16, 0, 0, 0, 0, 0, 56, 0, 0, 0
-    BYTE 0, 28, 34, 90, 86, 92, 32, 30, 0, 16, 84, 56, 124, 56, 84, 16
-    BYTE 0, 0, 98, 100, 8, 16, 38, 70, 0, 48, 72, 72, 48, 74, 68, 58
-
-* Wall style table, formatted as follows:
-* y offset(if 0, end of wall table is signaled)
-* x offset
-* color a
-* color b
-* vertical line draw list size in bytes
-* vertical line draw list, position, height, and color selection(boolean 0 or 8)
-
-WALTBL
-
-WAL1
-    BYTE 1 * y offset
-    BYTE 0 * x offset
-    BYTE 96 * length of the vertical line draw list in bytes
-    BYTE 0, 24, 0 * vertical line draw list
-    BYTE 1, 24, 0
-    BYTE 2, 24, 0
-    BYTE 3, 24, 0
-    BYTE 4, 24, 0
-    BYTE 5, 24, 0
-    BYTE 6, 24, 0
-    BYTE 7, 24, 0
-    BYTE 8, 24, 0
-    BYTE 9, 24, 0
-    BYTE 10, 24, 0
-    BYTE 11, 24, 0
-    BYTE 12, 24, 0
-    BYTE 13, 24, 0
-    BYTE 14, 24, 0
-    BYTE 15, 24, 0
-    BYTE 16, 24, 0
-    BYTE 17, 24, 0
-    BYTE 18, 24, 0
-    BYTE 19, 24, 0
-    BYTE 20, 24, 0
-    BYTE 21, 24, 0
-    BYTE 22, 24, 0
-    BYTE 23, 24, 0
-    BYTE 24, 24, 0
-    BYTE 25, 24, 0
-    BYTE 26, 24, 0
-    BYTE 27, 24, 0
-    BYTE 28, 24, 0
-    BYTE 29, 24, 0
-    BYTE 30, 24, 0
-    BYTE 31, 24, 0
-
-WAL2
-    BYTE 0
-    BYTE -1
-    BYTE 9
-    BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
-
-WAL3
-    BYTE 0
-    BYTE 1
-    BYTE 9
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
-    BYTE 2, 22, 8
-
-WAL4
-    BYTE 1
-    BYTE -1
-    BYTE 30
-    BYTE 22, 13, 8
-    BYTE 23, 14, 8
-    BYTE 24, 16, 8
-    BYTE 25, 17, 8
-    BYTE 26, 18, 8
-    BYTE 27, 19, 8
-    BYTE 28, 20, 8
-    BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
-
-WAL5
-    BYTE 1
-    BYTE 1
-    BYTE 30
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
-    BYTE 2, 22, 8
-    BYTE 3, 20, 8
-    BYTE 4, 19, 8
-    BYTE 5, 18, 8
-    BYTE 6, 17, 8
-    BYTE 7, 16, 8
-    BYTE 8, 14, 8
-    BYTE 9, 13, 8
-
-WAL6
-    BYTE 2
-    BYTE 0
-    BYTE 36
-    BYTE 10, 12, 0
-    BYTE 11, 12, 0
-    BYTE 12, 12, 0
-    BYTE 13, 12, 0
-    BYTE 14, 12, 0
-    BYTE 15, 12, 0
-    BYTE 16, 12, 0
-    BYTE 17, 12, 0
-    BYTE 18, 12, 0
-    BYTE 19, 12, 0
-    BYTE 20, 12, 0
-    BYTE 21, 12, 0
-
-WAL7
-    BYTE 2
-    BYTE -1
-    BYTE 39
-    BYTE 19, 8, 8
-    BYTE 20, 10, 8
-    BYTE 21, 12, 8
-    BYTE 22, 12, 0
-    BYTE 23, 12, 0
-    BYTE 24, 12, 0
-    BYTE 25, 12, 0
-    BYTE 26, 12, 0
-    BYTE 27, 12, 0
-    BYTE 28, 12, 0
-    BYTE 29, 12, 0
-    BYTE 30, 12, 0
-    BYTE 31, 12, 0
-
-WAL8
-    BYTE 2
-    BYTE 1
-    BYTE 39
-    BYTE 0, 12, 0
-    BYTE 1, 12, 0
-    BYTE 2, 12, 0
-    BYTE 3, 12, 0
-    BYTE 4, 12, 0
-    BYTE 5, 12, 0
-    BYTE 6, 12, 0
-    BYTE 7, 12, 0
-    BYTE 8, 12, 0
-    BYTE 9, 12, 0
-    BYTE 10, 12, 8
-    BYTE 11, 10, 8
-    BYTE 12, 8, 8
-
-WAL9
-    BYTE 2
-    BYTE -2
-    BYTE 18
-    BYTE 26, 7, 8
-    BYTE 27, 8, 8
-    BYTE 28, 9, 8
-    BYTE 29, 10, 8
-    BYTE 30, 11, 8
-    BYTE 31, 12, 8
-
-WALA
-    BYTE 2
-    BYTE 2
-    BYTE 18
-    BYTE 0, 12, 8
-    BYTE 1, 11, 8
-    BYTE 2, 10, 8
-    BYTE 3, 9, 8
-    BYTE 4, 8, 8
-    BYTE 5, 7, 8
-
-WALB
-    BYTE 3
-    BYTE 0
-    BYTE 18
-    BYTE 13, 6, 0
-    BYTE 14, 6, 0
-    BYTE 15, 6, 0
-    BYTE 16, 6, 0
-    BYTE 17, 6, 0
-    BYTE 18, 6, 0
-
-WALC
-    BYTE 3
-    BYTE -1
-    BYTE 27
-    BYTE 17, 4, 8
-    BYTE 18, 6, 8
-    BYTE 19, 6, 0
-    BYTE 20, 6, 0
-    BYTE 21, 6, 0
-    BYTE 22, 6, 0
-    BYTE 23, 6, 0
-    BYTE 24, 6, 0
-    BYTE 25, 6, 0
-
-WALD
-    BYTE 3
-    BYTE 1
-    BYTE 27
-    BYTE 6, 6, 0
-    BYTE 7, 6, 0
-    BYTE 8, 6, 0
-    BYTE 9, 6, 0
-    BYTE 10, 6, 0
-    BYTE 11, 6, 0
-    BYTE 12, 6, 0
-    BYTE 13, 6, 8
-    BYTE 14, 4, 8
-
-WALE
-    BYTE 3
-    BYTE -2
-    BYTE 24
-    BYTE 24, 4, 8
-    BYTE 25, 6, 8
-    BYTE 26, 6, 0
-    BYTE 27, 6, 0
-    BYTE 28, 6, 0
-    BYTE 29, 6, 0
-    BYTE 30, 6, 0
-    BYTE 31, 6, 0
-
-WALF
-    BYTE 3
-    BYTE 2
-    BYTE 24
-    BYTE 0, 6, 0
-    BYTE 1, 6, 0
-    BYTE 2, 6, 0
-    BYTE 3, 6, 0
-    BYTE 4, 6, 0
-    BYTE 5, 6, 0
-    BYTE 6, 6, 8
-    BYTE 7, 6, 8
-
-    BYTE 0, 0
-
-    PAGE
- 
-MAP1
-    BYTE 9, 8, 0, 33, -128, -128, -112, -96, -80, -64, -48, -32, -16, -128, -128, -128
-    BYTE -128, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0, -128, 0
-    BYTE 0, 0, 0, -128, -128, -127, -111, -95, -79, -63, -47, -31, -15, 0, -128, 0
-    BYTE -128, -126, -110, -94, -78, -62, -46, -30, -14, 0, -128, 0, -128, 0, -128, -128
-    BYTE -128, 0, -128, 0, -128, -125, -109, -93, -77, -61, -45, -29, -13, 0, -128, 0
-    BYTE 0, 0, -128, -128, -128, -124, -108, -92, -76, -60, -44, -28, -12, 0, 0, 0
-    BYTE -128, -123, -107, -91, -75, -59, -43, -27, -11, 0, -128, 0, -128, -122, -106, -90
-    BYTE -74, -58, -42, -26, -10, 0, -128, 0, -128, -121, -105, -89, -73, -57, -41, -25
-    BYTE -9, 0, -128, 0, -128, -128, -128, 0, 64, 0, 1, 2, 3, 4, 5, 6
-    BYTE 7, 8, 9, 10, 7, 4, 5, 6, 7, 11, 12, 13, 14, 4, 5, 6
-    BYTE 15, 16, 17, 18, 15, 4, 5, 19, 15, 20, 21, 22, 15, 4, 5, 6
-    BYTE 15, 23, 24, 25, 15, 4, 5, 6, 15, 26, 27, 28, 15, 4, 5, 6
-    BYTE 15, 29, 30, 31, 6, 3, 3, 3, 32 
-*##############################################################################*
-* keyboard.a99 - code used to take and utilize input from the keyboard         *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* The amount of frames between repeating a key. Since we get on average 30fps
-* and we want a key to repeat every 1/4 of a second, we'll set the delay to
-* 7 frames
-KEYDLY EQU >0500
-
-* Keyboard scanning routine
-* 628 to 912 cycles
-KEYBRD
-* D Key
-* 94 to 154 cycles
-KEY1
-* Check to see if the D key is pressed...
-    LI A1, >0200 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 2 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY1NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP1, A1 * 22 cycles
-    JNE KEY1CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP1 * 22 cycles
-    DEC PA * 10 cycles
-    JMP KEY2 * 10 cycles, branch from here
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY1CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP1 * 22 cycles
-    JMP KEY2 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY1NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP1 * 22 cycles, end of tally
-
-* A Key
-* 94 to 154 cycles
-KEY2
-* Check to see if the A key is pressed...
-    LI A1, >0500 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY2NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP2, A1 * 22 cycles
-    JNE KEY2CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP2 * 22 cycles
-    INC PA * 10 cycles
-    JMP KEY3 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY2CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP2 * 22 cycles
-    JMP KEY3 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY2NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP2 * 22 cycles, end of tally
-
-
-* W key
-* 148 to 208 cycles
-KEY3
-
-* Make sure the player angle doesn't go over 3
-    ANDI PA, >0003 * 14 cycles
-    MOV PX, RX * 14 cycles
-    MOV PY, RY * 14 cycles
-* Use A2 as the player displacement register
-    LI A2, 0 * 12 cycles
-
-* Check to see if the W key is pressed...
-    LI A1, >0100 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->0009 * 12 cycles
-    JEQ KEY3NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP3, A1 * 22 cycles
-    JNE KEY3CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP3 * 22 cycles
-    INC A2 * 10 cycles
-    JMP KEY4 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY3CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP3 * 22 cycles
-    JMP KEY4 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY3NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP3 * 22 cycles, end of tally
-
-* S Key
-* 94 to 154 cycles
-KEY4
-* Check to see if the S key is pressed...
-    LI A1, >0100 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY4NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP4, A1 * 22 cycles
-    JNE KEY4CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP4 * 22 cycles
-    DEC A2 * 10 cycles
-    JMP KEY5 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
-KEY4CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP4 * 22 cycles
-    JMP KEY5 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
-KEY4NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP4 * 22 cycles, end of tally
-
-* There is no key 5 yet, but just in case...
-KEY5
-
-* Modify the player displacement based on angle...
-* 90 to 108 cycles
-    MOV PA, A1 * 14 cycles
-* If neg(bit 6) is set, make A2 negative
-    ANDI A1, >0002 * 14 cycles
-    JEQ KEYNN * 8 or 10 cycles, branch from here
-    NEG A2 * 12 cycles
-KEYNN
-    MOV PA, A1 * 14 cycles
-* if swap(bit 7) is set add A2 to RX instead of RY
-    ANDI A1, >0001 * 14 cycles
-    JNE KEYSWP * 8 or (10 + 14) cycles, branch from here
-    A A2, RY * 14 cycles
-    JMP KEYB1 * 10 cycles, end of tally
-KEYSWP
-    A A2, RX * 14 cycles, end of tally
-
-* Now we see if we can move the player without running into a wall...
-* 90 to 116 cycles
-KEYB1
-    MOV RY, A1 * 14 cycles
-    SLA A1, 4 * 20 cycles
-    A RX, A1 * 14 cycles
-    A MAP, A1 * 14 cycles
-    MOVB *A1, A2 * 18 cycles
-    JNE KEYHTW * 8 or 10 cycles, branch from here
-    MOV RX, PX * 14 cycles
-    MOV RY, PY * 14 cycles
-KEYHTW
-* end of tally
-
-    RT * 18 cycles
-
-    PAGE
- 
-*##############################################################################*
-* ldlz.a99 - decompresses data into memory                                     *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* LDLZ - decompresses data into memory
-* A5 = point in memory containing compressed data, A6 = point in memory to
-* decompress data to
-LDLZ
-    CLR A7 * 10 cycles
-    MOVB *A5+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-    LI A8, LZDICT * 10 cycles
-* Load the dictionary!
-LDL1
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    DEC A7 * 10 cycles
-    JNE LDL1 * 8 or 10 cycles
-
-    CLR A7 * 10 cycles
-    MOVB *A5+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-LDL2
-    CLR A8 * 10 cycles
-    MOVB *A5+, A8 * 20 cycles
-    SWPB A8 * 10 cycles
-    SLA A8, 2 * 16 cycles
-    AI A8, LZDICT * 14 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    DEC A7 * 10 cycles
-    JNE LDL2 * 8 or 10 cycles
-    RT * 12 cycles
- 
-*##############################################################################*
-* ldmap.a99 - code used to decompress map data into ram                        *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
-* MAP = pointer to compressed map data
-LDMAP
-    CLR PX * 10 cycles
-    CLR PY * 10 cycles
-    CLR PA * 10 cycles
-    MOVB *MAP+, PX * 20 cycles
-    SWPB PX * 10 cycles
-    MOVB *MAP+, PY * 20 cycles
-    SWPB PY * 10 cycles
-    MOVB *MAP+, PA * 20 cycles
-    SWPB PA * 10 cycles
-
-    MOV RTADDR, A1 * 14 cycles
-    MOV MAP, A5 * 14 cycles
-    LI A6, RAMMAP * 12 cycles
-    BL @LDLZ
-
-    LI MAP, RAMMAP * 12 cycles
-
-    B *A1 * 12 cycles
-
-
- 
-*##############################################################################*
-* ldtex.a99 - loads compressed textures                                        *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-* A5 = pointer to textures
-LDTEX
-    MOV A5, A1
-    MOV RTADDR, A2
-    LI A5, >0400
-    BL @VDCSWA
-    LI A3, 16
-LDTL1
-    MOV A1, A5
-    LI A4, 8*8
-LDTL2
-    MOVB *A5+, @VWRIT
-    DEC A4
-    JNE LDTL2
-    DEC A3
-    JNE LDTL1
-
-    B *A2
- 
-*##############################################################################*
-* render.a99 - code used to render a picture to the VDP                        *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-*RNDPSH: Pushes the rendered screen to the VDC
-* 36,214 cycles in total
-RNDPSH
-* A1 is the pointer to the screen buffer
-    LI A1, SCRNBF * 12 cycles
-* A2 is the length of the screen buffer
-    LI A2, SCRNBL * 12 cycles
-* First set the VDC write address (See VDPSWA for comments, this is the same)
-* The ORI and SWPB have been done beforehand
-* A3 is used as a general-purpose register here
-    LI A3, >0048 * 12 cycles
-    MOVB A3, @VCOMM * 22 cycles
-    SWPB A3 * 10 cycles
-    MOVB A3, @VCOMM * 22 cycles
-    LI A3, SCRNBF * 12 cycles
-* Then we just loop `n` write
-RNDPL1
-    MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
-    MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
-* We also clear the screen buffer as we write to the vdp
-    CLR *A3+ * (18 cycles * half screen buffer size) = 6912
-    DECT A2 * (10 * half screen buffer size) = 3840 cycles
-    JNE RNDPL1 * (10 * half screen buffer size) - 2 = 3838 cycles
-* The -2 cycles is for the not taken JNE at the end of the loop
-    RT * 18 cycles, end of tally
-
-* RENDER: Render the screen!
-* 57387 to 57882 cycles on average
-RENDER
-
-* Second, make sure all vertical lines are reset
-* 1302 cycles
-    LI A1, DRAWNL * 12 cycles
-    LI A2, 32 * 12 cycles
-RNDL3
-    MOVB A3, *A1+ * (20 * 32) = 640 cycles
-    DEC A2 * (10 * 32) = 320 cycles
-    JNE RNDL3 * (10 * 32) - 2 = 318 cycles
-
-* Calculating the cycles for this was a pain! There are many branches that can
-* Speed up or slow down execution depending on which walls are rendered.
-* Assuming the most calculation-intensive map style is use(one-unit-wide
-* hallway), there is a 13/15 chance that a wall will attempt to be drawn.
-* Meaning 87% of the loops will be 4020 to 4058 cycles long and 13% of the loops
-* will be 440 to 528 cycles long. Meaning RNDL1 on average takes
-* (4020 * .87 + 440 * .13) = 3555 to (4058 * .87 + 440 * .13) = 3588 cycles per
-* loop. taking that RNDL1 loops around 15 times, RNDL1 takes, on average,
-* (53325 + 166) = 53491 to (53820 + 166) = 53986 cycles. That's a lot of cycles!
-
-* A1 will point to the wall table
-    LI A1, WALTBL * 12 cycles
-
-RNDL1
-* First, check to make sure we're not at the end of the wall table
-    CLR RX * 10 cycles
-    CLR RY * 10 cycles
-    CLR A2 * 10 cycles
-    MOVB *A1+, RY * 20 cycles
-    MOVB *A1+, RX * 20 cycles
-    A RX, A2 * 14 cycles
-    SWPB A2 * 10 cycles
-    A RY, A2 * 14 cycles
-    CI A2, 0 * 14 cycles
-    JEQ RNDEND * 8 to (10 + 14) cycles, branch from here
-
-    MOV PA, A2 * 14 cycles
-* If swap(bit 15 of PA) is true, swap +x and +y
-    ANDI A2, >01 * 14 cycles
-    JNE RNDB2 * 8 or (10 + 64) cycles, branch from here
-RNDB2R
-    MOV PA, A2 * 14 cycles
-* If neg(bit 14 of PA) is true, make the ray's advances negative
-    ANDI A2, >02 * 14 cycles
-    JEQ RNDB3 * 8 to 10 cycles, branch from here
-    NEG RX * 12 cycles
-    NEG RY * 12 cycles
-RNDB3
-* I hate this code with every fiber in my being
-* Can't SWPB while keeping the sign bit intact...
-    SWPB PX * 10 cycles
-    SWPB PY * 10 cycles
-    A PX, RX * 14 cycles
-    A PY, RY * 14 cycles
-    SWPB RX * 10 cycles
-    SWPB RY * 10 cycles
-    SWPB PX * 10 cycles
-    SWPB PY * 10 cycles
-
-* Next multiply the Y coordinate by 16 to make it a usable address, as 1 Y unit
-* is equal to 16 bytes in memory
-    SLA RY, 4 * 20 cycles
-* And add the X, Y and MAP registers to see if the address contains the wall
-* we're looking for
-    A RX, RY * 14 cycles
-    A MAP, RY * 14 cycles
-* A2 is used to contain the wall color
-    CLR A2 * 10 cycles
-    MOVB *RY, A2 * 18 cycles
-* If the value pointed to by RY isn't 0, we draw the wall!
-    JNE RNDB1 * 8 or (10 + 3642) cycles, branch from here
-* Otherwise, look for another wall to draw...
-    CLR A2, 0 * 10 cycles
-    MOVB *A1+, A2 * 20 cycles
-    SWPB A2 * 10 cycles
-    A A2, A1 * 14 cycles
-    JMP RNDL1 * 10 cycles, end of tally
-
-RNDEND
-    RT * 14 cycles
-
-* Now time to draw the wall
-* There is a 32/148 chance that a vertical line will be drawn per loop of RNDBL1
-* Meaning 22% of the loops in RNDBL1 will be 1102 cycles long, and 78% of the
-* loops will be 150 cycles long(on a rough average). Now, since RNDBL1 loops
-* on average ~10 times(each wall is made up of on average ~10 vertical lines),
-* RNDBL1 is roughly (1102 * .22 + 150 * .78) * 10 - 2 = 3592 cycles long!
-* minus two for the not taken JNE, and added up with the rest of the code in
-* RNDB1, RNDB1 is, on a rough average, 3642 cycles long
-RNDB1
-* A3 is used to keep track of how many vertical lines need to be drawn
-    CLR A3 * 10 cycles
-    MOVB *A1+, A3 * 20 cycles
-    SWPB A3 * 10 cycles
-
-RNDBL1
-* A6 holds the address to the center of the screenbuffer
-    LI A6, SCRNBH * 12 cycles
-* A7 holds the horizontal position
-    CLR A7 * 10 cycles
-    MOVB *A1+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-* Check to make sure the vertical line hasn't been drawn
-    LI A5, DRAWNL * 12 cycles
-    A A7, A5 * 14 cycles
-    MOVB *A5, A4 * 18 cycles
-    JEQ RNDB4 * 8 or 10 cycles, branch from here
-    CLR A4 * 10 cycles
-    MOVB A4, *A5 * 18 cycles
-* A4 holds the vertical line's height
-    MOVB *A1+, A4 * 20 cycles
-    SWPB A4 * 10 cycles
-* A5 holds the vertical starting point for the line
-    MOV A4, A5 * 14 cycles
-* Make sure A5 is even, otherwise this won't work
-    ANDI A5, >FFFE * 14 cycles
-* Next, multiply A5 by 32 and divide it by 2 (or just shift it left 4 bits)
-    SLA A5, 4 * 20 cycles
-* After that, subtract A5 from A6 and add A7!
-    S A5, A6 * 14 cycles
-    A A7, A6 * 14 cycles
-* All we need to do is set the wall type to use and then we can draw the line!
-* We use A8 for the wall type/color, so as not to modify A2
-    CLR A8 * 10 cycles
-    MOVB *A1+, A8 * 20 cycles
-* Swap the wall color if the player angle is odd..
-    MOV PA, A5 * 14 cycles
-    ANDI A5, 1 * 14 cycles
-    SLA A5, 3 * 18 cycles
-    SWPB A5 * 10 cycles
-    XOR A5, A8 * 14 cycles
-    A A2, A8 * 14 cycles
-
-* Loop to draw the vertical line!
-* all the cycles from RNDBL2 to RNDB4R are * the vertical line height, which on
-* average is ~ 14. So, to make it simple, the amount of cycles between RNDBL2
-* and RNDB4R is on average 728 - 2 cycles (the -2 is for the JNE not taken)
-RNDBL2
-* Move the wall value into the address pointed to by A6
-    MOVB A8, *A6 * 18 cycles
-* Add 32 to A6 (each row on the screen is 32 bytes)
-    AI A6, 32 * 14 cycles
-* Decrement the horizontal hight and repeat till A4 is zero!
-    DEC A4 * 10 cycles
-    JNE RNDBL2 * 8 or 10 cycles
-RNDB4R
-* Subtract 3 from A3 and repeat until A3 is zero! (we have to use add-immediate
-* since there's no subtract immediate)
-    AI A3, -3 * 14 cycles
-    JNE RNDBL1 * 8 or 10 cycles
-* Go back to the loop!
-    JMP RNDL1 * 10 cycles, end of tally
-
-* 64 cycles
-RNDB2
-    MOV RX, A2 * 14 cycles
-    MOV RY, RX * 14 cycles
-    MOV A2, RY * 14 cycles
-    NEG RY * 12 cycles
-    JMP RNDB2R * 10 cycles, branch from here
-
-RNDB4
-    INCT A1 * 10 cycles
-    JMP RNDB4R * 10 cycles, branch from here
-
-    PAGE
- 
-    END 
-*##############################################################################*
-* main.a99 - code that initializes the ti and establishes a game loop          *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
-
-VREAD EQU >8800
-VSTAT EQU >8802
-VWRIT EQU >8C00
-VCOMM EQU >8C02
-SHGHT EQU 24
-SWDTH EQU 32
-
-WSREGS EQU >8300
-
-    AORG >6000
-
-A1 EQU 0     * Accumulator register 1
-A2 EQU 1 * Accumulator register 2
-A3 EQU 2 * Accumulator register 3
-A4 EQU 3 * Accumulator register 4
-A5 EQU 4 * Accumulator register 5
-A6 EQU 5 * Accumulator register 6
-A7 EQU 6 * Accumulator register 7
-A8 EQU 7 * Accumulator register 8
-MAP EQU 8 * Map pointer register
-RX EQU 9 * Ray X register
-RY EQU 10 * Ray Y register
-RTADDR EQU 11 * Return address register
-CRU EQU 12 * CRU address register
-PX EQU 13 * Player X register
-PY EQU 14 * Player Y register
-PA EQU 15 * Player angle register
-
-CRTHED
-    BYTE >AA    * Standard header n stuff
-    BYTE >01    * Program version (I think?)
-    BYTE >00    * Number of programs on the cart
-    BYTE 'R'    * This tells FinalGROM to use RAM mode(4k ROM, 4k RAM)
-    DATA >0000  * Pointer to the powerup list (n/a)
-    DATA MENU   * Pointer to the program list
-    DATA >0000  * Pointer to the DSLR list (n/a)
-    DATA >0000  * Pointer to the subroutine list (n/a)
-
-MENU
-ITEM1
-    DATA >0000  * Pointer to the second menu item (n/a)
-    DATA INIT   * Pointer to the main label
-    BYTE 9     * Length of the text
-    TEXT 'VEPSEU 99' * Text
-    EVEN
-
-* VDCCMD: Send a command to the VDC
-* A5 = complete 2-byte command
-* 66 cycles in total
-VDCCMD
-    MOVB A5, @VCOMM * 22 cycles
-    SWPB A5 * 10 cycles
-    MOVB A5, @VCOMM * 22 cycles
-    RT * 12 cycles
-
-* VDCSRG: Set the value of a VDC register
-* A5 = register number, A6 = register value
-* 120 cycles in total
-VDCSRG
-    SWPB A6 * 10 cycles
-    SOC A6, A5 * 14 cycles
-    ORI A5, >80 * 14 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
-
-* VDCSWA: Set the write address pointer of the VDC
-* A5 = address
-* 120 cycles in total
-VDCSWA
-    ANDI A5, >7FFF * 14 cycles
-    ORI A5, >4000 * 14 cycles
-    SWPB A5 * 10 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
-
-* VDCSRA: Set the read address pointer of the VDC
-* A5 = address
-* 90 cycles in total
-VDCSRA
-    ANDI A5, >7FFF * 14 cycles
-    SWPB A5 * 10 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
-
-* INIT takes an estimated 12394 cycles in total!
-INIT
-* Make sure the workspace registers are in the right place
-    LWPI WSREGS * 10 cycles
-
-* Set the 0th register to all 0s
-    CLR A5 * 10 cycles
-    CLR A6 * 10 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Enable the 1st and 2nd bit on the first register
-* (enable the screen and vdp interrupts)
-    LI A5, >01 * 12 cycles
-    LI A6, >60 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Set the video buffer to the address 2*>400, aka >800
-    LI A5, >02 * 12 cycles
-    LI A6, >02 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Set the character pattern address to 0
-    LI A5, >04 * 12 cycles
-    LI A6, >00 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Set the background color to black
-    LI A5, >07 * 12 cycles
-    LI A6, >11 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Place the color table behind the screen at address >2C * >40, aka >0B00
-    LI A5, >03 * 12 cycles
-    LI A6, >2C * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
-
-* Load the color table onto the VDP
-    LI A5, >0B10 * 12 cycles
-    BL @VDCSWA * 20 cycles + 120 cycles
-    LI A1, CLRTBL * 12 cycles
-
-CLRTL1
-    MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
-    JNE CLRTL1 * (10 * color table length) - 2 = est. 98 cycles
-* The -2 cycles is for the not taken JNE at the end of the loop
-
-    LI A5, TEXTBL
-    BL @LDTEX
-
-* Decompress the demo map into memory
-    LI MAP, MAP1 * 12 cycles
-    BL @LDMAP
-
-* Set the screen blank counter to an odd number so the screen doesn't go blank
-    LI A1, 1 * 12 cycles
-    MOV A1, @>83D6 * 22 cycles
-
-* Tell the ISR to call LOOP every frame
-    LI A1, LOOP * 12 cycles
-    MOV A1, @>83C4 * 22 cycles
-
-* Enable interrupts (officially)
-    LIMI 2 * 16 cycles
-
-* Wait for LOOP to be called!
-WAIT
-    B @WAIT * 16 cycles, not that it really matters though...
-
-* Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
-* VDP unfortunately kinda slows that down a bit..
-LOOP
-* Load our workspace registers
-    LWPI WSREGS * 10 cycles
-* Disable interrupts while we're in an interrupt...
-    LIMI 0 * 16 cycles
-* Read the keyboard
-    BL @KEYBRD * (20 + 668) to (20 + 952) cycles
-* Render the screen
-    BL @RENDER * (20 + 57,387 to 20 + 57,882) cycles on average
-* Push the previously rendered screen to the VDP
-    BL @RNDPSH * (20 + 36214) cycles
-* Each frame is around 94,329 to 95,108 cycles long, on average.
-* Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
-* Not terrible, considering making the framerate higher doesn't make the game
-* smoother, but I'm not too impressed with it either. We'll just have to see how
-* optimization goes
-
-* Go back to the ISR's workspace registers
-    LWPI >83E0 * 10 cycles
-* Return to the ISR
-    RT
-
-    PAGE
- 
-*##############################################################################*
-* ram.a99 - general ram layout for the upper 4k of the cart                    *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
+INTTMP EQU >7000
 
 *The screen buffer, extends from >7000 to >7300
 SCRNBF  EQU >7000
 SCRNBH  EQU >7180
 SCRNBL  EQU >300
 
-KEYP1 EQU >7320
-KEYP2 EQU >7321
-KEYP3 EQU >7322
-KEYP4 EQU >7323
-KEYP5 EQU >7324
-KEYP6 EQU >7325
+CURSCN EQU >73A0
+KEYP1 EQU >73A2
+KEYP2 EQU >73A3
+KEYP3 EQU >73A4
+KEYP4 EQU >73A5
+KEYP5 EQU >73A6
+KEYP6 EQU >73A7
+* Bit 7, weight >02, is set if a action has been loaded this frame
+* Bit 8, weight >01, is set if a sprite is drawn this frame
+STAT1 EQU >73A8
+* Bit 8, weight >1, is set if the #1 key is pressed
+STAT2 EQU >73A9
 
-DRAWNL EQU >7300
+ACTION EQU >7300
+DRAWNL EQU >7380
 
 LZDICT EQU >7D00
 LZDEC EQU >7E00
@@ -2605,53 +337,53 @@ WAL1
     BYTE 1 * y offset
     BYTE 0 * x offset
     BYTE 96 * length of the vertical line draw list in bytes
-    BYTE 0, 24, 0 * vertical line draw list
-    BYTE 1, 24, 0
-    BYTE 2, 24, 0
-    BYTE 3, 24, 0
-    BYTE 4, 24, 0
-    BYTE 5, 24, 0
-    BYTE 6, 24, 0
-    BYTE 7, 24, 0
-    BYTE 8, 24, 0
-    BYTE 9, 24, 0
-    BYTE 10, 24, 0
-    BYTE 11, 24, 0
-    BYTE 12, 24, 0
-    BYTE 13, 24, 0
-    BYTE 14, 24, 0
-    BYTE 15, 24, 0
-    BYTE 16, 24, 0
-    BYTE 17, 24, 0
-    BYTE 18, 24, 0
-    BYTE 19, 24, 0
-    BYTE 20, 24, 0
-    BYTE 21, 24, 0
-    BYTE 22, 24, 0
-    BYTE 23, 24, 0
-    BYTE 24, 24, 0
-    BYTE 25, 24, 0
-    BYTE 26, 24, 0
-    BYTE 27, 24, 0
-    BYTE 28, 24, 0
-    BYTE 29, 24, 0
-    BYTE 30, 24, 0
-    BYTE 31, 24, 0
+    BYTE 0, 22, 0 * vertical line draw list
+    BYTE 1, 22, 0
+    BYTE 2, 22, 0
+    BYTE 3, 22, 0
+    BYTE 4, 22, 0
+    BYTE 5, 22, 0
+    BYTE 6, 22, 0
+    BYTE 7, 22, 0
+    BYTE 8, 22, 0
+    BYTE 9, 22, 0
+    BYTE 10, 22, 0
+    BYTE 11, 22, 0
+    BYTE 12, 22, 0
+    BYTE 13, 22, 0
+    BYTE 14, 22, 0
+    BYTE 15, 22, 0
+    BYTE 16, 22, 0
+    BYTE 17, 22, 0
+    BYTE 18, 22, 0
+    BYTE 19, 22, 0
+    BYTE 20, 22, 0
+    BYTE 21, 22, 0
+    BYTE 22, 22, 0
+    BYTE 23, 22, 0
+    BYTE 24, 22, 0
+    BYTE 25, 22, 0
+    BYTE 26, 22, 0
+    BYTE 27, 22, 0
+    BYTE 28, 22, 0
+    BYTE 29, 22, 0
+    BYTE 30, 22, 0
+    BYTE 31, 22, 0
 
 WAL2
     BYTE 0
     BYTE -1
     BYTE 9
     BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
+    BYTE 30, 22, 8
+    BYTE 31, 22, 8
 
 WAL3
     BYTE 0
     BYTE 1
     BYTE 9
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
+    BYTE 0, 22, 8
+    BYTE 1, 22, 8
     BYTE 2, 22, 8
 
 WAL4
@@ -2666,15 +398,15 @@ WAL4
     BYTE 27, 19, 8
     BYTE 28, 20, 8
     BYTE 29, 22, 8
-    BYTE 30, 23, 8
-    BYTE 31, 24, 8
+    BYTE 30, 22, 8
+    BYTE 31, 22, 8
 
 WAL5
     BYTE 1
     BYTE 1
     BYTE 30
-    BYTE 0, 24, 8
-    BYTE 1, 23, 8
+    BYTE 0, 22, 8
+    BYTE 1, 22, 8
     BYTE 2, 22, 8
     BYTE 3, 20, 8
     BYTE 4, 19, 8
@@ -2836,20 +568,118 @@ TEXTBL
     BYTE 0, 0, 16, 16, 124, 16, 16, 0, 0, 0, 0, 0, 56, 0, 0, 0
     BYTE 0, 28, 34, 90, 86, 92, 32, 30, 0, 16, 84, 56, 124, 56, 84, 16
     BYTE 0, 0, 98, 100, 8, 16, 38, 70, 0, 48, 72, 72, 48, 74, 68, 58 
+MAP1S
+    EVEN
+MAP1S1
+    BYTE >02 * Player angle
+    BYTE >11
+    DATA >0000
+    BYTE >81
+    BYTE 97-32, 128-16, >0F
+    BYTE 97-16, 128-16, >0F
+    BYTE 97, 128-16, >0F
+    BYTE 97+16, 128-16, >0F
+    BYTE 97-32, 128, >0F
+    BYTE 97-16, 128, >0F
+    BYTE 97, 128, >0F
+    BYTE 97+16, 128, >0F
+    BYTE >07, >1f, >3f, >7f, >7f, >c3, >c3, >c3, >43, >7f, >ff, >ff, >ff, >ff
+    BYTE >ff, >ff, >7f, >43, >db, >db, >db, >db, >db, >db, >5b, >5b, >db, >db
+    BYTE >db, >c3, >ff, >ff, >e0, >f8, >fc, >fe, >fe, >c3, >c3, >c3, >c3, >ff, >ff, >ff
+    BYTE >ff, >f1, >fd, >ff, >ff, >c3, >db, >db, >db, >db, >db, >db, >db, >db
+    BYTE >db, >db, >db, >c3, >ff, >ff
+    TEXT '1:MAP2' * Action name(always 6 characters long)
+    BYTE LDM2/256, LDM2
+
+MAP2S
+    EVEN
+    BYTE >00, >00
+    DATA >0000
+
+    EVEN
 MAP1
-    BYTE 9, 8, 0, 33, -128, -128, -112, -96, -80, -64, -48, -32, -16, -128, -128, -128
-    BYTE -128, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0, -128, 0
-    BYTE 0, 0, 0, -128, -128, -127, -111, -95, -79, -63, -47, -31, -15, 0, -128, 0
-    BYTE -128, -126, -110, -94, -78, -62, -46, -30, -14, 0, -128, 0, -128, 0, -128, -128
-    BYTE -128, 0, -128, 0, -128, -125, -109, -93, -77, -61, -45, -29, -13, 0, -128, 0
-    BYTE 0, 0, -128, -128, -128, -124, -108, -92, -76, -60, -44, -28, -12, 0, 0, 0
-    BYTE -128, -123, -107, -91, -75, -59, -43, -27, -11, 0, -128, 0, -128, -122, -106, -90
-    BYTE -74, -58, -42, -26, -10, 0, -128, 0, -128, -121, -105, -89, -73, -57, -41, -25
-    BYTE -9, 0, -128, 0, -128, -128, -128, 0, 64, 0, 1, 2, 3, 4, 5, 6
-    BYTE 7, 8, 9, 10, 7, 4, 5, 6, 7, 11, 12, 13, 14, 4, 5, 6
-    BYTE 15, 16, 17, 18, 15, 4, 5, 19, 15, 20, 21, 22, 15, 4, 5, 6
-    BYTE 15, 23, 24, 25, 15, 4, 5, 6, 15, 26, 27, 28, 15, 4, 5, 6
-    BYTE 15, 29, 30, 31, 6, 3, 3, 3, 32 
+    DATA MAP1S
+    BYTE 11, 6, 3, 12, -48, -77, -48, -80, -80, -80, -80, -112, -112, -112, -112, -112
+    BYTE -112, 0, 0, 0, -48, 0, -48, 0, 0, 0, -80, 0, 0, 0, 0, 0
+    BYTE -64, 0, 0, 0, -48, 0, 0, 0, -96, 0, 0, 0, -64, -64, -64, -64
+    BYTE -64, -96, -96, -96, 64, 0, 1, 2, 3, 4, 5, 6, 3, 4, 7, 6
+    BYTE 3, 8, 7, 9, 3, 10, 11, 9, 3, 6, 6, 3, 3, 6, 6, 3
+    BYTE 3, 6, 6, 2, 3, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+    BYTE 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+    BYTE 6, 6, 6, 6, 6
+
+MAP2
+    DATA MAP2S
+    BYTE 2, 2, 2, 7, -128, -128, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0
+    BYTE -128, 0, 0, 0, 0, -128, 0, 0, -128, -128, 0, -128, 0, -128, -128, -128
+    BYTE 64, 0, 1, 2, 2, 3, 4, 2, 2, 5, 4, 2, 2, 6, 4, 2
+    BYTE 2, 3, 4, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    BYTE 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    BYTE 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    BYTE 2
+
+LDM2
+    LI MAP, MAP2
+    B @LDMAP
+ 
+*##############################################################################*
+* act.a99 - code that draws and activates actions                              *
+*==============================================================================*
+* This file is a part of VePseu 99!                                            *
+*                                                                              *
+* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
+*                                                                              *
+* Redistribution and use in source and binary forms, with or without           *
+* modification, are permitted provided that the following conditions are met:  *
+*                                                                              *
+* 1. Redistributions of source code must retain the above copyright notice,    *
+*    this list of conditions and the following disclaimer.                     *
+* 2. Redistributions in binary form must reproduce the above copyright notice, *
+*    this list of conditions and the following disclaimer in the documentation *
+*    and/or other materials provided with the distribution.                    *
+* 3. Neither the name of the copyright holder nor the names of its             *
+*    contributors may be used to endorse or promote products derived from this *
+*    software without specific prior written permission.                       *
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
+* POSSIBILITY OF SUCH DAMAGE.                                                  *
+*##############################################################################*
+
+ACT
+    LI A1, ACTION
+    LI A2, SCRNBF+SCRNBL-32
+ACTL1
+    MOVB *A1+, *A2+
+    JEQ ACTEND
+    LI A3, 5
+ACTL2
+    MOVB *A1+, *A2+
+    DEC A3
+    JNE ACTL2
+    MOV *A1+, A3
+
+    CLR A4
+    MOVB @STAT2, A4
+    ANDI A4, >0100
+    JNE ACTB1
+
+    JMP ACTL1
+
+ACTB1
+    B *A3
+
+ACTEND
+    RT
+ 
 *##############################################################################*
 * keyboard.a99 - code used to take and utilize input from the keyboard         *
 *==============================================================================*
@@ -2890,6 +720,11 @@ KEYDLY EQU >0500
 * Keyboard scanning routine
 * 628 to 912 cycles
 KEYBRD
+* Make sure bit 8 of STAT2 is set to 0
+    CLR A1
+    MOVB @STAT2, A1
+    ANDI A1, >FE00
+    MOVB A1, @STAT2
 * D Key
 * 94 to 154 cycles
 KEY1
@@ -3013,6 +848,18 @@ KEY4NP
 
 * There is no key 5 yet, but just in case...
 KEY5
+* Check to see if the 1 key is pressed...
+    LI A1, >0500 * 12 cycles
+    LI CRU, >0024 * 12 cycles
+    LDCR A1, 3 * 26 cycles
+    TB ->000B * 12 cycles
+    JEQ KEY5NP * 8 or (10 + 32) cycles, branch from here
+    MOVB @STAT2, A1
+    ORI A1, >0100
+    MOVB A1, @STAT2
+    JMP KEY5 * 10 cycles, end of tally
+* If the button wasn't pressed at all, reset the timer
+KEY5NP
 
 * Modify the player displacement based on angle...
 * 90 to 108 cycles
@@ -3048,6 +895,60 @@ KEYHTW
     RT * 18 cycles
 
     PAGE
+ 
+*##############################################################################*
+* ldclr.a99 - code that loads the color table                                  *
+*==============================================================================*
+* This file is a part of VePseu 99!                                            *
+*                                                                              *
+* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
+*                                                                              *
+* Redistribution and use in source and binary forms, with or without           *
+* modification, are permitted provided that the following conditions are met:  *
+*                                                                              *
+* 1. Redistributions of source code must retain the above copyright notice,    *
+*    this list of conditions and the following disclaimer.                     *
+* 2. Redistributions in binary form must reproduce the above copyright notice, *
+*    this list of conditions and the following disclaimer in the documentation *
+*    and/or other materials provided with the distribution.                    *
+* 3. Neither the name of the copyright holder nor the names of its             *
+*    contributors may be used to endorse or promote products derived from this *
+*    software without specific prior written permission.                       *
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
+* POSSIBILITY OF SUCH DAMAGE.                                                  *
+*##############################################################################*
+
+LDCLR
+* Load the color table onto the VDP
+    MOV RTADDR, A2
+    LI A5, >0B00 * 12 cycles
+    BL @VDCSWA * 20 cycles + 120 cycles
+* First make all the text white on black
+    LI A1, >F100
+    LI A3, >10
+LDCL1
+    MOVB A1, @VWRIT
+    DEC A3
+    JNE LDCL1
+
+    LI A1, CLRTBL
+    LI A3, >10
+LDCL2
+    MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
+    DEC A3
+    JNE LDCL2 * (10 * color table length) - 2 = est. 98 cycles
+* The -2 cycles is for the not taken JNE at the end of the loop
+    B *A2
  
 *##############################################################################*
 * ldlz.a99 - decompresses data into memory                                     *
@@ -3150,6 +1051,8 @@ LDL2
 * LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
 * MAP = pointer to compressed map data
 LDMAP
+* First load the scenes
+    MOV *MAP+, @CURSCN
     CLR PX * 10 cycles
     CLR PY * 10 cycles
     CLR PA * 10 cycles
@@ -3449,5 +1352,191 @@ RNDB4
     JMP RNDB4R * 10 cycles, branch from here
 
     PAGE
+ 
+*##############################################################################*
+* scenes.a99 - code used to render scenes and such                             *
+*==============================================================================*
+* This file is a part of VePseu 99!                                            *
+*                                                                              *
+* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
+*                                                                              *
+* Redistribution and use in source and binary forms, with or without           *
+* modification, are permitted provided that the following conditions are met:  *
+*                                                                              *
+* 1. Redistributions of source code must retain the above copyright notice,    *
+*    this list of conditions and the following disclaimer.                     *
+* 2. Redistributions in binary form must reproduce the above copyright notice, *
+*    this list of conditions and the following disclaimer in the documentation *
+*    and/or other materials provided with the distribution.                    *
+* 3. Neither the name of the copyright holder nor the names of its             *
+*    contributors may be used to endorse or promote products derived from this *
+*    software without specific prior written permission.                       *
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
+* POSSIBILITY OF SUCH DAMAGE.                                                  *
+*##############################################################################*
+
+SCENES
+* Make sure bit 7 and 8 of STAT1 is set to 0
+    CLR A1
+    MOVB @STAT1, A1
+    ANDI A1, >FC00
+    MOVB A1, @STAT1
+* A1 will hold the address to the scene
+    MOV @CURSCN, A1 * 22 cycles
+* A2 will hold the X and Y for the player
+    MOV PY, A2 * 14 cycles
+    SLA A2, 4 * 20 cycles
+    A PX, A2 * 14 cycles
+    SWPB A2 * 10 cycles
+* Temporarily SWPB PA
+    SWPB PA
+* Compare the A/Y/X of the player and the scene. If they aren't equal,
+* skip this scene
+SCNL1
+    CB PA, *A1+
+    JNE SCNB6
+    CB A2, *A1+ * 20 cycles
+    JNE SCNB1 * 8 or 10 cycles
+* Otherwise, draw the scene!
+* First, load the address to the next scene into A3
+    MOV *A1+, A3
+* Next get the sprite count(A4) and the action count(A5)
+    CLR A4 * 10 cycles
+    MOVB *A1+, A4 * 20 cycles
+    SWPB A4 * 10 cycles
+    MOV A4, A5 * 14 cycles
+* Shift A4 left 4 bits and & A5 to split the byte into two nibbles
+    SRL A4, 4 * 20 cycles
+* If A4's greater than 0, we branch to SCNB2
+    JNE SCNB2
+SCNB2R
+    ANDI A5, >000F * 14 cycles
+* If A5's greater than 0, we branch to SCNB3
+    JNE SCNB3
+SCNB3R
+* If there's not another scene after this, return!
+    CI A3, 0
+    JEQ SCNEND
+    MOV A3, A1
+    JMP SCNL1
+
+SCNB6
+    INC A1
+SCNB1
+    MOV *A1, A1
+    JNE SCNL1
+SCNEND
+    CLR A1
+    MOVB @STAT1, A1
+    ANDI A1, >0100
+    JEQ SCNB4
+SCNB4R
+    CLR A1
+    MOVB @STAT1, A1
+    ANDI A1, >0200
+    JEQ SCNB5
+SCNB5R
+    SWPB PA
+    RT
+
+* Draw Sprites!
+SCNB2
+* Set bit 8 of status since sprites are being drawn
+    CLR A6
+    MOVB @STAT1, A6
+    ORI A6, >0100
+    MOVB A6, @STAT1
+
+    MOV A4, A6
+    CLR A8
+* First set the VDC write address (See VDPSWA for comments, this is the same)
+* The ORI and SWPB have been done beforehand
+* A7 is used as a general-purpose register here
+    LI A7, >004C * 12 cycles
+    MOVB A7, @VCOMM * 22 cycles
+    SWPB A7 * 10 cycles
+    MOVB A7, @VCOMM * 22 cycles
+SCNBL1
+* Write the sprite's X and Y to the VDP
+    MOVB *A1+, @VWRIT * 20 cycles
+    NOP * 10 cycles
+    MOVB *A1+, @VWRIT * 20 cycles
+    SWPB A8
+* Write the sprite pattern number to the VDP
+    MOVB A8, @VWRIT
+    SWPB A8
+* Write the color to the VDP
+    MOVB *A1+, @VWRIT
+    INC A8
+    DEC A6
+    JNE SCNBL1
+* Disable all sprites after this
+    LI A7, >D000
+    MOVB A7, @VWRIT
+
+* First set the VDC write address (See VDPSWA for comments, this is the same)
+* The ORI and SWPB have been done beforehand
+* A7 is used as a general-purpose register here
+    LI A7, >0050 * 12 cycles
+    MOVB A7, @VCOMM * 22 cycles
+    SWPB A7 * 10 cycles
+    MOVB A7, @VCOMM * 22 cycles
+
+    MOV A4, A6
+SCNBL2
+    LI A7, 8
+SCNBL3
+    MOVB *A1+, @VWRIT
+    DEC A7
+    JNE SCNBL3
+    DEC A6
+    JNE SCNBL2
+    JMP SCNB2R
+
+* Load an action!
+SCNB3
+* Set bit 7 of status since there are actions loaded are being drawn
+    CLR A6
+    MOVB @STAT1, A6
+    ORI A6, >0200
+    MOVB A6, @STAT1
+    LI A6, ACTION
+    SLA A5, 3
+SCNBL4
+    MOVB *A1+, *A6+
+    DEC A5
+    JNE SCNBL4
+
+    JMP SCNB3R
+
+SCNB4
+* Clear sprite attribute table...
+    LI A1, >004C * 12 cycles
+    MOVB A1, @VCOMM * 22 cycles
+    SWPB A1 * 10 cycles
+    MOVB A1, @VCOMM * 22 cycles
+    LI A1, >D000
+    MOVB A1, @VWRIT
+    JMP SCNB4R
+
+SCNB5
+    LI A1, ACTION
+    LI A2, >20
+    CLR A3
+SCNBL5
+    MOV A3, *A1+
+    DECT A2
+    JNE SCNBL5
+    JMP SCNB5R
  
     END 
