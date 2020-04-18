@@ -1,15 +1,17 @@
 import java.awt.FileDialog;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
+import java.awt.Image;
 import java.io.File;
 import javax.imageio.ImageIO;
 
-public class LoadWallStyle implements ActionListener
+public class LoadSprite
 {
-    @Override
-    public void actionPerformed(ActionEvent arg0)
+    
+    private Scene scene = null; 
+    
+        
+    public LoadSprite(Scene αscene)
     {
+        scene = αscene;
         File loadfile = null;
         String loadfileName = null;
         String loadfileDir = null;
@@ -33,24 +35,16 @@ public class LoadWallStyle implements ActionListener
         {
             try
             {
-                BufferedImage loadImage = ImageIO.read(loadfile);
-                GUI.getWorkspace().setWallStyle(new WallStyle(loadImage));
+                Image image = ImageIO.read(loadfile);
+                scene.addSprite(image);
+                scene.repaint();
             }
             catch (Exception ε)
             {
                 GUI.errorMessage(ε);
             } 
         }
-    }    
-    
         
-    public LoadWallStyle()
-    {
+        scene.notLoadingSprite();
     }
-        
-    public void run()
-    {
-        actionPerformed(null);
-    }
-    
 }

@@ -46,11 +46,7 @@ ACTL2
     CLR A4
     MOVB @STAT2, A4
     ANDI A4, >0100
-    JNE ACTB1
-
-    JMP ACTL1
-
-ACTB1
+    JEQ ACTL1
     B *A3
 
 ACTEND

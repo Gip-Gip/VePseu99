@@ -52,6 +52,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     public void setWallStyle(WallStyle αwallStyle)
     {
         wallStyle = αwallStyle;
+        repaint();
     }
     
     public WallStyle getWallStyle()
@@ -181,6 +182,57 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                     
                     graphics.setColor(Color.WHITE);
                     graphics.drawRect(point.x, point.y, scale, scale);
+                }
+                
+                // Draw scenes
+                graphics.setColor(Color.GREEN);
+                for(Scene scene : map.getScenes())
+                {
+                    int sceneX = scene.getSceneX() * scale + relativeX;
+                    int sceneY = scene.getSceneY() * scale + relativeY;
+                    graphics.drawRect(sceneX, sceneY, scale, scale);
+                    sceneX += scale / 2;
+                    sceneY += scale / 2;
+                    
+                    switch(scene.getAngle())
+                    {
+                        case(0):
+                            graphics.drawLine
+                            (
+                                sceneX,
+                                sceneY,
+                                sceneX,
+                                sceneY + scale / 2
+                            );
+                            break;
+                        case(1):
+                            graphics.drawLine
+                            (
+                                sceneX,
+                                sceneY,
+                                sceneX + scale / 2,
+                                sceneY
+                            );
+                            break;
+                        case(2):
+                            graphics.drawLine
+                            (
+                                sceneX,
+                                sceneY,
+                                sceneX,
+                                sceneY - scale / 2
+                            );
+                            break;
+                        case(3):
+                            graphics.drawLine
+                            (
+                                sceneX,
+                                sceneY,
+                                sceneX - scale / 2,
+                                sceneY
+                            );
+                            break;
+                    }
                 }
                 
                 // Draw the player
@@ -349,6 +401,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     @Override
     public void mouseMoved(MouseEvent αevent)
     {
+        mouseX = αevent.getX();
+        mouseY = αevent.getY();
     }
 
     @Override
@@ -382,10 +436,28 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 break;
             // Ctrl+s shortcut
             case(KeyEvent.VK_S):
-                if(ctrl)
+                if(ctrl) save.run();
+                else
                 {
-                    save.run();
+                    int sceneX = (mouseX - relativeX) / scale;
+                    int sceneY = (mouseY - relativeY) / scale;
+                    if(map.getScene(sceneX, sceneY) == null)
+                        map.addScene(sceneX, sceneY);
+                    repaint();
                 }
+                break;
+            case(KeyEvent.VK_E):
+                int sceneX = (mouseX - relativeX) / scale;
+                int sceneY = (mouseY - relativeY) / scale;
+                Scene scene;
+                if((scene = map.getScene(sceneX, sceneY)) != null)
+                    new SceneDialog(GUI.getFrame(), scene);
+                break;
+            case(KeyEvent.VK_D):
+                sceneX = (mouseX - relativeX) / scale;
+                sceneY = (mouseY - relativeY) / scale;
+                if(shift) map.removeScene(sceneX, sceneY);
+                repaint();
                 break;
             case(KeyEvent.VK_1):
                 if(shift) selectedColor = 0;
@@ -433,6 +505,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
             
             case(KeyEvent.VK_CONTROL):
                 ctrl = false;
+                break;
         }
     }
 

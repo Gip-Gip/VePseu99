@@ -117,17 +117,17 @@ INIT
     LWPI WSREGS * 10 cycles
 
 * Move the old characters to the new character space. Default location is >0800
-    LI A5, >0800
-    BL @VDCSRA
+    LI A5, >0800 * 12 cycles
+    BL @VDCSRA * (20 + 90) cycles
 
-    LI A1, INTTMP
-    LI A2, >0800
+    LI A1, INTTMP * 12 cycles
+    LI A2, >0800 * 12 cycles
 INITL1
-    MOVB @VREAD, *A1+
-    DEC A2
-    JNE INITL1
+    MOVB @VREAD, *A1+ * 28 cycles
+    DEC A2 * 10 cycles
+    JNE INITL1 * 8 or 10 cycles
 
-    LI A5, >0000
+    LI A5, >0000 * 12 cycles
     BL @VDCSWA
 
     LI A1, INTTMP

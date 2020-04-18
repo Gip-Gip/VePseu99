@@ -48,6 +48,13 @@ public class AsmData
         index ++;
     }
     
+    public void addRef(String unit)
+    {
+        if(index > 0) asmData = asmData.substring(0, asmData.length() - 1);
+        index = 0;
+        asmData += "\r\n    DATA " + unit + "\r\n    BYTE";
+    }
+    
     public byte getByte()
     {
         String byteStr = new String();
@@ -65,7 +72,43 @@ public class AsmData
         )
             byteStr += asmData.charAt(index++);
         
-        return Byte.parseByte(byteStr);
+        return byteStr.length() > 0 ? Byte.parseByte(byteStr) : 0;
+    }
+    
+    public String getRef()
+    {
+        String tokenStr = new String();
+        while(!tokenStr.equals("DATA"))
+        {
+            tokenStr = new String();
+            while
+            (
+                index < asmData.length() &&
+                (Character.isWhitespace(asmData.charAt(index)))
+            )
+                index++;
+            while
+            (
+                index < asmData.length() &&
+                !Character.isDigit(asmData.charAt(index))
+            )
+                tokenStr += asmData.charAt(index++);
+        }
+        
+        String refStr = new String();
+        while
+        (
+            index < asmData.length() &&
+            (Character.isWhitespace(asmData.charAt(index)))
+        )
+            index++;
+        while
+        (
+            index < asmData.length() &&
+            !Character.isDigit(asmData.charAt(index))
+        )
+            refStr += asmData.charAt(index++);
+        return refStr;
     }
     
     public byte[] getAsmData()
@@ -74,7 +117,8 @@ public class AsmData
         (
             asmName +
             "\r\n" +
-            asmData.substring(0, asmData.length()-1)
+            asmData.substring(0, asmData.length()-1) + 
+            "\r\n"
         ).getBytes();
     }
     

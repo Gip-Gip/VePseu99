@@ -41,12 +41,25 @@
 WALTBL
 
 WAL1
+    BYTE 0
+    BYTE -1
+    BYTE 9
+    BYTE 29, 22, 8
+    BYTE 30, 22, 8
+    BYTE 31, 22, 8
+
+WAL2
+    BYTE 0
+    BYTE 1
+    BYTE 9
+    BYTE 0, 22, 8
+    BYTE 1, 22, 8
+    BYTE 2, 22, 8
+
+WAL3
     BYTE 1 * y offset
     BYTE 0 * x offset
-    BYTE 96 * length of the vertical line draw list in bytes
-    BYTE 0, 22, 0 * vertical line draw list
-    BYTE 1, 22, 0
-    BYTE 2, 22, 0
+    BYTE 78 * length of the vertical line draw list in bytes
     BYTE 3, 22, 0
     BYTE 4, 22, 0
     BYTE 5, 22, 0
@@ -73,55 +86,36 @@ WAL1
     BYTE 26, 22, 0
     BYTE 27, 22, 0
     BYTE 28, 22, 0
-    BYTE 29, 22, 0
-    BYTE 30, 22, 0
-    BYTE 31, 22, 0
-
-WAL2
-    BYTE 0
-    BYTE -1
-    BYTE 9
-    BYTE 29, 22, 8
-    BYTE 30, 22, 8
-    BYTE 31, 22, 8
-
-WAL3
-    BYTE 0
-    BYTE 1
-    BYTE 9
-    BYTE 0, 22, 8
-    BYTE 1, 22, 8
-    BYTE 2, 22, 8
 
 WAL4
     BYTE 1
     BYTE -1
     BYTE 30
-    BYTE 22, 13, 8
-    BYTE 23, 14, 8
-    BYTE 24, 16, 8
-    BYTE 25, 17, 8
-    BYTE 26, 18, 8
-    BYTE 27, 19, 8
-    BYTE 28, 20, 8
-    BYTE 29, 22, 8
-    BYTE 30, 22, 8
-    BYTE 31, 22, 8
+    BYTE 22, 14, 8
+    BYTE 23, 16, 8
+    BYTE 24, 17, 8
+    BYTE 25, 18, 8
+    BYTE 26, 19, 8
+    BYTE 27, 20, 8
+    BYTE 28, 22, 8
+    BYTE 29, 22, 0
+    BYTE 30, 22, 0
+    BYTE 31, 22, 0
 
 WAL5
     BYTE 1
     BYTE 1
     BYTE 30
-    BYTE 0, 22, 8
-    BYTE 1, 22, 8
-    BYTE 2, 22, 8
-    BYTE 3, 20, 8
-    BYTE 4, 19, 8
-    BYTE 5, 18, 8
-    BYTE 6, 17, 8
-    BYTE 7, 16, 8
-    BYTE 8, 14, 8
-    BYTE 9, 13, 8
+    BYTE 0, 22, 0
+    BYTE 1, 22, 0
+    BYTE 2, 22, 0
+    BYTE 3, 22, 8
+    BYTE 4, 20, 8
+    BYTE 5, 19, 8
+    BYTE 6, 18, 8
+    BYTE 7, 17, 8
+    BYTE 8, 16, 8
+    BYTE 9, 14, 8
 
 WAL6
     BYTE 2

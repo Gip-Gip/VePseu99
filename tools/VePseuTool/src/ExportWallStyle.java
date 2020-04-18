@@ -1,17 +1,11 @@
 import java.awt.FileDialog;
-import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-
-import javax.imageio.ImageIO;
 
 public class ExportWallStyle implements ActionListener
 {
-    private static final long serialVersionUID = 1L;
     
     @Override
     public void actionPerformed(ActionEvent arg0)
@@ -44,7 +38,6 @@ public class ExportWallStyle implements ActionListener
                 FileOutputStream exportStream = new FileOutputStream(exportfile);
                 AsmData exportAsm = new AsmData();
                 WallStyle wallStyle = GUI.getWorkspace().getWallStyle();
-                LZ compressedTextures = new LZ(wallStyle.getTextures());
                 
                 exportAsm.setName("\r\nCLRTBL");
                 for(byte unit : wallStyle.getPallet())

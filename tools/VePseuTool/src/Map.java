@@ -4,6 +4,7 @@ import java.util.ArrayList;
 public class Map
 {
     private byte[][] map = null;
+    private ArrayList<Scene> scenes = null;
     
     private String mapName = null;
     public static final byte MAPWIDTH = 16;
@@ -16,18 +17,47 @@ public class Map
     public Map()
     {
         map = new byte[MAPWIDTH][MAPHEIGHT];
+        scenes = new ArrayList<Scene>();
     }
     
-    public void placeWall(int x, int y, byte type)
+    public void addScene(int αx, int αy)
     {
-        if(x < 16 && x > -1 && y < 16  && y > -1)
-            map[y][x] = (byte)(type + 0x80);
+        scenes.add(new Scene(αx, αy));
     }
     
-    public void removeWall(int x, int y)
+    public ArrayList<Scene> getScenes()
     {
-        if(x < 16 && x > -1 && y < 16  && y > -1)
-            map[y][x] = 0x00;
+        return scenes;
+    }
+    
+    public Scene getScene(int αx, int αy)
+    {
+        for(Scene scene : scenes)
+            if(scene.getSceneX() == αx && scene.getSceneY() == αy) return scene;
+        
+        return null;
+    }
+    
+    public void removeScene(int αx, int αy)
+    {
+        for(Scene scene : scenes)
+            if(scene.getSceneX() == αx && scene.getSceneY() == αy)
+            {
+                scenes.remove(scene);
+                return;
+            }
+    }
+    
+    public void placeWall(int αx, int αy, byte αtype)
+    {
+        if(αx < 16 && αx > -1 && αy < 16  && αy > -1)
+            map[αy][αx] = (byte)(αtype + 0x80);
+    }
+    
+    public void removeWall(int αx, int αy)
+    {
+        if(αx < 16 && αx > -1 && αy < 16  && αy > -1)
+            map[αy][αx] = 0x00;
     }
     
     public byte[] get1dMap()
@@ -46,6 +76,11 @@ public class Map
     public byte getWall(int αx, int αy)
     {
         return (byte)(map[αy][αx] - 0x80);
+    }
+    
+    public boolean isWall(int αx, int αy)
+    {
+        return map[αy][αx] != 0;
     }
     
     public String getMapName()
@@ -85,6 +120,21 @@ public class Map
     public byte[] makeMapFile()
     {
         AsmData mapFile = new AsmData();
+        ArrayList<AsmData> concat = new ArrayList<AsmData>();
+        int fileLength = 0;
+        int sceneCnt = scenes.size();
+        String sceneName = mapName + 'S';
+        
+        for(int ι = 0; ι < sceneCnt; ι++)
+        {
+            AsmData sceneData = scenes.get(ι).getData
+            (
+                sceneName + ι,
+                ι + 1 < sceneCnt ? sceneName + (ι + 1) : "0000"
+            );
+            fileLength += sceneData.getAsmData().length;
+            concat.add(sceneData);
+        }
         
         mapFile.setName(mapName);
         mapFile.addByte(playerX);
@@ -98,9 +148,24 @@ public class Map
             mapFile.addByte(mapByte);
         }
         
+        fileLength += mapFile.getAsmData().length;
+        concat.add(mapFile);
+        
+        byte[] mapData = new byte[fileLength];
+        for(int ι = 0; ι < fileLength; ι++)
+        {
+            for(AsmData data : concat)
+            {
+                for(byte unit : data.getAsmData())
+                {
+                    mapData[ι++] = unit;
+                }
+            }
+        }
+        
         GUI.getWorkspace().setNotification("Saved map " + mapName + "!");
         
-        return mapFile.getAsmData();
+        return mapData;
     }
     
     public void loadMap(byte[] inFile) throws Exception
