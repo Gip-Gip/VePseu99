@@ -9,18 +9,24 @@ public class AsmData
     public AsmData()
     {
         asmData = new String();
-        asmData += "    BYTE";
+        index = -1;
     }
     
     public AsmData(byte[] αdata)
     {
-        asmName = new String();
+        asmName = "EVEN";
         
         int ι = 0;
-        while(!Character.isWhitespace((char)αdata[ι]))
-            asmName += (char)αdata[ι++];
-        
+        while(asmName.equals("EVEN"))
+        {
+            asmName = new String();
+            while(ι < αdata.length && Character.isWhitespace((char)αdata[ι]))
+                ι++;
+            while(ι < αdata.length && !Character.isWhitespace((char)αdata[ι]))
+                asmName += (char)αdata[ι++];
+        }
         asmData = new String();
+        
         while(ι < αdata.length)
             asmData += (char)αdata[ι++];
     }
@@ -39,8 +45,13 @@ public class AsmData
     {
         if(index == 16)
         {
-            index = 0;
+            index = -1;
             asmData = asmData.substring(0, asmData.length() - 1);
+        }
+        
+        if(index == -1)
+        {
+            index ++;
             asmData += "\r\n    BYTE";
         }
         
@@ -51,8 +62,15 @@ public class AsmData
     public void addRef(String unit)
     {
         if(index > 0) asmData = asmData.substring(0, asmData.length() - 1);
-        index = 0;
-        asmData += "\r\n    DATA " + unit + "\r\n    BYTE";
+        index = -1;
+        asmData += "\r\n    DATA " + unit;
+    }
+    
+    public void addText(String unit)
+    {
+        if(index > 0) asmData = asmData.substring(0, asmData.length() - 1);
+        index = -1;
+        asmData += "\r\n    TEXT '" + unit + "'";
     }
     
     public byte getByte()
@@ -78,19 +96,19 @@ public class AsmData
     public String getRef()
     {
         String tokenStr = new String();
-        while(!tokenStr.equals("DATA"))
+        while(index < asmData.length() && !tokenStr.equals("DATA"))
         {
             tokenStr = new String();
             while
             (
                 index < asmData.length() &&
                 (Character.isWhitespace(asmData.charAt(index)))
-            )
-                index++;
+            ) index ++;
+            
             while
             (
                 index < asmData.length() &&
-                !Character.isDigit(asmData.charAt(index))
+                !Character.isWhitespace(asmData.charAt(index))
             )
                 tokenStr += asmData.charAt(index++);
         }
@@ -99,22 +117,60 @@ public class AsmData
         while
         (
             index < asmData.length() &&
-            (Character.isWhitespace(asmData.charAt(index)))
-        )
-            index++;
+            (Character.isWhitespace(asmData.charAt(index++)))
+        );
+        
         while
         (
             index < asmData.length() &&
-            !Character.isDigit(asmData.charAt(index))
+            !Character.isWhitespace(asmData.charAt(index))
         )
             refStr += asmData.charAt(index++);
         return refStr;
+    }
+    
+    public String getText()
+    {
+        String tokenStr = new String();
+        while(index < asmData.length() && !tokenStr.equals("TEXT"))
+        {
+            tokenStr = new String();
+            while
+            (
+                index < asmData.length() &&
+                (Character.isWhitespace(asmData.charAt(index)))
+            ) index ++;
+            
+            while
+            (
+                index < asmData.length() &&
+                !Character.isWhitespace(asmData.charAt(index))
+            )
+                tokenStr += asmData.charAt(index++);
+        }
+        
+        String textStr = new String();
+        while
+        (
+            index < asmData.length() &&
+            (Character.isWhitespace(asmData.charAt(index++)))
+        );
+        
+        while
+        (
+            index < asmData.length() &&
+            !Character.isWhitespace(asmData.charAt(index))
+        )
+            if(asmData.charAt(index) != '\'')
+                textStr += asmData.charAt(index++);
+        return textStr;
     }
     
     public byte[] getAsmData()
     {
         return
         (
+            "    EVEN\r\n" +
             asmName +
             "\r\n" +
             asmData.substring(0, asmData.length()-1) + 

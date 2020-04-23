@@ -1,75 +1,80 @@
-*##############################################################################*
-* scenes.a99 - code used to render scenes and such                             *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
+;##############################################################################;
+; scenes.a99 - code used to render scenes and such                             ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                             ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:   ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                        ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
+
+    EVEN
+
 
 SCENES
-* Make sure bit 7 and 8 of STAT1 is set to 0
+; Temporarily SWPB PA
+    SWPB PA
+; Make sure bit 7 and 8 of STAT1 is set to 0
     CLR A1
     MOVB @STAT1, A1
     ANDI A1, >FC00
     MOVB A1, @STAT1
-* A1 will hold the address to the scene
-    MOV @CURSCN, A1 * 22 cycles
-* A2 will hold the X and Y for the player
-    MOV PY, A2 * 14 cycles
-    SLA A2, 4 * 20 cycles
-    A PX, A2 * 14 cycles
-    SWPB A2 * 10 cycles
-* Temporarily SWPB PA
-    SWPB PA
-* Compare the A/Y/X of the player and the scene. If they aren't equal,
-* skip this scene
+; A1 will hold the address to the scene
+    MOV @CURSCN, A1 ; 22 cycles
+; If CURSCN is 0, there are no scenes
+    JEQ SCNEND
+; A2 will hold the X and Y for the player
+    MOV PY, A2 ; 14 cycles
+    SLA A2, 4 ; 20 cycles
+    A PX, A2 ; 14 cycles
+    SWPB A2 ; 10 cycles
+; Compare the A/Y/X of the player and the scene. If they aren't equal,
+; skip this scene
 SCNL1
     CB PA, *A1+
     JNE SCNB6
-    CB A2, *A1+ * 20 cycles
-    JNE SCNB1 * 8 or 10 cycles
-* Otherwise, draw the scene!
-* First, load the address to the next scene into A3
+    CB A2, *A1+ ; 20 cycles
+    JNE SCNB1 ; 8 or 10 cycles
+; Otherwise, draw the scene!
+; First, load the address to the next scene into A3
     MOV *A1+, A3
-* Next get the sprite count(A4) and the action count(A5)
-    CLR A4 * 10 cycles
-    MOVB *A1+, A4 * 20 cycles
-    SWPB A4 * 10 cycles
-    MOV A4, A5 * 14 cycles
-* Shift A4 left 4 bits and & A5 to split the byte into two nibbles
-    SRL A4, 4 * 20 cycles
-* If A4's greater than 0, we branch to SCNB2
+; Next get the sprite count(A4) and the action count(A5)
+    CLR A4 ; 10 cycles
+    MOVB *A1+, A4 ; 20 cycles
+    SWPB A4 ; 10 cycles
+    MOV A4, A5 ; 14 cycles
+; Shift A4 left 4 bits and & A5 to split the byte into two nibbles
+    SRL A4, 4 ; 20 cycles
+; If A4's greater than 0, we branch to SCNB2
     JNE SCNB2
 SCNB2R
-    ANDI A5, >000F * 14 cycles
-* If A5's greater than 0, we branch to SCNB3
+    ANDI A5, >000F ; 14 cycles
+; If A5's greater than 0, we branch to SCNB3
     JNE SCNB3
 SCNB3R
-* If there's not another scene after this, return!
+; If there's not another scene after this, return!
     CI A3, 0
     JEQ SCNEND
     MOV A3, A1
@@ -94,9 +99,9 @@ SCNB5R
     SWPB PA
     RT
 
-* Draw Sprites!
+; Draw Sprites!
 SCNB2
-* Set bit 8 of status since sprites are being drawn
+; Set bit 8 of status since sprites are being drawn
     CLR A6
     MOVB @STAT1, A6
     ORI A6, >0100
@@ -104,38 +109,38 @@ SCNB2
 
     MOV A4, A6
     CLR A8
-* First set the VDC write address (See VDPSWA for comments, this is the same)
-* The ORI and SWPB have been done beforehand
-* A7 is used as a general-purpose register here
-    LI A7, >004C * 12 cycles
-    MOVB A7, @VCOMM * 22 cycles
-    SWPB A7 * 10 cycles
-    MOVB A7, @VCOMM * 22 cycles
+; First set the VDC write address (See VDPSWA for comments, this is the same)
+; The ORI and SWPB have been done beforehand
+; A7 is used as a general-purpose register here
+    LI A7, >004C ; 12 cycles
+    MOVB A7, @VCOMM ; 22 cycles
+    SWPB A7 ; 10 cycles
+    MOVB A7, @VCOMM ; 22 cycles
 SCNBL1
-* Write the sprite's X and Y to the VDP
-    MOVB *A1+, @VWRIT * 20 cycles
-    NOP * 10 cycles
-    MOVB *A1+, @VWRIT * 20 cycles
+; Write the sprite's X and Y to the VDP
+    MOVB *A1+, @VWRIT ; 20 cycles
+    NOP ; 10 cycles
+    MOVB *A1+, @VWRIT ; 20 cycles
     SWPB A8
-* Write the sprite pattern number to the VDP
+; Write the sprite pattern number to the VDP
     MOVB A8, @VWRIT
     SWPB A8
-* Write the color to the VDP
+; Write the color to the VDP
     MOVB *A1+, @VWRIT
     INC A8
     DEC A6
     JNE SCNBL1
-* Disable all sprites after this
+; Disable all sprites after this
     LI A7, >D000
     MOVB A7, @VWRIT
 
-* First set the VDC write address (See VDPSWA for comments, this is the same)
-* The ORI and SWPB have been done beforehand
-* A7 is used as a general-purpose register here
-    LI A7, >0050 * 12 cycles
-    MOVB A7, @VCOMM * 22 cycles
-    SWPB A7 * 10 cycles
-    MOVB A7, @VCOMM * 22 cycles
+; First set the VDC write address (See VDPSWA for comments, this is the same)
+; The ORI and SWPB have been done beforehand
+; A7 is used as a general-purpose register here
+    LI A7, >0050 ; 12 cycles
+    MOVB A7, @VCOMM ; 22 cycles
+    SWPB A7 ; 10 cycles
+    MOVB A7, @VCOMM ; 22 cycles
 
     MOV A4, A6
 SCNBL2
@@ -148,9 +153,9 @@ SCNBL3
     JNE SCNBL2
     JMP SCNB2R
 
-* Load an action!
+; Load an action!
 SCNB3
-* Set bit 7 of status since there are actions loaded are being drawn
+; Set bit 7 of status since there are actions being drawn
     CLR A6
     MOVB @STAT1, A6
     ORI A6, >0200
@@ -165,11 +170,11 @@ SCNBL4
     JMP SCNB3R
 
 SCNB4
-* Clear sprite attribute table...
-    LI A1, >004C * 12 cycles
-    MOVB A1, @VCOMM * 22 cycles
-    SWPB A1 * 10 cycles
-    MOVB A1, @VCOMM * 22 cycles
+; Clear sprite attribute table...
+    LI A1, >004C ; 12 cycles
+    MOVB A1, @VCOMM ; 22 cycles
+    SWPB A1 ; 10 cycles
+    MOVB A1, @VCOMM ; 22 cycles
     LI A1, >D000
     MOVB A1, @VWRIT
     JMP SCNB4R

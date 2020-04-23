@@ -1,34 +1,37 @@
-*##############################################################################*
-* main.a99 - code that initializes the ti and establishes a game loop          *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
+;##############################################################################;
+; main.a99 - code that initializes the ti and establishes a game loop          ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                             ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:   ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                        ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
+
+    EVEN
+
 
 VREAD EQU >8800
 VSTAT EQU >8802
@@ -39,95 +42,95 @@ SWDTH EQU 32
 
 WSREGS EQU >8300
 
-A1 EQU 0 * Accumulator register 1
-A2 EQU 1 * Accumulator register 2
-A3 EQU 2 * Accumulator register 3
-A4 EQU 3 * Accumulator register 4
-A5 EQU 4 * Accumulator register 5
-A6 EQU 5 * Accumulator register 6
-A7 EQU 6 * Accumulator register 7
-A8 EQU 7 * Accumulator register 8
-MAP EQU 8 * Map pointer register
-RX EQU 9 * Ray X register
-RY EQU 10 * Ray Y register
-RTADDR EQU 11 * Return address register
-CRU EQU 12 * CRU address register
-PX EQU 13 * Player X register
-PY EQU 14 * Player Y register
-PA EQU 15 * Player angle register
+A1 EQU 0 ; Accumulator register 1
+A2 EQU 1 ; Accumulator register 2
+A3 EQU 2 ; Accumulator register 3
+A4 EQU 3 ; Accumulator register 4
+A5 EQU 4 ; Accumulator register 5
+A6 EQU 5 ; Accumulator register 6
+A7 EQU 6 ; Accumulator register 7
+A8 EQU 7 ; Accumulator register 8
+MAP EQU 8 ; Map pointer register
+RX EQU 9 ; Ray X register
+RY EQU 10 ; Ray Y register
+RTADDR EQU 11 ; Return address register
+CRU EQU 12 ; CRU address register
+PX EQU 13 ; Player X register
+PY EQU 14 ; Player Y register
+PA EQU 15 ; Player angle register
 
     AORG >6000
 
 CRTHED
-    BYTE >AA    * Standard header n stuff
-    BYTE >01    * Program version (I think?)
-    BYTE >00    * Number of programs on the cart
-    BYTE 'R'    * This tells FinalGROM to use RAM mode(4k ROM, 4k RAM)
-    DATA >0000  * Pointer to the powerup list (n/a)
-    DATA MENU   * Pointer to the program list
-    DATA >0000  * Pointer to the DSLR list (n/a)
-    DATA >0000  * Pointer to the subroutine list (n/a)
+    BYTE >AA    ; Standard header n stuff
+    BYTE >01    ; Program version (I think?)
+    BYTE >00    ; Number of programs on the cart
+    BYTE 'R'    ; This tells FinalGROM to use RAM mode(4k ROM, 4k RAM)
+    DATA >0000  ; Pointer to the powerup list (n/a)
+    DATA MENU   ; Pointer to the program list
+    DATA >0000  ; Pointer to the DSLR list (n/a)
+    DATA >0000  ; Pointer to the subroutine list (n/a)
 
 MENU
 ITEM1
-    DATA >0000  * Pointer to the second menu item (n/a)
-    DATA INIT   * Pointer to the main label
-    BYTE 9     * Length of the text
-    TEXT 'VEPSEU 99' * Text
+    DATA >0000  ; Pointer to the second menu item (n/a)
+    DATA INIT   ; Pointer to the main label
+    BYTE 9     ; Length of the text
+    TEXT 'VEPSEU 99' ; Text
     EVEN
 
-* VDCCMD: Send a command to the VDC
-* A5 = complete 2-byte command
-* 66 cycles in total
+; VDCCMD: Send a command to the VDC
+; A5 = complete 2-byte command
+; 66 cycles in total
 VDCCMD
-    MOVB A5, @VCOMM * 22 cycles
-    SWPB A5 * 10 cycles
-    MOVB A5, @VCOMM * 22 cycles
-    RT * 12 cycles
+    MOVB A5, @VCOMM ; 22 cycles
+    SWPB A5 ; 10 cycles
+    MOVB A5, @VCOMM ; 22 cycles
+    RT ; 12 cycles
 
-* VDCSRG: Set the value of a VDC register
-* A5 = register number, A6 = register value
-* 120 cycles in total
+; VDCSRG: Set the value of a VDC register
+; A5 = register number, A6 = register value
+; 120 cycles in total
 VDCSRG
-    SWPB A6 * 10 cycles
-    SOC A6, A5 * 14 cycles
-    ORI A5, >80 * 14 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
+    SWPB A6 ; 10 cycles
+    SOC A6, A5 ; 14 cycles
+    ORI A5, >80 ; 14 cycles
+    JMP VDCCMD ; 16 cycles + 66 cycles
 
-* VDCSWA: Set the write address pointer of the VDC
-* A5 = address
-* 120 cycles in total
+; VDCSWA: Set the write address pointer of the VDC
+; A5 = address
+; 120 cycles in total
 VDCSWA
-    ANDI A5, >7FFF * 14 cycles
-    ORI A5, >4000 * 14 cycles
-    SWPB A5 * 10 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
+    ANDI A5, >7FFF ; 14 cycles
+    ORI A5, >4000 ; 14 cycles
+    SWPB A5 ; 10 cycles
+    JMP VDCCMD ; 16 cycles + 66 cycles
 
-* VDCSRA: Set the read address pointer of the VDC
-* A5 = address
-* 90 cycles in total
+; VDCSRA: Set the read address pointer of the VDC
+; A5 = address
+; 90 cycles in total
 VDCSRA
-    ANDI A5, >7FFF * 14 cycles
-    SWPB A5 * 10 cycles
-    B @VDCCMD * 16 cycles + 66 cycles
+    ANDI A5, >7FFF ; 14 cycles
+    SWPB A5 ; 10 cycles
+    JMP VDCCMD ; 16 cycles + 66 cycles
 
-* INIT takes an estimated 12394 cycles in total!
+; INIT takes an estimated 12394 cycles in total!
 INIT
-* Make sure the workspace registers are in the right place
-    LWPI WSREGS * 10 cycles
+; Make sure the workspace registers are in the right place
+    LWPI WSREGS ; 10 cycles
 
-* Move the old characters to the new character space. Default location is >0800
-    LI A5, >0800 * 12 cycles
-    BL @VDCSRA * (20 + 90) cycles
+; Move the old characters to the new character space. Default location is >0800
+    LI A5, >0800 ; 12 cycles
+    BL @VDCSRA ; (20 + 90) cycles
 
-    LI A1, INTTMP * 12 cycles
-    LI A2, >0800 * 12 cycles
+    LI A1, INTTMP ; 12 cycles
+    LI A2, >0800 ; 12 cycles
 INITL1
-    MOVB @VREAD, *A1+ * 28 cycles
-    DEC A2 * 10 cycles
-    JNE INITL1 * 8 or 10 cycles
+    MOVB @VREAD, *A1+ ; 28 cycles
+    DEC A2 ; 10 cycles
+    JNE INITL1 ; 8 or 10 cycles
 
-    LI A5, >0000 * 12 cycles
+    LI A5, >0000 ; 12 cycles
     BL @VDCSWA
 
     LI A1, INTTMP
@@ -137,95 +140,95 @@ INITL2
     DEC A2
     JNE INITL2
 
-* Set the 0th register to all 0s
-    CLR A5 * 10 cycles
-    CLR A6 * 10 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Set the 0th register to all 0s
+    CLR A5 ; 10 cycles
+    CLR A6 ; 10 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Enable the 1st and 2nd bit on the first register
-* (enable the screen and vdp interrupts)
-    LI A5, >01 * 12 cycles
-    LI A6, >61 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Enable the 1st and 2nd bit on the first register
+; (enable the screen and vdp interrupts)
+    LI A5, >01 ; 12 cycles
+    LI A6, >61 ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Set the video buffer to the address 2*>400, aka >800
-    LI A5, >02 * 12 cycles
-    LI A6, >02 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Set the video buffer to the address 2*>400, aka >800
+    LI A5, >02 ; 12 cycles
+    LI A6, >02 ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Set the character pattern address to 0
-    LI A5, >04 * 12 cycles
-    LI A6, >00 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Set the character pattern address to 0
+    LI A5, >04 ; 12 cycles
+    LI A6, >00 ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Set the sprite attributes table to >18*>80, aka >0C00
-    LI A5, >05 * 12 cycles
-    LI A6, >18 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Set the sprite attributes table to >18*>80, aka >0C00
+    LI A5, >05 ; 12 cycles
+    LI A6, >18 ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Set the sprite pattern address to 2*>800, aka 1000
-    LI A5, >06 * 12 cycles
-    LI A6, >02 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Set the sprite pattern address to 2*>800, aka 1000
+    LI A5, >06 ; 12 cycles
+    LI A6, >02 ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Set the background color to black
-    LI A5, >07 * 12 cycles
-    LI A6, >11 * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Set the background color to black
+    LI A5, >07 ; 12 cycles
+    LI A6, >11 ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
-* Place the color table behind the screen at address >2C*>40, aka >0B00
-    LI A5, >03 * 12 cycles
-    LI A6, >2C * 12 cycles
-    BL @VDCSRG * 20 cycles + 120 cycles
+; Place the color table behind the screen at address >2C*>40, aka >0B00
+    LI A5, >03 ; 12 cycles
+    LI A6, >2C ; 12 cycles
+    BL @VDCSRG ; 20 cycles + 120 cycles
 
     BL @LDCLR
 
     LI A5, TEXTBL
     BL @LDTEX
 
-* Decompress the demo map into memory
-    LI MAP, MAP1 * 12 cycles
+; Decompress the demo map into memory
+    LI MAP, MAP1 ; 12 cycles
     BL @LDMAP
 
-* Set the screen blank counter to an odd number so the screen doesn't go blank
-    LI A1, 1 * 12 cycles
-    MOV A1, @>83D6 * 22 cycles
+; Set the screen blank counter to an odd number so the screen doesn't go blank
+    LI A1, 1 ; 12 cycles
+    MOV A1, @>83D6 ; 22 cycles
 
-* Tell the ISR to call LOOP every frame
-    LI A1, LOOP * 12 cycles
-    MOV A1, @>83C4 * 22 cycles
+; Tell the ISR to call LOOP every frame
+    LI A1, LOOP ; 12 cycles
+    MOV A1, @>83C4 ; 22 cycles
 
-* Enable interrupts (officially)
-    LIMI 2 * 16 cycles
+; Enable interrupts (officially)
+    LIMI 2 ; 16 cycles
 
-* Wait for LOOP to be called!
+; Wait for LOOP to be called!
 WAIT
-    B @WAIT * 16 cycles, not that it really matters though...
+    JMP WAIT ; 10 cycles, not that it really matters though...
 
-* Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
-* VDP unfortunately kinda slows that down a bit..
+; Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
+; VDP unfortunately kinda slows that down a bit..
 LOOP
-* Load our workspace registers
-    LWPI WSREGS * 10 cycles
-* Disable interrupts while we're in an interrupt...
-    LIMI 0 * 16 cycles
-* Read the keyboard
-    BL @KEYBRD * (20 + 668) to (20 + 952) cycles
-* Render the screen
-    BL @RENDER * (20 + 57,387 to 20 + 57,882) cycles on average
+; Load our workspace registers
+    LWPI WSREGS ; 10 cycles
+; Disable interrupts while we're in an interrupt...
+    LIMI 0 ; 16 cycles
+; Read the keyboard
+    BL @KEYBRD ; (20 + 668) to (20 + 952) cycles
+; Render the screen
+    BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
     BL @SCENES
     BL @ACT
-* Push the previously rendered screen to the VDP
-    BL @RNDPSH * (20 + 36214) cycles
-* Each frame is around 94,329 to 95,108 cycles long, on average.
-* Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
-* Not terrible, considering making the framerate higher doesn't make the game
-* smoother, but I'm not too impressed with it either. We'll just have to see how
-* optimization goes
+; Push the previously rendered screen to the VDP
+    BL @RNDPSH ; (20 + 36214) cycles
+; Each frame is around 94,329 to 95,108 cycles long, on average.
+; Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
+; Not terrible, considering making the framerate higher doesn't make the game
+; smoother, but I'm not too impressed with it either. We'll just have to see how
+; optimization goes
 
-* Go back to the ISR's workspace registers
-    LWPI >83E0 * 10 cycles
-* Return to the ISR
+; Go back to the ISR's workspace registers
+    LWPI >83E0 ; 10 cycles
+; Return to the ISR
     RT
 
     PAGE

@@ -34,18 +34,18 @@ public class GUI
       screenSize = Toolkit.getDefaultToolkit().getScreenSize();
       frame = new Frame(frameName);
       workspace = new Workspace();
+
+      workspace.setBackground(Color.BLACK);
       
       // Set it to a size most if not all monitors can handle
-      workspace.setSize(FRAMEWIDTH, FRAMEHEIGHT);
-      workspace.setBackground(Color.BLACK);
-      workspace.center();
-      
       frame.setSize(FRAMEWIDTH, FRAMEHEIGHT);
       frame.setLocation
       (
           screenSize.width / 2 - FRAMEWIDTH / 2,
           screenSize.height / 2 - FRAMEHEIGHT / 2
       );
+      
+      
       
       frame.addWindowListener(new WindowEvents());
       frame.add(workspace);
@@ -62,5 +62,7 @@ public class GUI
       
       frame.setVisible(true);
       workspace.createBufferStrategy(2);
+      workspace.setSize(frame.getSize());
+      workspace.center();
     }
 }

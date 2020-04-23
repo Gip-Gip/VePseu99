@@ -21,9 +21,12 @@ implements ActionListener, WindowListener
         add(scene);
         
         addWindowListener(this);
-        setSize(scene.WIDTH * scene.SCALE, scene.HEIGHT * scene.SCALE);
         setLayout(null);
         setVisible(true);
+        setBackground(Color.BLACK);
+        scene.setSize(scene.WIDTH*scene.SCALE, scene.HEIGHT * scene.SCALE);
+        scene.setBounds(64, 48, scene.WIDTH*scene.SCALE, scene.HEIGHT*scene.SCALE);
+        setSize(scene.WIDTH*scene.SCALE + 128, scene.HEIGHT*scene.SCALE + 96);
         
         scene.createBufferStrategy(2);
     }

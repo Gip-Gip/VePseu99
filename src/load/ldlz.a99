@@ -1,65 +1,68 @@
-*##############################################################################*
-* ldlz.a99 - decompresses data into memory                                     *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
+;##############################################################################;
+; ldlz.a99 - decompresses data into memory                                     ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                             ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:   ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                        ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
 
-* LDLZ - decompresses data into memory
-* A5 = point in memory containing compressed data, A6 = point in memory to
-* decompress data to
+    EVEN
+
+
+; LDLZ - decompresses data into memory
+; A5 = point in memory containing compressed data, A6 = point in memory to
+; decompress data to
 LDLZ
-    CLR A7 * 10 cycles
-    MOVB *A5+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
-    LI A8, LZDICT * 10 cycles
-* Load the dictionary!
+    CLR A7 ; 10 cycles
+    MOVB *A5+, A7 ; 20 cycles
+    SWPB A7 ; 10 cycles
+    LI A8, LZDICT ; 10 cycles
+; Load the dictionary!
 LDL1
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    MOVB *A5+, *A8+ * 26 cycles
-    DEC A7 * 10 cycles
-    JNE LDL1 * 8 or 10 cycles
+    MOVB *A5+, *A8+ ; 26 cycles
+    MOVB *A5+, *A8+ ; 26 cycles
+    MOVB *A5+, *A8+ ; 26 cycles
+    MOVB *A5+, *A8+ ; 26 cycles
+    DEC A7 ; 10 cycles
+    JNE LDL1 ; 8 or 10 cycles
 
-    CLR A7 * 10 cycles
-    MOVB *A5+, A7 * 20 cycles
-    SWPB A7 * 10 cycles
+    CLR A7 ; 10 cycles
+    MOVB *A5+, A7 ; 20 cycles
+    SWPB A7 ; 10 cycles
 LDL2
-    CLR A8 * 10 cycles
-    MOVB *A5+, A8 * 20 cycles
-    SWPB A8 * 10 cycles
-    SLA A8, 2 * 16 cycles
-    AI A8, LZDICT * 14 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    MOVB *A8+, *A6+ * 26 cycles
-    DEC A7 * 10 cycles
-    JNE LDL2 * 8 or 10 cycles
-    RT * 12 cycles
+    CLR A8 ; 10 cycles
+    MOVB *A5+, A8 ; 20 cycles
+    SWPB A8 ; 10 cycles
+    SLA A8, 2 ; 16 cycles
+    AI A8, LZDICT ; 14 cycles
+    MOVB *A8+, *A6+ ; 26 cycles
+    MOVB *A8+, *A6+ ; 26 cycles
+    MOVB *A8+, *A6+ ; 26 cycles
+    MOVB *A8+, *A6+ ; 26 cycles
+    DEC A7 ; 10 cycles
+    JNE LDL2 ; 8 or 10 cycles
+    RT ; 12 cycles

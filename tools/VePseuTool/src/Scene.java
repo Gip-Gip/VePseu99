@@ -1,5 +1,6 @@
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -21,6 +22,8 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     private Map map = null;
     private ArrayList<Sprite> sprites = null;
     private Sprite selectedSprite = null;
+    private TiColors tiColors = null;
+    private Action[] actions = null;
     private boolean[] drawnl = null;
     private boolean loadingSprite = false;
     private boolean shift = false;
@@ -31,6 +34,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     public final int SPRITEHEIGHT = 8;
     public final int SPRITESCALE = 2;
     public final int SPRITEPMULT = 2;
+    public final int ACTIONCNT = 8;
     
     public int getSceneX()
     {
@@ -78,6 +82,38 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         public Image getSprite()
         {
             return sprite;
+        }
+        
+        public int getColor()
+        {
+            int color = 0;
+            BufferedImage bufferedSprite = (BufferedImage)sprite;
+            for(int y = 0; y < SPRITEHEIGHT && color == 0; y ++)
+            {
+                for(int x = 0; x < SPRITEWIDTH && color == 0; x ++)
+                {
+                    color = bufferedSprite.getRGB(x, y) & 0x00FFFFFF;
+                }
+            }
+            
+            return color;
+        }
+    }
+    
+    public class Action
+    {
+        private String name = null;
+        private String label = null;
+        
+        public Action(String αname, String αlabel)
+        {
+            name = αname;
+            label = αlabel;
+        }
+        
+        public String getName()
+        {
+            return name;
         }
     }
     
@@ -241,14 +277,65 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     
     public Scene(int αx, int αy)
     {
+        tiColors = new TiColors();
         sprites = new ArrayList<Sprite>();
         sceneX = αx;
         sceneY = αy;
         map = GUI.getWorkspace().getMap();
-        setSize(WIDTH * SCALE, HEIGHT * SCALE);
-        setBounds(0, 0, WIDTH * SCALE, HEIGHT * SCALE);
         addKeyListener(this);
         addMouseMotionListener(this);
+        
+        setFont(new Font("Arial", Font.PLAIN, 12));
+    }
+    
+    public Scene(AsmData asmData)
+    {
+        sprites = new ArrayList<Sprite>();
+        actions = new Action[ACTIONCNT];
+        sceneAngle = asmData.getByte();
+        int sceneXY = asmData.getByte();
+        sceneX = sceneXY & 0x0F;
+        sceneY = (sceneXY >> 4) & 0x0F;
+        map = GUI.getWorkspace().getMap();
+        addKeyListener(this);
+        addMouseMotionListener(this);
+        tiColors = new TiColors();
+        asmData.getRef();
+        byte counts = asmData.getByte();
+        byte spriteCnt = (byte)((counts >> 4) & 0x0F);
+        ArrayList<Byte> spritesX = new ArrayList<Byte>();
+        ArrayList<Byte> spritesY = new ArrayList<Byte>();
+        ArrayList<Byte> spritesColor = new ArrayList<Byte>();
+        sprites = new ArrayList<Sprite>();
+   
+        setFont(new Font("Arial", Font.PLAIN, 12));
+        
+        for(int ι = spriteCnt; ι > 0; ι --)
+        {
+            spritesY.add(asmData.getByte());
+            spritesX.add(asmData.getByte());
+            spritesColor.add(asmData.getByte());
+        }
+        
+        for(int ι = 0; ι < spriteCnt; ι ++)
+        {
+            BufferedImage sprite = new BufferedImage
+                (SPRITEWIDTH, SPRITEHEIGHT, BufferedImage.TYPE_INT_ARGB);
+            
+            int rgbColor = tiColors.TItoRGB(spritesColor.get(ι));
+            
+            for(int y = 0; y < SPRITEHEIGHT; y ++)
+            {
+                byte row = asmData.getByte();
+                for(int x = 0; x < SPRITEWIDTH; x ++, row <<= 1)
+                {
+                    if((row & 0x80) != 0) sprite.setRGB(x, y, rgbColor | 0xFF000000);
+                    else sprite.setRGB(x, y, 0x00000000);
+                }
+            }
+            
+            sprites.add(new Sprite(spritesX.get(ι) & 0xFF, spritesY.get(ι) & 0xFF, sprite));
+        }
     }
     
     public void addSprite(Image αimage)
@@ -281,12 +368,19 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         data.addByte((byte)sceneAngle);
         data.addByte((byte)(sceneX | (sceneY << 4)));
         data.addRef(αnextSceneName);
-        data.addByte((byte)(sprites.size() << 4));
+        ArrayList<Action> outActions = new ArrayList<Action>();
+        for(Action action : actions)
+        {
+            if(action != null) outActions.add(action);
+        }
+        
+        data.addByte((byte)((sprites.size() << 4) + (outActions.size() & 0xF)));
+        
         for(Sprite sprite : sprites)
         {
             data.addByte((byte)sprite.getY());
             data.addByte((byte)sprite.getX());
-            data.addByte((byte)0x0F);
+            data.addByte(tiColors.RGBtoTI(sprite.getColor()));
         }
         for(Sprite sprite : sprites)
         {
@@ -339,6 +433,8 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
             {
                 drawnl = new boolean[WIDTH];
                 graphics = bs.getDrawGraphics();
+                
+                // Draw walls
                 graphics.setColor(Color.BLACK);
                 graphics.fillRect(0, 0, getWidth(), getHeight());
                 graphics.setColor(Color.RED);
@@ -366,7 +462,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                     if(map.isWall(rx, ry)) wall.draw(graphics);
                 }
                 
-                
+                // Draw sprites
                 graphics.setColor(Color.GREEN);
                 for(Sprite sprite : sprites)
                 {
@@ -377,7 +473,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                         sprite.getY() * SPRITESCALE,
                         SPRITEPMULT * SPRITESCALE * SPRITEWIDTH,
                         SPRITEPMULT * SPRITESCALE * SPRITEHEIGHT,
-                        Color.BLACK,
+                        null,
                         null
                     );
                     graphics.drawRect
@@ -388,6 +484,19 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                         SPRITEPMULT * SPRITESCALE * SPRITEHEIGHT
                     );
                 }
+                
+                // And last, draw the mouse position notification
+                graphics.setColor(Color.WHITE);
+                String notification = (mouseX/SPRITESCALE) + ", " + (mouseY/SPRITESCALE);
+                if(notification.length() > 0)
+                    graphics.drawChars
+                    (
+                        notification.toCharArray(),
+                        0,
+                        notification.length(),
+                        10,
+                        10
+                    );
             }
             finally
             {
@@ -472,8 +581,9 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
             sprites.remove(selectedSprite);
             sprites.add
                 (selectedSprite = new Sprite(mouseX / SPRITESCALE, mouseY / SPRITESCALE, spriteImage));
-            repaint();
         }
+        
+        repaint();
     }
 
     @Override
@@ -481,6 +591,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     {
         mouseX = ε.getX();
         mouseY = ε.getY();
+        repaint();
         selectedSprite = getSprite(mouseX / SPRITESCALE, mouseY / SPRITESCALE);
     }
 }

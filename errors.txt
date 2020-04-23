@@ -1,0 +1,1232 @@
+> vepseu.a99 <1> 0083 -     MOVB A5, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0085 -     MOVB A5, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0093 -     SOC A6, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0126 -     MOVB @VREAD, *A1+ * 28 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0136 -     MOVB *A1+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 0192 -     MOV A1, @>83D6 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0196 -     MOV A1, @>83C4 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0640 -     MOVB *A1+, *A2+
+***** Error: Syntax error
+> vepseu.a99 <1> 0644 -     MOVB *A1+, *A2+
+***** Error: Syntax error
+> vepseu.a99 <1> 0647 -     MOV *A1+, A3
+***** Error: Syntax error
+> vepseu.a99 <1> 0650 -     MOVB @STAT2, A4
+***** Error: Syntax error
+> vepseu.a99 <1> 0700 -     MOVB @STAT2, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 0702 -     MOVB A1, @STAT2
+***** Error: Syntax error
+> vepseu.a99 <1> 0714 -     MOVB @KEYP1, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0717 -     MOVB A1, @KEYP1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0724 -     MOVB A1, @KEYP1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0729 -     MOVB A1, @KEYP1 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <1> 0742 -     MOVB @KEYP2, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0745 -     MOVB A1, @KEYP2 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0752 -     MOVB A1, @KEYP2 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0757 -     MOVB A1, @KEYP2 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <1> 0766 -     MOV PX, RX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0767 -     MOV PY, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0779 -     MOVB @KEYP3, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0782 -     MOVB A1, @KEYP3 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0789 -     MOVB A1, @KEYP3 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0794 -     MOVB A1, @KEYP3 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <1> 0807 -     MOVB @KEYP4, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0810 -     MOVB A1, @KEYP4 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0817 -     MOVB A1, @KEYP4 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0822 -     MOVB A1, @KEYP4 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <1> 0834 -     MOVB @STAT2, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0836 -     MOVB A1, @STAT2 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0841 -     MOV PA, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0847 -     MOV PA, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0851 -     A A2, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0854 -     A A2, RX * 14 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <1> 0859 -     MOV RY, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0861 -     A RX, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0862 -     A MAP, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0863 -     MOVB *A1, A2 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0865 -     MOV RX, PX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0866 -     MOV RY, PY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0908 -     MOV RTADDR, A2
+***** Error: Syntax error
+> vepseu.a99 <1> 0915 -     MOVB A1, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 0922 -     MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0965 -     MOVB *A5+, A7 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0970 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0971 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0972 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0973 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0978 -     MOVB *A5+, A7 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0982 -     MOVB *A5+, A8 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0986 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0987 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0988 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 0989 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1030 -     MOV *MAP+, @CURSCN
+***** Error: Syntax error
+> vepseu.a99 <1> 1034 -     MOVB *MAP+, PX * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1036 -     MOVB *MAP+, PY * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1038 -     MOVB *MAP+, PA * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1041 -     MOV RTADDR, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1042 -     MOV MAP, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1086 -     MOV A5, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 1087 -     MOV RTADDR, A2
+***** Error: Syntax error
+> vepseu.a99 <1> 1092 -     MOV A1, A5
+***** Error: Syntax error
+> vepseu.a99 <1> 1095 -     MOVB *A5+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 1146 -     MOVB A3, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1148 -     MOVB A3, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1152 -     MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1153 -     MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1170 -     MOVB A3, *A1+ * (20 * 32) = 640 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1192 -     MOVB *A1+, RY * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1193 -     MOVB *A1+, RX * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1194 -     A RX, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1196 -     A RY, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1200 -     MOV PA, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1205 -     MOV PA, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1216 -     A PX, RX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1217 -     A PY, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1228 -     A RX, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1229 -     A MAP, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1232 -     MOVB *RY, A2 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1236 -     CLR A2, 0 * 10 cycles
+***** Error: Bad operand count
+> vepseu.a99 <1> 1237 -     MOVB *A1+, A2 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1239 -     A A2, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1256 -     MOVB *A1+, A3 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1264 -     MOVB *A1+, A7 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1268 -     A A7, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1269 -     MOVB *A5, A4 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1272 -     MOVB A4, *A5 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1274 -     MOVB *A1+, A4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1277 -     MOV A4, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1283 -     S A5, A6 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1284 -     A A7, A6 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1288 -     MOVB *A1+, A8 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1290 -     MOV PA, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1295 -     A A2, A8 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1303 -     MOVB A8, *A6 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1319 -     MOV RX, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1320 -     MOV RY, RX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1321 -     MOV A2, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1366 -     MOVB @STAT1, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 1368 -     MOVB A1, @STAT1
+***** Error: Syntax error
+> vepseu.a99 <1> 1370 -     MOV @CURSCN, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1372 -     MOV PY, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1374 -     A PX, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1381 -     CB PA, *A1+
+***** Error: Syntax error
+> vepseu.a99 <1> 1383 -     CB A2, *A1+ * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1387 -     MOV *A1+, A3
+***** Error: Syntax error
+> vepseu.a99 <1> 1390 -     MOVB *A1+, A4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1392 -     MOV A4, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1405 -     MOV A3, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 1411 -     MOV *A1, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 1415 -     MOVB @STAT1, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 1420 -     MOVB @STAT1, A1
+***** Error: Syntax error
+> vepseu.a99 <1> 1431 -     MOVB @STAT1, A6
+***** Error: Syntax error
+> vepseu.a99 <1> 1433 -     MOVB A6, @STAT1
+***** Error: Syntax error
+> vepseu.a99 <1> 1435 -     MOV A4, A6
+***** Error: Syntax error
+> vepseu.a99 <1> 1441 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1443 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1446 -     MOVB *A1+, @VWRIT * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1448 -     MOVB *A1+, @VWRIT * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1451 -     MOVB A8, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 1454 -     MOVB *A1+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 1460 -     MOVB A7, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 1466 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1468 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1470 -     MOV A4, A6
+***** Error: Syntax error
+> vepseu.a99 <1> 1474 -     MOVB *A1+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 1485 -     MOVB @STAT1, A6
+***** Error: Syntax error
+> vepseu.a99 <1> 1487 -     MOVB A6, @STAT1
+***** Error: Syntax error
+> vepseu.a99 <1> 1491 -     MOVB *A1+, *A6+
+***** Error: Syntax error
+> vepseu.a99 <1> 1500 -     MOVB A1, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1502 -     MOVB A1, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <1> 1504 -     MOVB A1, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <1> 1512 -     MOV A3, *A1+
+***** Error: Syntax error
+> vepseu.a99 <2> 0083 -     MOVB A5, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0085 -     MOVB A5, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0093 -     SOC A6, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0094 -     ORI A5, >80 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0095 -     B @VDCCMD * 16 cycles + 66 cycles
+***** Warning: Possible branch/jump optimization
+> vepseu.a99 <2> 0101 -     ANDI A5, >7FFF * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0102 -     ORI A5, >4000 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0104 -     B @VDCCMD * 16 cycles + 66 cycles
+***** Warning: Possible branch/jump optimization
+> vepseu.a99 <2> 0110 -     ANDI A5, >7FFF * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0112 -     B @VDCCMD * 16 cycles + 66 cycles
+***** Warning: Possible branch/jump optimization
+> vepseu.a99 <2> 0120 -     LI A5, >0800 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0123 -     LI A1, INTTMP * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0124 -     LI A2, >0800 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0126 -     MOVB @VREAD, *A1+ * 28 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0130 -     LI A5, >0000 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0133 -     LI A1, INTTMP
+***** Error: Syntax error
+> vepseu.a99 <2> 0134 -     LI A2, >0800
+***** Error: Syntax error
+> vepseu.a99 <2> 0136 -     MOVB *A1+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 0147 -     LI A5, >01 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0148 -     LI A6, >61 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0152 -     LI A5, >02 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0153 -     LI A6, >02 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0157 -     LI A5, >04 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0158 -     LI A6, >00 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0162 -     LI A5, >05 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0163 -     LI A6, >18 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0167 -     LI A5, >06 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0168 -     LI A6, >02 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0172 -     LI A5, >07 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0173 -     LI A6, >11 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0177 -     LI A5, >03 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0178 -     LI A6, >2C * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0183 -     LI A5, TEXTBL
+***** Error: Syntax error
+> vepseu.a99 <2> 0187 -     LI MAP, MAP1 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0191 -     LI A1, 1 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0192 -     MOV A1, @>83D6 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0195 -     LI A1, LOOP * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0196 -     MOV A1, @>83C4 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0203 -     B @WAIT * 16 cycles, not that it really matters though...
+***** Warning: Possible branch/jump optimization
+> vepseu.a99 <2> 0340 -     BYTE 29, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0341 -     BYTE 30, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0342 -     BYTE 31, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0348 -     BYTE 0, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0349 -     BYTE 1, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0350 -     BYTE 2, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0356 -     BYTE 3, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0357 -     BYTE 4, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0358 -     BYTE 5, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0359 -     BYTE 6, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0360 -     BYTE 7, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0361 -     BYTE 8, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0362 -     BYTE 9, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0363 -     BYTE 10, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0364 -     BYTE 11, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0365 -     BYTE 12, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0366 -     BYTE 13, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0367 -     BYTE 14, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0368 -     BYTE 15, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0369 -     BYTE 16, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0370 -     BYTE 17, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0371 -     BYTE 18, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0372 -     BYTE 19, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0373 -     BYTE 20, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0374 -     BYTE 21, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0375 -     BYTE 22, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0376 -     BYTE 23, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0377 -     BYTE 24, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0378 -     BYTE 25, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0379 -     BYTE 26, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0380 -     BYTE 27, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0381 -     BYTE 28, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0387 -     BYTE 22, 14, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0388 -     BYTE 23, 16, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0389 -     BYTE 24, 17, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0390 -     BYTE 25, 18, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0391 -     BYTE 26, 19, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0392 -     BYTE 27, 20, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0393 -     BYTE 28, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0394 -     BYTE 29, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0395 -     BYTE 30, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0396 -     BYTE 31, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0402 -     BYTE 0, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0403 -     BYTE 1, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0404 -     BYTE 2, 22, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0405 -     BYTE 3, 22, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0406 -     BYTE 4, 20, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0407 -     BYTE 5, 19, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0408 -     BYTE 6, 18, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0409 -     BYTE 7, 17, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0410 -     BYTE 8, 16, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0411 -     BYTE 9, 14, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0417 -     BYTE 10, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0418 -     BYTE 11, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0419 -     BYTE 12, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0420 -     BYTE 13, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0421 -     BYTE 14, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0422 -     BYTE 15, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0423 -     BYTE 16, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0424 -     BYTE 17, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0425 -     BYTE 18, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0426 -     BYTE 19, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0427 -     BYTE 20, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0428 -     BYTE 21, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0434 -     BYTE 19, 8, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0435 -     BYTE 20, 10, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0436 -     BYTE 21, 12, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0437 -     BYTE 22, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0438 -     BYTE 23, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0439 -     BYTE 24, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0440 -     BYTE 25, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0441 -     BYTE 26, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0442 -     BYTE 27, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0443 -     BYTE 28, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0444 -     BYTE 29, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0445 -     BYTE 30, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0446 -     BYTE 31, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0452 -     BYTE 0, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0453 -     BYTE 1, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0454 -     BYTE 2, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0455 -     BYTE 3, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0456 -     BYTE 4, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0457 -     BYTE 5, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0458 -     BYTE 6, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0459 -     BYTE 7, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0460 -     BYTE 8, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0461 -     BYTE 9, 12, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0462 -     BYTE 10, 12, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0463 -     BYTE 11, 10, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0464 -     BYTE 12, 8, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0470 -     BYTE 26, 7, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0471 -     BYTE 27, 8, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0472 -     BYTE 28, 9, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0473 -     BYTE 29, 10, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0474 -     BYTE 30, 11, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0475 -     BYTE 31, 12, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0481 -     BYTE 0, 12, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0482 -     BYTE 1, 11, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0483 -     BYTE 2, 10, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0484 -     BYTE 3, 9, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0485 -     BYTE 4, 8, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0486 -     BYTE 5, 7, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0492 -     BYTE 13, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0493 -     BYTE 14, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0494 -     BYTE 15, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0495 -     BYTE 16, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0496 -     BYTE 17, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0497 -     BYTE 18, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0503 -     BYTE 17, 4, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0504 -     BYTE 18, 6, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0505 -     BYTE 19, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0506 -     BYTE 20, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0507 -     BYTE 21, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0508 -     BYTE 22, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0509 -     BYTE 23, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0510 -     BYTE 24, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0511 -     BYTE 25, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0517 -     BYTE 6, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0518 -     BYTE 7, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0519 -     BYTE 8, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0520 -     BYTE 9, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0521 -     BYTE 10, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0522 -     BYTE 11, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0523 -     BYTE 12, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0524 -     BYTE 13, 6, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0525 -     BYTE 14, 4, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0531 -     BYTE 24, 4, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0532 -     BYTE 25, 6, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0533 -     BYTE 26, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0534 -     BYTE 27, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0535 -     BYTE 28, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0536 -     BYTE 29, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0537 -     BYTE 30, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0538 -     BYTE 31, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0544 -     BYTE 0, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0545 -     BYTE 1, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0546 -     BYTE 2, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0547 -     BYTE 3, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0548 -     BYTE 4, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0549 -     BYTE 5, 6, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0550 -     BYTE 6, 6, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0551 -     BYTE 7, 6, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 0553 -     BYTE 0, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0559 -     BYTE -31, -2, -127, -106, -95, -70, -63, 49, -20, -13, -24, -7, -84, -77, -88, -71
+***** Error: Syntax error
+> vepseu.a99 <2> 0561 -     BYTE 0, 36, 36, 126, 36, 126, 36, 36, 0, 16, 56, 80, 56, 20, 56, 16
+***** Error: Syntax error
+> vepseu.a99 <2> 0562 -     BYTE 0, 0, 16, 16, 124, 16, 16, 0, 0, 0, 0, 0, 56, 0, 0, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0563 -     BYTE 0, 28, 34, 90, 86, 92, 32, 30, 0, 16, 84, 56, 124, 56, 84, 16
+***** Error: Syntax error
+> vepseu.a99 <2> 0564 -     BYTE 0, 0, 98, 100, 8, 16, 38, 70, 0, 48, 72, 72, 48, 74, 68, 58
+***** Error: Syntax error
+> vepseu.a99 <2> 0569 -     BYTE 0, 49
+***** Error: Syntax error
+> vepseu.a99 <2> 0571 -     BYTE 16, 87, 115, 15, 7, 31, 63, 127, 127, -61, -61, -61
+***** Error: Syntax error
+> vepseu.a99 <2> 0575 -     BYTE 1, 1, 0, 3, -128, -128, -128, 0, 0, 0, 0, 0, -128, 0, -128, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0576 -     BYTE 64, 0, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1
+***** Error: Syntax error
+> vepseu.a99 <2> 0577 -     BYTE 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+***** Error: Syntax error
+> vepseu.a99 <2> 0578 -     BYTE 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+***** Error: Syntax error
+> vepseu.a99 <2> 0579 -     BYTE 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+***** Error: Syntax error
+> vepseu.a99 <2> 0584 -     BYTE >00, >00
+***** Error: Syntax error
+> vepseu.a99 <2> 0591 -     BYTE 2, 2, 2, 7, -128, -128, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 0592 -     BYTE -128, 0, 0, 0, 0, -128, 0, 0, -128, -128, 0, -128, 0, -128, -128, -128
+***** Error: Syntax error
+> vepseu.a99 <2> 0593 -     BYTE 64, 0, 1, 2, 2, 3, 4, 2, 2, 5, 4, 2, 2, 6, 4, 2
+***** Error: Syntax error
+> vepseu.a99 <2> 0594 -     BYTE 2, 3, 4, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2
+***** Error: Syntax error
+> vepseu.a99 <2> 0595 -     BYTE 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+***** Error: Syntax error
+> vepseu.a99 <2> 0596 -     BYTE 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+***** Error: Syntax error
+> vepseu.a99 <2> 0600 -     LI MAP, MAP2
+***** Error: Syntax error
+> vepseu.a99 <2> 0637 -     LI A1, ACTION
+***** Error: Syntax error
+> vepseu.a99 <2> 0638 -     LI A2, SCRNBF+SCRNBL-32
+***** Error: Syntax error
+> vepseu.a99 <2> 0640 -     MOVB *A1+, *A2+
+***** Error: Syntax error
+> vepseu.a99 <2> 0641 -     JEQ ACTEND
+***** Error: Out of range: ACTEND +/- 0x97
+> vepseu.a99 <2> 0642 -     LI A3, 5
+***** Error: Syntax error
+> vepseu.a99 <2> 0644 -     MOVB *A1+, *A2+
+***** Error: Syntax error
+> vepseu.a99 <2> 0646 -     JNE ACTL2
+***** Error: Out of range: ACTL2 +/- 0x8f
+> vepseu.a99 <2> 0647 -     MOV *A1+, A3
+***** Error: Syntax error
+> vepseu.a99 <2> 0650 -     MOVB @STAT2, A4
+***** Error: Syntax error
+> vepseu.a99 <2> 0651 -     ANDI A4, >0100
+***** Error: Syntax error
+> vepseu.a99 <2> 0652 -     JEQ ACTL1
+***** Error: Out of range: ACTL1 +/- 0x8b
+> vepseu.a99 <2> 0700 -     MOVB @STAT2, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 0701 -     ANDI A1, >FE00
+***** Error: Syntax error
+> vepseu.a99 <2> 0702 -     MOVB A1, @STAT2
+***** Error: Syntax error
+> vepseu.a99 <2> 0707 -     LI A1, >0200 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0708 -     LI CRU, >0024 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0709 -     LDCR A1, 2 * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0711 -     JEQ KEY1NP * 8 or (10 + 32) cycles, branch from here
+***** Error: Out of range: KEY1NP +/- 0xa4
+> vepseu.a99 <2> 0714 -     MOVB @KEYP1, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0715 -     JNE KEY1CP * 8 or (10 + 46) cycles, branch from here
+***** Error: Out of range: KEY1CP +/- 0xa1
+> vepseu.a99 <2> 0716 -     LI A1, KEYDLY * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0717 -     MOVB A1, @KEYP1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0719 -     JMP KEY2 * 10 cycles, branch from here
+***** Error: Out of range: KEY2 +/- 0xa4
+> vepseu.a99 <2> 0723 -     AI A1, ->0100 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0724 -     MOVB A1, @KEYP1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0725 -     JMP KEY2 * 10 cycles, end of tally
+***** Error: Out of range: KEY2 +/- 0xa4
+> vepseu.a99 <2> 0729 -     MOVB A1, @KEYP1 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <2> 0735 -     LI A1, >0500 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0736 -     LI CRU, >0024 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0737 -     LDCR A1, 3 * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0739 -     JEQ KEY2NP * 8 or (10 + 32) cycles, branch from here
+***** Error: Out of range: KEY2NP +/- 0xb1
+> vepseu.a99 <2> 0742 -     MOVB @KEYP2, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0743 -     JNE KEY2CP * 8 or (10 + 46) cycles, branch from here
+***** Error: Out of range: KEY2CP +/- 0xae
+> vepseu.a99 <2> 0744 -     LI A1, KEYDLY * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0745 -     MOVB A1, @KEYP2 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0747 -     JMP KEY3 * 10 cycles, end of tally
+***** Error: Out of range: KEY3 +/- 0xb1
+> vepseu.a99 <2> 0751 -     AI A1, ->0100 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0752 -     MOVB A1, @KEYP2 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0753 -     JMP KEY3 * 10 cycles, end of tally
+***** Error: Out of range: KEY3 +/- 0xb1
+> vepseu.a99 <2> 0757 -     MOVB A1, @KEYP2 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <2> 0765 -     ANDI PA, >0003 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0766 -     MOV PX, RX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0767 -     MOV PY, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0769 -     LI A2, 0 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0772 -     LI A1, >0100 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0773 -     LI CRU, >0024 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0774 -     LDCR A1, 3 * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0776 -     JEQ KEY3NP * 8 or (10 + 32) cycles, branch from here
+***** Error: Out of range: KEY3NP +/- 0xc2
+> vepseu.a99 <2> 0779 -     MOVB @KEYP3, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0780 -     JNE KEY3CP * 8 or (10 + 46) cycles, branch from here
+***** Error: Out of range: KEY3CP +/- 0xbf
+> vepseu.a99 <2> 0781 -     LI A1, KEYDLY * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0782 -     MOVB A1, @KEYP3 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0784 -     JMP KEY4 * 10 cycles, end of tally
+***** Error: Out of range: KEY4 +/- 0xc2
+> vepseu.a99 <2> 0788 -     AI A1, ->0100 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0789 -     MOVB A1, @KEYP3 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0790 -     JMP KEY4 * 10 cycles, end of tally
+***** Error: Out of range: KEY4 +/- 0xc2
+> vepseu.a99 <2> 0794 -     MOVB A1, @KEYP3 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <2> 0800 -     LI A1, >0100 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0801 -     LI CRU, >0024 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0802 -     LDCR A1, 3 * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0804 -     JEQ KEY4NP * 8 or (10 + 32) cycles, branch from here
+***** Error: Out of range: KEY4NP +/- 0xcf
+> vepseu.a99 <2> 0807 -     MOVB @KEYP4, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0808 -     JNE KEY4CP * 8 or (10 + 46) cycles, branch from here
+***** Error: Out of range: KEY4CP +/- 0xcc
+> vepseu.a99 <2> 0809 -     LI A1, KEYDLY * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0810 -     MOVB A1, @KEYP4 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0812 -     JMP KEY5 * 10 cycles, end of tally
+***** Error: Out of range: KEY5 +/- 0xcf
+> vepseu.a99 <2> 0816 -     AI A1, ->0100 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0817 -     MOVB A1, @KEYP4 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0818 -     JMP KEY5 * 10 cycles, end of tally
+***** Error: Out of range: KEY5 +/- 0xcf
+> vepseu.a99 <2> 0822 -     MOVB A1, @KEYP4 * 22 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <2> 0828 -     LI A1, >0500 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0829 -     LI CRU, >0024 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0830 -     LDCR A1, 3 * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0832 -     JEQ KEY5NP * 8 or 10 cycles, branch from here
+***** Error: Out of range: KEY5NP +/- 0xd6
+> vepseu.a99 <2> 0834 -     MOVB @STAT2, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0835 -     ORI A1, >0100 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0836 -     MOVB A1, @STAT2 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0841 -     MOV PA, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0843 -     ANDI A1, >0002 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0844 -     JEQ KEYNN * 8 or 10 cycles, branch from here
+***** Error: Out of range: KEYNN +/- 0xda
+> vepseu.a99 <2> 0847 -     MOV PA, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0849 -     ANDI A1, >0001 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0850 -     JNE KEYSWP * 8 or (10 + 14) cycles, branch from here
+***** Error: Out of range: KEYSWP +/- 0xdd
+> vepseu.a99 <2> 0851 -     A A2, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0852 -     JMP KEYB1 * 10 cycles, end of tally
+***** Error: Out of range: KEYB1 +/- 0xdd
+> vepseu.a99 <2> 0854 -     A A2, RX * 14 cycles, end of tally
+***** Error: Syntax error
+> vepseu.a99 <2> 0859 -     MOV RY, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0860 -     SLA A1, 4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0861 -     A RX, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0862 -     A MAP, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0863 -     MOVB *A1, A2 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0864 -     JNE KEYHTW * 8 or 10 cycles, branch from here
+***** Error: Out of range: KEYHTW +/- 0xdf
+> vepseu.a99 <2> 0865 -     MOV RX, PX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0866 -     MOV RY, PY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0908 -     MOV RTADDR, A2
+***** Error: Syntax error
+> vepseu.a99 <2> 0909 -     LI A5, >0B00 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0912 -     LI A1, >F100
+***** Error: Syntax error
+> vepseu.a99 <2> 0913 -     LI A3, >10
+***** Error: Syntax error
+> vepseu.a99 <2> 0915 -     MOVB A1, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 0917 -     JNE LDCL1
+***** Error: Out of range: LDCL1 +/- 0xe4
+> vepseu.a99 <2> 0919 -     LI A1, CLRTBL
+***** Error: Syntax error
+> vepseu.a99 <2> 0920 -     LI A3, >10
+***** Error: Syntax error
+> vepseu.a99 <2> 0922 -     MOVB *A1+, @VWRIT * (28 * color table length) = est. 280 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0924 -     JNE LDCL2 * (10 * color table length) - 2 = est. 98 cycles
+***** Error: Out of range: LDCL2 +/- 0xe9
+> vepseu.a99 <2> 0965 -     MOVB *A5+, A7 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0967 -     LI A8, LZDICT * 10 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0970 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0971 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0972 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0973 -     MOVB *A5+, *A8+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0975 -     JNE LDL1 * 8 or 10 cycles
+***** Error: Out of range: LDL1 +/- 0xec
+> vepseu.a99 <2> 0978 -     MOVB *A5+, A7 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0982 -     MOVB *A5+, A8 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0984 -     SLA A8, 2 * 16 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0985 -     AI A8, LZDICT * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0986 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0987 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0988 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0989 -     MOVB *A8+, *A6+ * 26 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 0991 -     JNE LDL2 * 8 or 10 cycles
+***** Error: Out of range: LDL2 +/- 0xeb
+> vepseu.a99 <2> 1030 -     MOV *MAP+, @CURSCN
+***** Error: Syntax error
+> vepseu.a99 <2> 1034 -     MOVB *MAP+, PX * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1036 -     MOVB *MAP+, PY * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1038 -     MOVB *MAP+, PA * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1041 -     MOV RTADDR, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1042 -     MOV MAP, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1043 -     LI A6, RAMMAP * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1046 -     LI MAP, RAMMAP * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1086 -     MOV A5, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 1087 -     MOV RTADDR, A2
+***** Error: Syntax error
+> vepseu.a99 <2> 1088 -     LI A5, >0400
+***** Error: Syntax error
+> vepseu.a99 <2> 1090 -     LI A3, 16
+***** Error: Syntax error
+> vepseu.a99 <2> 1092 -     MOV A1, A5
+***** Error: Syntax error
+> vepseu.a99 <2> 1093 -     LI A4, 8*8
+***** Error: Syntax error
+> vepseu.a99 <2> 1095 -     MOVB *A5+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 1097 -     JNE LDTL2
+***** Error: Out of range: LDTL2 +/- 0xfb
+> vepseu.a99 <2> 1099 -     JNE LDTL1
+***** Error: Out of range: LDTL1 +/- 0xf8
+> vepseu.a99 <2> 1139 -     LI A1, SCRNBF * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1141 -     LI A2, SCRNBL * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1145 -     LI A3, >0048 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1146 -     MOVB A3, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1148 -     MOVB A3, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1149 -     LI A3, SCRNBF * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1152 -     MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1153 -     MOVB *A1+, @VWRIT * (28 * half screen buffer size ) = 10,752 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1157 -     JNE RNDPL1 * (10 * half screen buffer size) - 2 = 3838 cycles
+***** Error: Out of range: RNDPL1 +/- 0x104
+> vepseu.a99 <2> 1167 -     LI A1, DRAWNL * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1168 -     LI A2, 32 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1170 -     MOVB A3, *A1+ * (20 * 32) = 640 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1172 -     JNE RNDL3 * (10 * 32) - 2 = 318 cycles
+***** Error: Out of range: RNDL3 +/- 0x10a
+> vepseu.a99 <2> 1185 -     LI A1, WALTBL * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1192 -     MOVB *A1+, RY * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1193 -     MOVB *A1+, RX * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1194 -     A RX, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1196 -     A RY, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1197 -     CI A2, 0 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1198 -     JEQ RNDEND * 8 to (10 + 14) cycles, branch from here
+***** Error: Out of range: RNDEND +/- 0x124
+> vepseu.a99 <2> 1200 -     MOV PA, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1202 -     ANDI A2, >01 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1203 -     JNE RNDB2 * 8 or (10 + 64) cycles, branch from here
+***** Error: Out of range: RNDB2 +/- 0x141
+> vepseu.a99 <2> 1205 -     MOV PA, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1207 -     ANDI A2, >02 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1208 -     JEQ RNDB3 * 8 to 10 cycles, branch from here
+***** Error: Out of range: RNDB3 +/- 0x119
+> vepseu.a99 <2> 1216 -     A PX, RX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1217 -     A PY, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1225 -     SLA RY, 4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1228 -     A RX, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1229 -     A MAP, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1232 -     MOVB *RY, A2 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1234 -     JNE RNDB1 * 8 or (10 + 3642) cycles, branch from here
+***** Error: Out of range: RNDB1 +/- 0x11c
+> vepseu.a99 <2> 1236 -     CLR A2, 0 * 10 cycles
+***** Error: Bad operand count
+> vepseu.a99 <2> 1237 -     MOVB *A1+, A2 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1239 -     A A2, A1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1240 -     JMP RNDL1 * 10 cycles, end of tally
+***** Error: Out of range: RNDL1 +/- 0x100
+> vepseu.a99 <2> 1256 -     MOVB *A1+, A3 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1261 -     LI A6, SCRNBH * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1264 -     MOVB *A1+, A7 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1267 -     LI A5, DRAWNL * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1268 -     A A7, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1269 -     MOVB *A5, A4 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1270 -     JEQ RNDB4 * 8 or 10 cycles, branch from here
+***** Error: Out of range: RNDB4 +/- 0x134
+> vepseu.a99 <2> 1272 -     MOVB A4, *A5 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1274 -     MOVB *A1+, A4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1277 -     MOV A4, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1279 -     ANDI A5, >FFFE * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1281 -     SLA A5, 4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1283 -     S A5, A6 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1284 -     A A7, A6 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1288 -     MOVB *A1+, A8 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1290 -     MOV PA, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1291 -     ANDI A5, 1 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1292 -     SLA A5, 3 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1294 -     XOR A5, A8 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1295 -     A A2, A8 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1303 -     MOVB A8, *A6 * 18 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1305 -     AI A6, 32 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1308 -     JNE RNDBL2 * 8 or 10 cycles
+***** Error: Out of range: RNDBL2 +/- 0x125
+> vepseu.a99 <2> 1312 -     AI A3, -3 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1313 -     JNE RNDBL1 * 8 or 10 cycles
+***** Error: Out of range: RNDBL1 +/- 0x113
+> vepseu.a99 <2> 1315 -     JMP RNDL1 * 10 cycles, end of tally
+***** Error: Out of range: RNDL1 +/- 0xf6
+> vepseu.a99 <2> 1319 -     MOV RX, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1320 -     MOV RY, RX * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1321 -     MOV A2, RY * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1323 -     JMP RNDB2R * 10 cycles, branch from here
+***** Error: Out of range: RNDB2R +/- 0xff
+> vepseu.a99 <2> 1327 -     JMP RNDB4R * 10 cycles, branch from here
+***** Error: Out of range: RNDB4R +/- 0x127
+> vepseu.a99 <2> 1366 -     MOVB @STAT1, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 1367 -     ANDI A1, >FC00
+***** Error: Syntax error
+> vepseu.a99 <2> 1368 -     MOVB A1, @STAT1
+***** Error: Syntax error
+> vepseu.a99 <2> 1370 -     MOV @CURSCN, A1 * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1372 -     MOV PY, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1373 -     SLA A2, 4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1374 -     A PX, A2 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1381 -     CB PA, *A1+
+***** Error: Syntax error
+> vepseu.a99 <2> 1382 -     JNE SCNB6
+***** Error: Out of range: SCNB6 +/- 0x13f
+> vepseu.a99 <2> 1383 -     CB A2, *A1+ * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1384 -     JNE SCNB1 * 8 or 10 cycles
+***** Error: Out of range: SCNB1 +/- 0x140
+> vepseu.a99 <2> 1387 -     MOV *A1+, A3
+***** Error: Syntax error
+> vepseu.a99 <2> 1390 -     MOVB *A1+, A4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1392 -     MOV A4, A5 * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1394 -     SRL A4, 4 * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1396 -     JNE SCNB2
+***** Error: Out of range: SCNB2 +/- 0x149
+> vepseu.a99 <2> 1398 -     ANDI A5, >000F * 14 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1400 -     JNE SCNB3
+***** Error: Out of range: SCNB3 +/- 0x162
+> vepseu.a99 <2> 1403 -     CI A3, 0
+***** Error: Syntax error
+> vepseu.a99 <2> 1404 -     JEQ SCNEND
+***** Error: Out of range: SCNEND +/- 0x13f
+> vepseu.a99 <2> 1405 -     MOV A3, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 1406 -     JMP SCNL1
+***** Error: Out of range: SCNL1 +/- 0x130
+> vepseu.a99 <2> 1411 -     MOV *A1, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 1412 -     JNE SCNL1
+***** Error: Out of range: SCNL1 +/- 0x12f
+> vepseu.a99 <2> 1415 -     MOVB @STAT1, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 1416 -     ANDI A1, >0100
+***** Error: Syntax error
+> vepseu.a99 <2> 1417 -     JEQ SCNB4
+***** Error: Out of range: SCNB4 +/- 0x169
+> vepseu.a99 <2> 1420 -     MOVB @STAT1, A1
+***** Error: Syntax error
+> vepseu.a99 <2> 1421 -     ANDI A1, >0200
+***** Error: Syntax error
+> vepseu.a99 <2> 1422 -     JEQ SCNB5
+***** Error: Out of range: SCNB5 +/- 0x16e
+> vepseu.a99 <2> 1431 -     MOVB @STAT1, A6
+***** Error: Syntax error
+> vepseu.a99 <2> 1432 -     ORI A6, >0100
+***** Error: Syntax error
+> vepseu.a99 <2> 1433 -     MOVB A6, @STAT1
+***** Error: Syntax error
+> vepseu.a99 <2> 1435 -     MOV A4, A6
+***** Error: Syntax error
+> vepseu.a99 <2> 1440 -     LI A7, >004C * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1441 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1443 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1446 -     MOVB *A1+, @VWRIT * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1448 -     MOVB *A1+, @VWRIT * 20 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1451 -     MOVB A8, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 1454 -     MOVB *A1+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 1457 -     JNE SCNBL1
+***** Error: Out of range: SCNBL1 +/- 0x143
+> vepseu.a99 <2> 1459 -     LI A7, >D000
+***** Error: Syntax error
+> vepseu.a99 <2> 1460 -     MOVB A7, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 1465 -     LI A7, >0050 * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1466 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1468 -     MOVB A7, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1470 -     MOV A4, A6
+***** Error: Syntax error
+> vepseu.a99 <2> 1472 -     LI A7, 8
+***** Error: Syntax error
+> vepseu.a99 <2> 1474 -     MOVB *A1+, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 1476 -     JNE SCNBL3
+***** Error: Out of range: SCNBL3 +/- 0x14e
+> vepseu.a99 <2> 1478 -     JNE SCNBL2
+***** Error: Out of range: SCNBL2 +/- 0x14b
+> vepseu.a99 <2> 1479 -     JMP SCNB2R
+***** Error: Out of range: SCNB2R +/- 0x126
+> vepseu.a99 <2> 1485 -     MOVB @STAT1, A6
+***** Error: Syntax error
+> vepseu.a99 <2> 1486 -     ORI A6, >0200
+***** Error: Syntax error
+> vepseu.a99 <2> 1487 -     MOVB A6, @STAT1
+***** Error: Syntax error
+> vepseu.a99 <2> 1488 -     LI A6, ACTION
+***** Error: Syntax error
+> vepseu.a99 <2> 1489 -     SLA A5, 3
+***** Error: Syntax error
+> vepseu.a99 <2> 1491 -     MOVB *A1+, *A6+
+***** Error: Syntax error
+> vepseu.a99 <2> 1493 -     JNE SCNBL4
+***** Error: Out of range: SCNBL4 +/- 0x156
+> vepseu.a99 <2> 1495 -     JMP SCNB3R
+***** Error: Out of range: SCNB3R +/- 0x127
+> vepseu.a99 <2> 1499 -     LI A1, >004C * 12 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1500 -     MOVB A1, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1502 -     MOVB A1, @VCOMM * 22 cycles
+***** Error: Syntax error
+> vepseu.a99 <2> 1503 -     LI A1, >D000
+***** Error: Syntax error
+> vepseu.a99 <2> 1504 -     MOVB A1, @VWRIT
+***** Error: Syntax error
+> vepseu.a99 <2> 1505 -     JMP SCNB4R
+***** Error: Out of range: SCNB4R +/- 0x130
+> vepseu.a99 <2> 1508 -     LI A1, ACTION
+***** Error: Syntax error
+> vepseu.a99 <2> 1509 -     LI A2, >20
+***** Error: Syntax error
+> vepseu.a99 <2> 1512 -     MOV A3, *A1+
+***** Error: Syntax error
+> vepseu.a99 <2> 1514 -     JNE SCNBL5
+***** Error: Out of range: SCNBL5 +/- 0x161
+> vepseu.a99 <2> 1515 -     JMP SCNB5R
+***** Error: Out of range: SCNB5R +/- 0x132

@@ -14,7 +14,7 @@ public class TiColors
         }
     }
     
-    public final TiColor TI_BLACK = new TiColor(0x00, 0x00, 0x00, 1);
+    public final TiColor TI_BLACK = new TiColor(0x01, 0x01, 0x01, 1);
     public final TiColor TI_GREEN = new TiColor(0x21, 0xc8, 0x42, 2);
     public final TiColor TI_LGREEN = new TiColor(0x5e, 0xdc, 0x78, 3);
     public final TiColor TI_BLUE = new TiColor(0x54, 0x55, 0xed, 4);

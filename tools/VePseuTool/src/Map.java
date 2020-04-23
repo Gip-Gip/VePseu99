@@ -137,6 +137,7 @@ public class Map
         }
         
         mapFile.setName(mapName);
+        mapFile.addRef(sceneCnt > 0 ? sceneName + '0' : ">0000");
         mapFile.addByte(playerX);
         mapFile.addByte(playerY);
         mapFile.addByte(playerA);
@@ -170,11 +171,66 @@ public class Map
     
     public void loadMap(byte[] inFile) throws Exception
     {
-        AsmData mapFile = new AsmData(inFile);
+        ArrayList<AsmData> sections = new ArrayList<AsmData>();
+        ArrayList<Byte> section = new ArrayList<Byte>();
+        String cmpstr = new String();
+        
+        for(byte unit : inFile)
+        {
+            switch(unit)
+            {
+                case('E'): case('V'): case('N'):
+                    cmpstr += (char)unit;
+                    break;
+                default:
+                    cmpstr = new String();
+                    break;
+            }
+            
+            section.add(unit);
+            
+            if(cmpstr.length() == 4)
+            {
+                if(cmpstr.equals("EVEN") && section.size() > 10)
+                {
+                    
+                    byte[] sectionData = new byte[section.size()];
+                    int ι = 0;
+                    for(Byte sectionUnit : section)
+                    {
+                        sectionData[ι++] = sectionUnit;
+                    }
+                    sections.add(new AsmData(sectionData));
+                    section = new ArrayList<Byte>();
+                }
+                else cmpstr = new String();
+            }
+        }
+        
+        byte[] sectionData = new byte[section.size()];
+        int ι = 0;
+        for(Byte sectionUnit : section)
+        {
+            sectionData[ι++] = sectionUnit;
+        }
+        sections.add(new AsmData(sectionData));
+        
+        ι = 0;
+        AsmData asmSection = null;
+        while(ι < sections.size() - 1)
+        {
+            asmSection = sections.get(ι++);
+            scenes.add(new Scene(asmSection));
+        }
+        
+        AsmData mapFile = sections.get(sections.size() - 1);
+        
         mapName = mapFile.getName();
+        mapFile.getRef();
         playerX = mapFile.getByte();
         playerY = mapFile.getByte();
         playerA = mapFile.getByte();
+        
         LZ compressedMap = new LZ(mapFile.getData(), true);
         
         

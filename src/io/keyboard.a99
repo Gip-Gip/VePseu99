@@ -1,215 +1,218 @@
-*##############################################################################*
-* keyboard.a99 - code used to take and utilize input from the keyboard         *
-*==============================================================================*
-* This file is a part of VePseu 99!                                            *
-*                                                                              *
-* Copyright (c) 2020, Charles Thompson. All rights reserved.                   *
-*                                                                              *
-* Redistribution and use in source and binary forms, with or without           *
-* modification, are permitted provided that the following conditions are met:  *
-*                                                                              *
-* 1. Redistributions of source code must retain the above copyright notice,    *
-*    this list of conditions and the following disclaimer.                     *
-* 2. Redistributions in binary form must reproduce the above copyright notice, *
-*    this list of conditions and the following disclaimer in the documentation *
-*    and/or other materials provided with the distribution.                    *
-* 3. Neither the name of the copyright holder nor the names of its             *
-*    contributors may be used to endorse or promote products derived from this *
-*    software without specific prior written permission.                       *
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  *
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    *
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   *
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    *
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          *
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         *
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     *
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      *
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      *
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   *
-* POSSIBILITY OF SUCH DAMAGE.                                                  *
-*##############################################################################*
+;##############################################################################;
+; keyboard.a99 - code used to take and utilize input from the keyboard         ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                             ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:   ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                        ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
 
-* The amount of frames between repeating a key. Since we get on average 30fps
-* and we want a key to repeat every 1/4 of a second, we'll set the delay to
-* 7 frames
+    EVEN
+
+
+; The amount of frames between repeating a key. Since we get on average 30fps
+; and we want a key to repeat every 1/4 of a second, we'll set the delay to
+; 7 frames
 KEYDLY EQU >0500
 
-* Keyboard scanning routine
-* 700 to 1040 cycles
+; Keyboard scanning routine
+; 700 to 1040 cycles
 KEYBRD
-* Make sure bit 8 of STAT2 is set to 0
+; Make sure bit 8 of STAT2 is set to 0
     CLR A1
     MOVB @STAT2, A1
     ANDI A1, >FE00
     MOVB A1, @STAT2
-* D Key
-* 94 to 154 cycles
+; D Key
+; 94 to 154 cycles
 KEY1
-* Check to see if the D key is pressed...
-    LI A1, >0200 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 2 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY1NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP1, A1 * 22 cycles
-    JNE KEY1CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP1 * 22 cycles
-    DEC PA * 10 cycles
-    JMP KEY2 * 10 cycles, branch from here
-* If the button can't be pressed due to a timer, decrement the timer by 1
+; Check to see if the D key is pressed...
+    LI A1, >0200 ; 12 cycles
+    LI CRU, >0024 ; 12 cycles
+    LDCR A1, 2 ; 26 cycles
+    TB ->000A ; 12 cycles
+    JEQ KEY1NP ; 8 or (10 + 32) cycles, branch from here
+; Also make sure the key isn't pressed already...
+; We don't need to CLR A1 as we know the least significant byte is 0...
+    MOVB @KEYP1, A1 ; 22 cycles
+    JNE KEY1CP ; 8 or (10 + 46) cycles, branch from here
+    LI A1, KEYDLY ; 12 cycles
+    MOVB A1, @KEYP1 ; 22 cycles
+    DEC PA ; 10 cycles
+    JMP KEY2 ; 10 cycles, branch from here
+; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY1CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP1 * 22 cycles
-    JMP KEY2 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
+; No subtract immediate, remember?
+    AI A1, ->0100 ; 14 cycles
+    MOVB A1, @KEYP1 ; 22 cycles
+    JMP KEY2 ; 10 cycles, end of tally
+; If the button wasn't pressed at all, reset the timer
 KEY1NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP1 * 22 cycles, end of tally
+    CLR A1 ; 10 cycles
+    MOVB A1, @KEYP1 ; 22 cycles, end of tally
 
-* A Key
-* 94 to 154 cycles
+; A Key
+; 94 to 154 cycles
 KEY2
-* Check to see if the A key is pressed...
-    LI A1, >0500 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY2NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP2, A1 * 22 cycles
-    JNE KEY2CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP2 * 22 cycles
-    INC PA * 10 cycles
-    JMP KEY3 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
+; Check to see if the A key is pressed...
+    LI A1, >0500 ; 12 cycles
+    LI CRU, >0024 ; 12 cycles
+    LDCR A1, 3 ; 26 cycles
+    TB ->000A ; 12 cycles
+    JEQ KEY2NP ; 8 or (10 + 32) cycles, branch from here
+; Also make sure the key isn't pressed already...
+; We don't need to CLR A1 as we know the least significant byte is 0...
+    MOVB @KEYP2, A1 ; 22 cycles
+    JNE KEY2CP ; 8 or (10 + 46) cycles, branch from here
+    LI A1, KEYDLY ; 12 cycles
+    MOVB A1, @KEYP2 ; 22 cycles
+    INC PA ; 10 cycles
+    JMP KEY3 ; 10 cycles, end of tally
+; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY2CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP2 * 22 cycles
-    JMP KEY3 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
+; No subtract immediate, remember?
+    AI A1, ->0100 ; 14 cycles
+    MOVB A1, @KEYP2 ; 22 cycles
+    JMP KEY3 ; 10 cycles, end of tally
+; If the button wasn't pressed at all, reset the timer
 KEY2NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP2 * 22 cycles, end of tally
+    CLR A1 ; 10 cycles
+    MOVB A1, @KEYP2 ; 22 cycles, end of tally
 
 
-* W key
-* 148 to 208 cycles
+; W key
+; 148 to 208 cycles
 KEY3
 
-* Make sure the player angle doesn't go over 3
-    ANDI PA, >0003 * 14 cycles
-    MOV PX, RX * 14 cycles
-    MOV PY, RY * 14 cycles
-* Use A2 as the player displacement register
-    LI A2, 0 * 12 cycles
+; Make sure the player angle doesn't go over 3
+    ANDI PA, >0003 ; 14 cycles
+    MOV PX, RX ; 14 cycles
+    MOV PY, RY ; 14 cycles
+; Use A2 as the player displacement register
+    LI A2, 0 ; 12 cycles
 
-* Check to see if the W key is pressed...
-    LI A1, >0100 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->0009 * 12 cycles
-    JEQ KEY3NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP3, A1 * 22 cycles
-    JNE KEY3CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP3 * 22 cycles
-    INC A2 * 10 cycles
-    JMP KEY4 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
+; Check to see if the W key is pressed...
+    LI A1, >0100 ; 12 cycles
+    LI CRU, >0024 ; 12 cycles
+    LDCR A1, 3 ; 26 cycles
+    TB ->0009 ; 12 cycles
+    JEQ KEY3NP ; 8 or (10 + 32) cycles, branch from here
+; Also make sure the key isn't pressed already...
+; We don't need to CLR A1 as we know the least significant byte is 0...
+    MOVB @KEYP3, A1 ; 22 cycles
+    JNE KEY3CP ; 8 or (10 + 46) cycles, branch from here
+    LI A1, KEYDLY ; 12 cycles
+    MOVB A1, @KEYP3 ; 22 cycles
+    INC A2 ; 10 cycles
+    JMP KEY4 ; 10 cycles, end of tally
+; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY3CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP3 * 22 cycles
-    JMP KEY4 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
+; No subtract immediate, remember?
+    AI A1, ->0100 ; 14 cycles
+    MOVB A1, @KEYP3 ; 22 cycles
+    JMP KEY4 ; 10 cycles, end of tally
+; If the button wasn't pressed at all, reset the timer
 KEY3NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP3 * 22 cycles, end of tally
+    CLR A1 ; 10 cycles
+    MOVB A1, @KEYP3 ; 22 cycles, end of tally
 
-* S Key
-* 94 to 154 cycles
+; S Key
+; 94 to 154 cycles
 KEY4
-* Check to see if the S key is pressed...
-    LI A1, >0100 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000A * 12 cycles
-    JEQ KEY4NP * 8 or (10 + 32) cycles, branch from here
-* Also make sure the key isn't pressed already...
-* We don't need to CLR A1 as we know the least significant byte is 0...
-    MOVB @KEYP4, A1 * 22 cycles
-    JNE KEY4CP * 8 or (10 + 46) cycles, branch from here
-    LI A1, KEYDLY * 12 cycles
-    MOVB A1, @KEYP4 * 22 cycles
-    DEC A2 * 10 cycles
-    JMP KEY5 * 10 cycles, end of tally
-* If the button can't be pressed due to a timer, decrement the timer by 1
+; Check to see if the S key is pressed...
+    LI A1, >0100 ; 12 cycles
+    LI CRU, >0024 ; 12 cycles
+    LDCR A1, 3 ; 26 cycles
+    TB ->000A ; 12 cycles
+    JEQ KEY4NP ; 8 or (10 + 32) cycles, branch from here
+; Also make sure the key isn't pressed already...
+; We don't need to CLR A1 as we know the least significant byte is 0...
+    MOVB @KEYP4, A1 ; 22 cycles
+    JNE KEY4CP ; 8 or (10 + 46) cycles, branch from here
+    LI A1, KEYDLY ; 12 cycles
+    MOVB A1, @KEYP4 ; 22 cycles
+    DEC A2 ; 10 cycles
+    JMP KEY5 ; 10 cycles, end of tally
+; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY4CP
-* No subtract immediate, remember?
-    AI A1, ->0100 * 14 cycles
-    MOVB A1, @KEYP4 * 22 cycles
-    JMP KEY5 * 10 cycles, end of tally
-* If the button wasn't pressed at all, reset the timer
+; No subtract immediate, remember?
+    AI A1, ->0100 ; 14 cycles
+    MOVB A1, @KEYP4 ; 22 cycles
+    JMP KEY5 ; 10 cycles, end of tally
+; If the button wasn't pressed at all, reset the timer
 KEY4NP
-    CLR A1 * 10 cycles
-    MOVB A1, @KEYP4 * 22 cycles, end of tally
+    CLR A1 ; 10 cycles
+    MOVB A1, @KEYP4 ; 22 cycles, end of tally
 
-* 1 Key(Action key)
-* 72 to 128 cycles
+; 1 Key(Action key)
+; 72 to 128 cycles
 KEY5
-* Check to see if the 1 key is pressed...
-    LI A1, >0500 * 12 cycles
-    LI CRU, >0024 * 12 cycles
-    LDCR A1, 3 * 26 cycles
-    TB ->000B * 12 cycles
-    JEQ KEY5NP * 8 or 10 cycles, branch from here
+; Check to see if the 1 key is pressed...
+    LI A1, >0500 ; 12 cycles
+    LI CRU, >0024 ; 12 cycles
+    LDCR A1, 3 ; 26 cycles
+    TB ->000B ; 12 cycles
+    JEQ KEY5NP ; 8 or 10 cycles, branch from here
 *
-    MOVB @STAT2, A1 * 22 cycles
-    ORI A1, >0100 * 14 cycles
-    MOVB A1, @STAT2 * 22 cycles
+    MOVB @STAT2, A1 ; 22 cycles
+    ORI A1, >0100 ; 14 cycles
+    MOVB A1, @STAT2 ; 22 cycles
 KEY5NP
 
-* Modify the player displacement based on angle...
-* 90 to 108 cycles
-    MOV PA, A1 * 14 cycles
-* If neg(bit 6) is set, make A2 negative
-    ANDI A1, >0002 * 14 cycles
-    JEQ KEYNN * 8 or 10 cycles, branch from here
-    NEG A2 * 12 cycles
+; Modify the player displacement based on angle...
+; 90 to 108 cycles
+    MOV PA, A1 ; 14 cycles
+; If neg(bit 6) is set, make A2 negative
+    ANDI A1, >0002 ; 14 cycles
+    JEQ KEYNN ; 8 or 10 cycles, branch from here
+    NEG A2 ; 12 cycles
 KEYNN
-    MOV PA, A1 * 14 cycles
-* if swap(bit 7) is set add A2 to RX instead of RY
-    ANDI A1, >0001 * 14 cycles
-    JNE KEYSWP * 8 or (10 + 14) cycles, branch from here
-    A A2, RY * 14 cycles
-    JMP KEYB1 * 10 cycles, end of tally
+    MOV PA, A1 ; 14 cycles
+; if swap(bit 7) is set add A2 to RX instead of RY
+    ANDI A1, >0001 ; 14 cycles
+    JNE KEYSWP ; 8 or (10 + 14) cycles, branch from here
+    A A2, RY ; 14 cycles
+    JMP KEYB1 ; 10 cycles, end of tally
 KEYSWP
-    A A2, RX * 14 cycles, end of tally
+    A A2, RX ; 14 cycles, end of tally
 
-* Now we see if we can move the player without running into a wall...
-* 90 to 116 cycles
+; Now we see if we can move the player without running into a wall...
+; 90 to 116 cycles
 KEYB1
-    MOV RY, A1 * 14 cycles
-    SLA A1, 4 * 20 cycles
-    A RX, A1 * 14 cycles
-    A MAP, A1 * 14 cycles
-    MOVB *A1, A2 * 18 cycles
-    JNE KEYHTW * 8 or 10 cycles, branch from here
-    MOV RX, PX * 14 cycles
-    MOV RY, PY * 14 cycles
+    MOV RY, A1 ; 14 cycles
+    SLA A1, 4 ; 20 cycles
+    A RX, A1 ; 14 cycles
+    A MAP, A1 ; 14 cycles
+    MOVB *A1, A2 ; 18 cycles
+    JNE KEYHTW ; 8 or 10 cycles, branch from here
+    MOV RX, PX ; 14 cycles
+    MOV RY, PY ; 14 cycles
 KEYHTW
-* end of tally
+; end of tally
 
-    RT * 18 cycles
+    RT ; 18 cycles
 
     PAGE
