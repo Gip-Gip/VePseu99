@@ -63,14 +63,14 @@ public class AsmData
     {
         if(index > 0) asmData = asmData.substring(0, asmData.length() - 1);
         index = -1;
-        asmData += "\r\n    DATA " + unit;
+        asmData += "\r\n    DATA " + unit + "\r\n";
     }
     
     public void addText(String unit)
     {
         if(index > 0) asmData = asmData.substring(0, asmData.length() - 1);
         index = -1;
-        asmData += "\r\n    TEXT '" + unit + "'";
+        asmData += "\r\n    TEXT '" + unit + "'\r\n";
     }
     
     public byte getByte()
@@ -117,8 +117,8 @@ public class AsmData
         while
         (
             index < asmData.length() &&
-            (Character.isWhitespace(asmData.charAt(index++)))
-        );
+            (Character.isWhitespace(asmData.charAt(index)))
+        ) index++;
         
         while
         (
@@ -126,6 +126,7 @@ public class AsmData
             !Character.isWhitespace(asmData.charAt(index))
         )
             refStr += asmData.charAt(index++);
+        
         return refStr;
     }
     
@@ -161,8 +162,12 @@ public class AsmData
             index < asmData.length() &&
             !Character.isWhitespace(asmData.charAt(index))
         )
+        {
             if(asmData.charAt(index) != '\'')
-                textStr += asmData.charAt(index++);
+                textStr += asmData.charAt(index);
+            index ++;
+        }
+        
         return textStr;
     }
     

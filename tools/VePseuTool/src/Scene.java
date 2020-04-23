@@ -100,7 +100,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         }
     }
     
-    public class Action
+    static public class Action
     {
         private String name = null;
         private String label = null;
@@ -114,6 +114,11 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         public String getName()
         {
             return name;
+        }
+        
+        public String getLabel()
+        {
+            return label;
         }
     }
     
@@ -279,6 +284,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     {
         tiColors = new TiColors();
         sprites = new ArrayList<Sprite>();
+        actions = new Action[ACTIONCNT];
         sceneX = αx;
         sceneY = αy;
         map = GUI.getWorkspace().getMap();
@@ -290,6 +296,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     
     public Scene(AsmData asmData)
     {
+        tiColors = new TiColors();
         sprites = new ArrayList<Sprite>();
         actions = new Action[ACTIONCNT];
         sceneAngle = asmData.getByte();
@@ -299,10 +306,11 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         map = GUI.getWorkspace().getMap();
         addKeyListener(this);
         addMouseMotionListener(this);
-        tiColors = new TiColors();
+        // We don't need the reference to the scene
         asmData.getRef();
         byte counts = asmData.getByte();
-        byte spriteCnt = (byte)((counts >> 4) & 0x0F);
+        int spriteCnt = (counts >> 4) & 0x0F;
+        int actionCnt = counts & 0x0F;
         ArrayList<Byte> spritesX = new ArrayList<Byte>();
         ArrayList<Byte> spritesY = new ArrayList<Byte>();
         ArrayList<Byte> spritesColor = new ArrayList<Byte>();
@@ -335,6 +343,11 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
             }
             
             sprites.add(new Sprite(spritesX.get(ι) & 0xFF, spritesY.get(ι) & 0xFF, sprite));
+        }
+        
+        for(int ι = 0; ι < actionCnt; ι ++)
+        {
+            actions[ι] = new Action(asmData.getText(), asmData.getRef());
         }
     }
     
@@ -399,6 +412,11 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                 }
                 data.addByte((byte)Integer.parseInt(row, 2));
             }
+        }
+        for(Action action : outActions)
+        {
+            data.addText(action.getName());
+            data.addRef(action.getLabel());
         }
         return data;
     }
@@ -487,7 +505,15 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                 
                 // And last, draw the mouse position notification
                 graphics.setColor(Color.WHITE);
-                String notification = (mouseX/SPRITESCALE) + ", " + (mouseY/SPRITESCALE);
+                String notification =
+                    (mouseX/SPRITESCALE) + ", " + (mouseY/SPRITESCALE);
+                
+                for(Action action : actions)
+                {
+                    if(action != null) notification +=
+                        " " + action.getName() + "(" + action.getLabel() + ")";
+                }
+                
                 if(notification.length() > 0)
                     graphics.drawChars
                     (
@@ -547,6 +573,30 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                 loadingSprite = true;
                 selectedSprite = null;
                 new LoadSprite(this);
+                break;
+            case(KeyEvent.VK_1):
+                new ActionDialog(GUI.getFrame(), actions, 0);
+                break;
+            case(KeyEvent.VK_2):
+                new ActionDialog(GUI.getFrame(), actions, 1);
+                break;
+            case(KeyEvent.VK_3):
+                new ActionDialog(GUI.getFrame(), actions, 2);
+                break;
+            case(KeyEvent.VK_4):
+                new ActionDialog(GUI.getFrame(), actions, 3);
+                break;
+            case(KeyEvent.VK_5):
+                new ActionDialog(GUI.getFrame(), actions, 4);
+                break;
+            case(KeyEvent.VK_6):
+                new ActionDialog(GUI.getFrame(), actions, 5);
+                break;
+            case(KeyEvent.VK_7):
+                new ActionDialog(GUI.getFrame(), actions, 6);
+                break;
+            case(KeyEvent.VK_8):
+                new ActionDialog(GUI.getFrame(), actions, 7);
                 break;
         }
     }
