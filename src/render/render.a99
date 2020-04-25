@@ -63,7 +63,7 @@ RNDPL1
 ; 57387 to 57882 cycles on average
 RENDER
 
-; Second, make sure all vertical lines are reset
+; Make sure all vertical lines are reset
 ; 1302 cycles
     LI A1, DRAWNL ; 12 cycles
     LI A2, 32 ; 12 cycles

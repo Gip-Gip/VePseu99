@@ -53,6 +53,11 @@ STAT2 EQU >73A9
 ACTION EQU >7300
 DRAWNL EQU >7380
 
+; Basic screen notification pointer
+NOTIFY EQU >73AA
+; Demo-specific variables
+UNLOCK EQU >73AC
+
 LZDICT EQU >7D00
 LZDEC EQU >7E00
 RAMMAP EQU >7F00

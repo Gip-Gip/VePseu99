@@ -38,6 +38,9 @@
 ; vertical line draw list size in bytes
 ; vertical line draw list, position, height, and color selection(boolean 0 or 8)
 
+DNOTIF
+    BYTE 0
+
 WALTBL
 
 WAL1

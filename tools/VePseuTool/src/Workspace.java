@@ -436,7 +436,11 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 break;
             // Ctrl+s shortcut
             case(KeyEvent.VK_S):
-                if(ctrl) save.run();
+                if(ctrl)
+                {
+                    save.run();
+                    ctrl = false;
+                }
                 else
                 {
                     int sceneX = (mouseX - relativeX) / scale;

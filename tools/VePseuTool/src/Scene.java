@@ -1,6 +1,7 @@
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -35,6 +36,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     public final int SPRITESCALE = 2;
     public final int SPRITEPMULT = 2;
     public final int ACTIONCNT = 8;
+    public final Frame frame;
     
     public int getSceneX()
     {
@@ -82,6 +84,26 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         public Image getSprite()
         {
             return sprite;
+        }
+        
+        public void incX(int Δ)
+        {
+            x += Δ;
+        }
+        
+        public void decX(int Δ)
+        {
+            x -= Δ;
+        }
+        
+        public void incY(int Δ)
+        {
+            y += Δ;
+        }
+        
+        public void decY(int Δ)
+        {
+            y -= Δ;
         }
         
         public int getColor()
@@ -282,6 +304,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     
     public Scene(int αx, int αy)
     {
+        frame = GUI.getFrame();
         tiColors = new TiColors();
         sprites = new ArrayList<Sprite>();
         actions = new Action[ACTIONCNT];
@@ -296,6 +319,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     
     public Scene(AsmData asmData)
     {
+        frame = GUI.getFrame();
         tiColors = new TiColors();
         sprites = new ArrayList<Sprite>();
         actions = new Action[ACTIONCNT];
@@ -508,6 +532,12 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                 String notification =
                     (mouseX/SPRITESCALE) + ", " + (mouseY/SPRITESCALE);
                 
+                if(selectedSprite != null)
+                {
+                    notification += "(" + selectedSprite.getX() + ", ";
+                    notification += selectedSprite.getY() + ")";
+                }
+                
                 for(Action action : actions)
                 {
                     if(action != null) notification +=
@@ -551,7 +581,6 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
             case(KeyEvent.VK_A):
                 sceneAngle ++;
                 sceneAngle &= 3;
-                repaint();
                 break;
             case(KeyEvent.VK_D):
                 if(shift)
@@ -567,7 +596,6 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                     sceneAngle --;
                     sceneAngle &= 3;
                 }
-                repaint();
                 break;
             case(KeyEvent.VK_S):
                 loadingSprite = true;
@@ -575,30 +603,44 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
                 new LoadSprite(this);
                 break;
             case(KeyEvent.VK_1):
-                new ActionDialog(GUI.getFrame(), actions, 0);
+                new ActionDialog(frame, actions, 0);
                 break;
             case(KeyEvent.VK_2):
-                new ActionDialog(GUI.getFrame(), actions, 1);
+                new ActionDialog(frame, actions, 1);
                 break;
             case(KeyEvent.VK_3):
-                new ActionDialog(GUI.getFrame(), actions, 2);
+                new ActionDialog(frame, actions, 2);
                 break;
             case(KeyEvent.VK_4):
-                new ActionDialog(GUI.getFrame(), actions, 3);
+                new ActionDialog(frame, actions, 3);
                 break;
             case(KeyEvent.VK_5):
-                new ActionDialog(GUI.getFrame(), actions, 4);
+                new ActionDialog(frame, actions, 4);
                 break;
             case(KeyEvent.VK_6):
-                new ActionDialog(GUI.getFrame(), actions, 5);
+                new ActionDialog(frame, actions, 5);
                 break;
             case(KeyEvent.VK_7):
-                new ActionDialog(GUI.getFrame(), actions, 6);
+                new ActionDialog(frame, actions, 6);
                 break;
             case(KeyEvent.VK_8):
-                new ActionDialog(GUI.getFrame(), actions, 7);
+                new ActionDialog(frame, actions, 7);
+                break;
+            case(KeyEvent.VK_LEFT):
+                if(selectedSprite != null) selectedSprite.decX(1);
+                break;
+            case(KeyEvent.VK_RIGHT):
+                if(selectedSprite != null) selectedSprite.incX(1);
+                break;
+            case(KeyEvent.VK_UP):
+                if(selectedSprite != null) selectedSprite.decY(1);
+                break;
+            case(KeyEvent.VK_DOWN):
+                if(selectedSprite != null) selectedSprite.incY(1);
                 break;
         }
+        
+        repaint();
     }
 
     @Override

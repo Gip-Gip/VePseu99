@@ -1,7 +1,9 @@
+@echo off
 set rt=%cd%
 del vepseu.a99
 call :LOADDIR src
-echo     END >> %rt%\vepseu.a99
+@echo off
+echo END .PRINT ^(^>7000-END^), ' BYTES LEFT IN ROM' >> %rt%\vepseu.a99
 cd %rt%
 exit /b
 

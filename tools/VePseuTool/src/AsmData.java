@@ -43,7 +43,7 @@ public class AsmData
     
     public void addByte(byte unit)
     {
-        if(index == 16)
+        if(index >= 16)
         {
             index = -1;
             asmData = asmData.substring(0, asmData.length() - 1);
@@ -61,9 +61,20 @@ public class AsmData
     
     public void addRef(String unit)
     {
-        if(index > 0) asmData = asmData.substring(0, asmData.length() - 1);
-        index = -1;
-        asmData += "\r\n    DATA " + unit + "\r\n";
+        if(index >= 16)
+        {
+            index = -1;
+            asmData = asmData.substring(0, asmData.length() - 1);
+        }
+        
+        if(index == -1)
+        {
+            index ++;
+            asmData += "\r\n    BYTE";
+        }
+        
+        index += 2;
+        asmData += " " + unit + "/256, " + unit + ",";
     }
     
     public void addText(String unit)
@@ -95,14 +106,14 @@ public class AsmData
     
     public String getRef()
     {
-        String tokenStr = new String();
-        while(index < asmData.length() && !tokenStr.equals("DATA"))
+        String tokenStr = "BYTE";
+        while(index < asmData.length() && tokenStr.equals("BYTE"))
         {
             tokenStr = new String();
             while
             (
                 index < asmData.length() &&
-                (Character.isWhitespace(asmData.charAt(index)))
+                !Character.isAlphabetic(asmData.charAt(index))
             ) index ++;
             
             while
@@ -117,7 +128,7 @@ public class AsmData
         while
         (
             index < asmData.length() &&
-            (Character.isWhitespace(asmData.charAt(index)))
+            !Character.isAlphabetic(asmData.charAt(index))
         ) index++;
         
         while
@@ -125,7 +136,10 @@ public class AsmData
             index < asmData.length() &&
             !Character.isWhitespace(asmData.charAt(index))
         )
-            refStr += asmData.charAt(index++);
+        {
+            if(asmData.charAt(index) != ',') refStr += asmData.charAt(index);
+            index ++;
+        }
         
         return refStr;
     }
@@ -139,7 +153,7 @@ public class AsmData
             while
             (
                 index < asmData.length() &&
-                (Character.isWhitespace(asmData.charAt(index)))
+                !Character.isAlphabetic(asmData.charAt(index))
             ) index ++;
             
             while
@@ -154,8 +168,8 @@ public class AsmData
         while
         (
             index < asmData.length() &&
-            (Character.isWhitespace(asmData.charAt(index++)))
-        );
+            asmData.charAt(index) != '\''
+        ) index ++;
         
         while
         (

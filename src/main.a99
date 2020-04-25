@@ -39,6 +39,7 @@ VWRIT EQU >8C00
 VCOMM EQU >8C02
 SHGHT EQU 24
 SWDTH EQU 32
+NULL EQU 0
 
 WSREGS EQU >8300
 
@@ -190,6 +191,12 @@ INITL2
     LI MAP, MAP1 ; 12 cycles
     BL @LDMAP
 
+    CLR A1
+    MOVB A1, @UNLOCK
+
+    LI A1, DNOTIF
+    MOV A1, @NOTIFY
+
 ; Set the screen blank counter to an odd number so the screen doesn't go blank
     LI A1, 1 ; 12 cycles
     MOV A1, @>83D6 ; 22 cycles
@@ -216,8 +223,12 @@ LOOP
     BL @KEYBRD ; (20 + 668) to (20 + 952) cycles
 ; Render the screen
     BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
+; Render scenes
     BL @SCENES
+; Perform actions
     BL @ACT
+; Draw the notification
+    BL @DRWNOT
 ; Push the previously rendered screen to the VDP
     BL @RNDPSH ; (20 + 36214) cycles
 ; Each frame is around 94,329 to 95,108 cycles long, on average.

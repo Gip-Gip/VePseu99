@@ -1,4 +1,4 @@
-# VePseu99 4/14/2020
+# VePseu99 4/25/2020
 the **Ve**ry **Pseu**do 3d renderer for the TI-**99**/4a!
 
 ## About
@@ -9,19 +9,29 @@ so (hopefully) some good games can actually be made!
 
 ## Needed Tools
 
-In order to assemble and run the code I used
-[WinAsm99 and Win994a](http://www.99er.net/win994a.shtml) respectively. However,
-if you just wish to run the program without installing anything
-[{js99er.net](https://js99er.net/#/) works better for emulating than Win994a
-and runs in your browser, you'll need a semi-modern computer for it though..
+In order to assemble the code you'll need
+[xas88](https://endlos99.github.io/xdt99/) and to emulate I use
+[js99er.net](https://js99er.net/#/).
 
 ## How To Build
 
 **Windows**
 1. Click on concat.bat to load all of the assembly files into one large file
 called vepseu.a99
-2. Use WinAsm99 or your assembler of choice to assemble vepseu.a99 into a binary
+2. Use XAS99 to assemble vepseu.a99 into a binary
 cart file
+
+**Linux**
+1. Run make
+2. Use XAS99 to assemble vepseu.a99 into a binary
+
+## Controls
+
+* W: Move forward
+* S: Move backward
+* A: Turn left
+* D: Turn right
+* 1-8: interact
 
 ## VePseuTool
 
@@ -31,6 +41,26 @@ VePseuTool is the map editor for VePseu99! Controls are as follows:
 * Rightclick: Options menu
 * Scrollwheel Button: Move the grid around with your cursor
 * Scrollwheel: Zoom in/out
+* Shift+Leftclick: Remove wall
+* S: Place scene
+* Shift+S: Remove scene
+* Ctrl+S: Save
+* E: Edit scene(puts you in scene mode)
+
+**Scene Mode**
+
+* A: Rotate scene counterclockwise
+* D: Rotate scene clockwise
+* S: Place sprite at cursor
+* Shift+S: Remove sprite
+* Leftclick: Drag sprite
+* Up/Down/Left/Right keys: Fine sprite position adjustment
+
+**Supported Filetypes**
+
+* Maps: VePseuTool-generated assembly files
+* Sprites: 8x8 monochrome PNG files(if the background is tranparent make sure
+it's transparent black, as in the RGB channels are also set to 0)
 
 ## Files
 
@@ -41,6 +71,7 @@ development cycle
 * concat.bat - Script that combines all the files under src/ into vepseu.a99
 * filetypes.A99.conf - Geany syntax highlights
 * LICENSE - text file containing license, important!
+* Makefile - linux makefile
 * README.md - the file you're reading now!
 * template.a99 - simple header template for all .a99 files
 * vepseu.a99 - concatination of all the files under src/

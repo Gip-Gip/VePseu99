@@ -130,14 +130,14 @@ public class Map
             AsmData sceneData = scenes.get(ι).getData
             (
                 sceneName + ι,
-                ι + 1 < sceneCnt ? sceneName + (ι + 1) : "0000"
+                ι + 1 < sceneCnt ? sceneName + (ι + 1) : "NULL"
             );
             fileLength += sceneData.getAsmData().length;
             concat.add(sceneData);
         }
         
         mapFile.setName(mapName);
-        mapFile.addRef(sceneCnt > 0 ? sceneName + '0' : ">0000");
+        mapFile.addRef(sceneCnt > 0 ? sceneName + '0' : "NULL");
         mapFile.addByte(playerX);
         mapFile.addByte(playerY);
         mapFile.addByte(playerA);
