@@ -10,7 +10,7 @@ so (hopefully) some good games can actually be made!
 ## Needed Tools
 
 In order to assemble the code you'll need
-[xas88](https://endlos99.github.io/xdt99/) and to emulate I use
+[xas99](https://endlos99.github.io/xdt99/) and to emulate I use
 [js99er.net](https://js99er.net/#/).
 
 ## How To Build

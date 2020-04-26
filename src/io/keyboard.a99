@@ -41,6 +41,8 @@ KEYDLY EQU >0500
 ; Keyboard scanning routine
 ; 700 to 1040 cycles
 KEYBRD
+; Move RTADDR into A4 so we can call stuff
+    MOV RTADDR, A4
 ; Make sure bit 8 of STAT2 is set to 0
     CLR A1
     MOVB @STAT2, A1
@@ -127,6 +129,14 @@ KEY3
     LI A1, KEYDLY ; 12 cycles
     MOVB A1, @KEYP3 ; 22 cycles
     INC A2 ; 10 cycles
+; Load a volume of 8 into A5
+    LI A5, >0A
+; Load the note A2 into A6
+    LI A6, 0
+    BL @PUSHA3
+    LI A5, >00
+    LI A6, 0
+    BL @PUSHA3
     JMP KEY4 ; 10 cycles, end of tally
 ; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY3CP
@@ -155,6 +165,14 @@ KEY4
     LI A1, KEYDLY ; 12 cycles
     MOVB A1, @KEYP4 ; 22 cycles
     DEC A2 ; 10 cycles
+; Load a volume of 8 into A5
+    LI A5, >0A
+; Load the note A2 into A6
+    LI A6, 0
+    BL @PUSHA3
+    LI A5, >00
+    LI A6, 0
+    BL @PUSHA3
     JMP KEY5 ; 10 cycles, end of tally
 ; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY4CP
@@ -176,7 +194,7 @@ KEY5
     LDCR A1, 3 ; 26 cycles
     TB ->000B ; 12 cycles
     JEQ KEY5NP ; 8 or 10 cycles, branch from here
-*
+
     MOVB @STAT2, A1 ; 22 cycles
     ORI A1, >0100 ; 14 cycles
     MOVB A1, @STAT2 ; 22 cycles
@@ -213,6 +231,6 @@ KEYB1
 KEYHTW
 ; end of tally
 
-    RT ; 18 cycles
+    B *A4 ; 18 cycles
 
     PAGE

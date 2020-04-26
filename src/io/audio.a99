@@ -1,0 +1,208 @@
+;##############################################################################;
+; audio.a99 - subprograms used to handle audio!                                ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                            ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:  ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                       ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
+
+MAXVOL EQU >0F
+SADDR EQU >8400
+NOISB EQU >E600
+AUDO1 EQU >8000
+AUDO2 EQU >A000
+AUDO3 EQU >C000
+VOLB EQU >F000
+
+    EVEN
+; A5 = volume(0-15)
+PUSHA0
+; Since the audio chip attinuates audio, we need to convert volume to
+; attenuation. To do this, we simply subtract A5 from the max volume possible
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >F0 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+    MOV @AINDF0, A6
+    MOVB A5, *A6+
+    MOVB @AIMSB0, A6
+    MOV A6, @AINDF0
+
+    RT
+
+; A5 = volume(0-15), A6 = note (0-69, see note table)
+PUSHA1
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >90 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+; Multiply A6 by 2. We do this because each note offset is one word in the table
+    SLA A6, 1
+
+    AI A6, NOTES
+    MOV *A6, A7
+    ORI A7, AUDO1
+
+    MOV @AINDF1, A8
+    MOVB A7, *A8+
+    MOVB @AIMSB1, A8
+    SWPB A7
+    MOVB A7, *A8+
+    MOVB @AIMSB1, A8
+    MOVB A5, *A8+
+    MOVB @AIMSB1, A8
+
+    MOV A8, @AINDF1
+
+    RT
+
+; A5 = volume(0-15), A6 = note (0-69, see note table)
+PUSHA2
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >B0 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+; Multiply A6 by 2. We do this because each note offset is one word in the table
+    SLA A6, 1
+
+    AI A6, NOTES
+    MOV *A6, A7
+    ORI A7, AUDO2
+
+    MOV @AINDF2, A8
+    MOVB A7, *A8+
+    MOVB @AIMSB2, A8
+    SWPB A7
+    MOVB A7, *A8+
+    MOVB @AIMSB2, A8
+    MOVB A5, *A8+
+    MOVB @AIMSB2, A8
+
+    MOV A8, @AINDF2
+
+    RT
+
+; A5 = volume(0-15), A6 = note (0-69, see note table)
+PUSHA3
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >D0 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+; Multiply A6 by 2. We do this because each note offset is one word in the table
+    SLA A6, 1
+
+    AI A6, NOTES
+    MOV *A6, A7
+    ORI A7, AUDO3
+
+    MOV @AINDF3, A8
+    MOVB A7, *A8+
+    MOVB @AIMSB3, A8
+    SWPB A7
+    MOVB A7, *A8+
+    MOVB @AIMSB3, A8
+    MOVB A5, *A8+
+    MOVB @AIMSB3, A8
+
+    MOV A8, @AINDF3
+
+    RT
+
+AUDIO
+; Accumulator 2 will be a pointer to the sound address
+    LI A2, SADDR
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB0, A1
+    C @AINDF0, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB1
+
+; Load the default noise address/mode byte into A3
+    LI A3, NOISB
+; Send that byte to the sound address
+    MOVB A3, *A2
+; Send the attenuation of the noise address to the sound address
+    MOVB *A1+, *A2
+; Update the back index
+    MOVB @AIMSB0, A1
+    MOV A1, @AINDB0
+
+AUDB1
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB1, A1
+    C @AINDF1, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB2
+
+    MOVB *A1+, *A2
+    MOVB @AIMSB1, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB1, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB1, A1
+
+    MOV A1, @AINDB1
+
+AUDB2
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB2, A1
+    C @AINDF2, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB3
+
+    MOVB *A1+, *A2
+    MOVB @AIMSB2, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB2, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB2, A1
+
+    MOV A1, @AINDB2
+
+AUDB3
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB3, A1
+    C @AINDF3, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB4
+
+    MOVB *A1+, *A2
+    MOVB @AIMSB3, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB3, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB3, A1
+
+    MOV A1, @AINDB3
+
+AUDB4
+
+    RT

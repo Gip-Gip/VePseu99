@@ -149,7 +149,7 @@ INITL2
 ; Enable the 1st and 2nd bit on the first register
 ; (enable the screen and vdp interrupts)
     LI A5, >01 ; 12 cycles
-    LI A6, >61 ; 12 cycles
+    LI A6, >E1 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the video buffer to the address 2*>400, aka >800
@@ -197,6 +197,21 @@ INITL2
     LI A1, DNOTIF
     MOV A1, @NOTIFY
 
+; Set the audio pointers to their base
+    CLR A1
+    MOVB @AIMSB0, A1
+    MOV A1, @AINDF0
+    MOV A1, @AINDB0
+    MOVB @AIMSB1, A1
+    MOV A1, @AINDF1
+    MOV A1, @AINDB1
+    MOVB @AIMSB2, A1
+    MOV A1, @AINDF2
+    MOV A1, @AINDB2
+    MOVB @AIMSB3, A1
+    MOV A1, @AINDF3
+    MOV A1, @AINDB3
+
 ; Set the screen blank counter to an odd number so the screen doesn't go blank
     LI A1, 1 ; 12 cycles
     MOV A1, @>83D6 ; 22 cycles
@@ -223,9 +238,14 @@ LOOP
     BL @KEYBRD ; (20 + 668) to (20 + 952) cycles
 ; Render the screen
     BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
+; Render scenes
     BL @SCENES
+; Perform actions
     BL @ACT
+; Draw the notification
     BL @DRWNOT
+; Play audio
+    BL @AUDIO
 ; Push the previously rendered screen to the VDP
     BL @RNDPSH ; (20 + 36214) cycles
 ; Each frame is around 94,329 to 95,108 cycles long, on average.
@@ -280,26 +300,40 @@ SCRNBF  EQU >7000
 SCRNBH  EQU >7180
 SCRNBL  EQU >300
 
-CURSCN EQU >73A0
-KEYP1 EQU >73A2
-KEYP2 EQU >73A3
-KEYP3 EQU >73A4
-KEYP4 EQU >73A5
-KEYP5 EQU >73A6
-KEYP6 EQU >73A7
+AINDF0 EQU >73A0
+AINDB0 EQU >73A2
+AINDF1 EQU >73A4
+AINDB1 EQU >73A6
+AINDF2 EQU >73A8
+AINDB2 EQU >73AA
+AINDF3 EQU >73AC
+AINDB3 EQU >73AE
+CURSCN EQU >73B0
+KEYP1 EQU >73B2
+KEYP2 EQU >73B3
+KEYP3 EQU >73B4
+KEYP4 EQU >73B5
+KEYP5 EQU >73B6
+KEYP6 EQU >73B7
 ; Bit 7, weight >02, is set if a action has been loaded this frame
 ; Bit 8, weight >01, is set if a sprite is drawn this frame
-STAT1 EQU >73A8
+STAT1 EQU >73B8
 ; Bit 8, weight >1, is set if the #1 key is pressed
-STAT2 EQU >73A9
+STAT2 EQU >73B9
 
 ACTION EQU >7300
 DRAWNL EQU >7380
 
 ; Basic screen notification pointer
-NOTIFY EQU >73AA
+NOTIFY EQU >73BA
 ; Demo-specific variables
-UNLOCK EQU >73AC
+UNLOCK EQU >73BC
+
+; Audio channel buffers
+AUD0BF EQU >7900
+AUD1BF EQU >7A00
+AUD2BF EQU >7B00
+AUD3BF EQU >7C00
 
 LZDICT EQU >7D00
 LZDEC EQU >7E00
@@ -347,8 +381,28 @@ RAMMAP EQU >7F00
 ; vertical line draw list size in bytes
 ; vertical line draw list, position, height, and color selection(boolean 0 or 8)
 
-DNOTIF
-    BYTE 0
+DNOTIF  BYTE 0
+
+AIMSB0  BYTE >79
+AIMSB1  BYTE >7A
+AIMSB2  BYTE >7B
+AIMSB3  BYTE >7C
+
+    EVEN
+NOTES
+;        |A   |A#   |B    |C    |C#   |D    |D#   |E    |F    |F#   |G    |G#
+;          2     2    2     2      2    2      2    2     2      2    2      2
+    DATA >93F, >03C, >A38, >735, >732, >A2F, >F2C, >72A, >128, >D25, >B23, >B21
+;          3     3    3     3      3    3      3    3     3      3    3      3
+    DATA >C1F, >01E, >51C, >C1A, >419, >D17, >816, >315, >014, >E12, >D11, >D10
+;          4     4    4     4      4    4      4    4     4      4    4      4
+    DATA >E0F, >00F, >20E, >60D, >A0C, >E0B, >40B, >A0A, >00A, >709, >F08, >708
+;          5     5    5     5      5    5      5    5     5      5    5      5
+    DATA >F07, >807, >107, >B06, >506, >F05, >A05, >505, >005, >C04, >704, >304
+;          6     6    6     6      6    6      6    6     6      6    6      6
+    DATA >004, >C03, >903, >503, >203, >003, >D02, >A02, >802, >602, >402, >202
+;          7     7    7     7      7    7      7    7     7
+    DATA >002, >E01, >C01, >B01, >901, >801, >601, >501, >401
 
 WALTBL
 
@@ -917,6 +971,214 @@ ACTEND
     RT
  
 ;##############################################################################;
+; audio.a99 - subprograms used to handle audio!                                ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                            ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:  ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                       ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
+
+MAXVOL EQU >0F
+SADDR EQU >8400
+NOISB EQU >E600
+AUDO1 EQU >8000
+AUDO2 EQU >A000
+AUDO3 EQU >C000
+VOLB EQU >F000
+
+    EVEN
+; A5 = volume(0-15)
+PUSHA0
+; Since the audio chip attinuates audio, we need to convert volume to
+; attenuation. To do this, we simply subtract A5 from the max volume possible
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >F0 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+    MOV @AINDF0, A6
+    MOVB A5, *A6+
+    MOVB @AIMSB0, A6
+    MOV A6, @AINDF0
+
+    RT
+
+; A5 = volume(0-15), A6 = note (0-69, see note table)
+PUSHA1
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >90 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+; Multiply A6 by 2. We do this because each note offset is one word in the table
+    SLA A6, 1
+
+    AI A6, NOTES
+    MOV *A6, A7
+    ORI A7, AUDO1
+
+    MOV @AINDF1, A8
+    MOVB A7, *A8+
+    MOVB @AIMSB1, A8
+    SWPB A7
+    MOVB A7, *A8+
+    MOVB @AIMSB1, A8
+    MOVB A5, *A8+
+    MOVB @AIMSB1, A8
+
+    MOV A8, @AINDF1
+
+    RT
+
+; A5 = volume(0-15), A6 = note (0-69, see note table)
+PUSHA2
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >B0 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+; Multiply A6 by 2. We do this because each note offset is one word in the table
+    SLA A6, 1
+
+    AI A6, NOTES
+    MOV *A6, A7
+    ORI A7, AUDO2
+
+    MOV @AINDF2, A8
+    MOVB A7, *A8+
+    MOVB @AIMSB2, A8
+    SWPB A7
+    MOVB A7, *A8+
+    MOVB @AIMSB2, A8
+    MOVB A5, *A8+
+    MOVB @AIMSB2, A8
+
+    MOV A8, @AINDF2
+
+    RT
+
+; A5 = volume(0-15), A6 = note (0-69, see note table)
+PUSHA3
+    NEG A5 ; 12 cycles
+    AI A5, MAXVOL ; 14 cycles
+    ORI A5, >D0 ; 14 cycles
+    SWPB A5 ; 10 cycles
+
+; Multiply A6 by 2. We do this because each note offset is one word in the table
+    SLA A6, 1
+
+    AI A6, NOTES
+    MOV *A6, A7
+    ORI A7, AUDO3
+
+    MOV @AINDF3, A8
+    MOVB A7, *A8+
+    MOVB @AIMSB3, A8
+    SWPB A7
+    MOVB A7, *A8+
+    MOVB @AIMSB3, A8
+    MOVB A5, *A8+
+    MOVB @AIMSB3, A8
+
+    MOV A8, @AINDF3
+
+    RT
+
+AUDIO
+; Accumulator 2 will be a pointer to the sound address
+    LI A2, SADDR
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB0, A1
+    C @AINDF0, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB1
+
+; Load the default noise address/mode byte into A3
+    LI A3, NOISB
+; Send that byte to the sound address
+    MOVB A3, *A2
+; Send the attenuation of the noise address to the sound address
+    MOVB *A1+, *A2
+; Update the back index
+    MOVB @AIMSB0, A1
+    MOV A1, @AINDB0
+
+AUDB1
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB1, A1
+    C @AINDF1, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB2
+
+    MOVB *A1+, *A2
+    MOVB @AIMSB1, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB1, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB1, A1
+
+    MOV A1, @AINDB1
+
+AUDB2
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB2, A1
+    C @AINDF2, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB3
+
+    MOVB *A1+, *A2
+    MOVB @AIMSB2, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB2, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB2, A1
+
+    MOV A1, @AINDB2
+
+AUDB3
+; Compare to see if the front and back pointer are the same
+    MOV @AINDB3, A1
+    C @AINDF3, A1
+; If they are, all sounds are played and we can skip channel 0(noise)
+    JEQ AUDB4
+
+    MOVB *A1+, *A2
+    MOVB @AIMSB3, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB3, A1
+    MOVB *A1+, *A2
+    MOVB @AIMSB3, A1
+
+    MOV A1, @AINDB3
+
+AUDB4
+
+    RT 
+;##############################################################################;
 ; DRWNOT - Code that draws notifications                                       ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
@@ -1001,6 +1263,8 @@ KEYDLY EQU >0500
 ; Keyboard scanning routine
 ; 700 to 1040 cycles
 KEYBRD
+; Move RTADDR into A4 so we can call stuff
+    MOV RTADDR, A4
 ; Make sure bit 8 of STAT2 is set to 0
     CLR A1
     MOVB @STAT2, A1
@@ -1087,6 +1351,14 @@ KEY3
     LI A1, KEYDLY ; 12 cycles
     MOVB A1, @KEYP3 ; 22 cycles
     INC A2 ; 10 cycles
+; Load a volume of 8 into A5
+    LI A5, >0A
+; Load the note A2 into A6
+    LI A6, 0
+    BL @PUSHA3
+    LI A5, >00
+    LI A6, 0
+    BL @PUSHA3
     JMP KEY4 ; 10 cycles, end of tally
 ; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY3CP
@@ -1115,6 +1387,14 @@ KEY4
     LI A1, KEYDLY ; 12 cycles
     MOVB A1, @KEYP4 ; 22 cycles
     DEC A2 ; 10 cycles
+; Load a volume of 8 into A5
+    LI A5, >0A
+; Load the note A2 into A6
+    LI A6, 0
+    BL @PUSHA3
+    LI A5, >00
+    LI A6, 0
+    BL @PUSHA3
     JMP KEY5 ; 10 cycles, end of tally
 ; If the button can't be pressed due to a timer, decrement the timer by 1
 KEY4CP
@@ -1136,7 +1416,7 @@ KEY5
     LDCR A1, 3 ; 26 cycles
     TB ->000B ; 12 cycles
     JEQ KEY5NP ; 8 or 10 cycles, branch from here
-*
+
     MOVB @STAT2, A1 ; 22 cycles
     ORI A1, >0100 ; 14 cycles
     MOVB A1, @STAT2 ; 22 cycles
@@ -1173,7 +1453,7 @@ KEYB1
 KEYHTW
 ; end of tally
 
-    RT ; 18 cycles
+    B *A4 ; 18 cycles
 
     PAGE
  
@@ -1483,7 +1763,7 @@ RNDPL1
 ; 57387 to 57882 cycles on average
 RENDER
 
-; Second, make sure all vertical lines are reset
+; Make sure all vertical lines are reset
 ; 1302 cycles
     LI A1, DRAWNL ; 12 cycles
     LI A2, 32 ; 12 cycles

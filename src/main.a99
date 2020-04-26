@@ -149,7 +149,7 @@ INITL2
 ; Enable the 1st and 2nd bit on the first register
 ; (enable the screen and vdp interrupts)
     LI A5, >01 ; 12 cycles
-    LI A6, >61 ; 12 cycles
+    LI A6, >E1 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the video buffer to the address 2*>400, aka >800
@@ -197,6 +197,21 @@ INITL2
     LI A1, DNOTIF
     MOV A1, @NOTIFY
 
+; Set the audio pointers to their base
+    CLR A1
+    MOVB @AIMSB0, A1
+    MOV A1, @AINDF0
+    MOV A1, @AINDB0
+    MOVB @AIMSB1, A1
+    MOV A1, @AINDF1
+    MOV A1, @AINDB1
+    MOVB @AIMSB2, A1
+    MOV A1, @AINDF2
+    MOV A1, @AINDB2
+    MOVB @AIMSB3, A1
+    MOV A1, @AINDF3
+    MOV A1, @AINDB3
+
 ; Set the screen blank counter to an odd number so the screen doesn't go blank
     LI A1, 1 ; 12 cycles
     MOV A1, @>83D6 ; 22 cycles
@@ -229,6 +244,8 @@ LOOP
     BL @ACT
 ; Draw the notification
     BL @DRWNOT
+; Play audio
+    BL @AUDIO
 ; Push the previously rendered screen to the VDP
     BL @RNDPSH ; (20 + 36214) cycles
 ; Each frame is around 94,329 to 95,108 cycles long, on average.

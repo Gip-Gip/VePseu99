@@ -38,8 +38,28 @@
 ; vertical line draw list size in bytes
 ; vertical line draw list, position, height, and color selection(boolean 0 or 8)
 
-DNOTIF
-    BYTE 0
+DNOTIF  BYTE 0
+
+AIMSB0  BYTE >79
+AIMSB1  BYTE >7A
+AIMSB2  BYTE >7B
+AIMSB3  BYTE >7C
+
+    EVEN
+NOTES
+;        |A   |A#   |B    |C    |C#   |D    |D#   |E    |F    |F#   |G    |G#
+;          2     2    2     2      2    2      2    2     2      2    2      2
+    DATA >93F, >03C, >A38, >735, >732, >A2F, >F2C, >72A, >128, >D25, >B23, >B21
+;          3     3    3     3      3    3      3    3     3      3    3      3
+    DATA >C1F, >01E, >51C, >C1A, >419, >D17, >816, >315, >014, >E12, >D11, >D10
+;          4     4    4     4      4    4      4    4     4      4    4      4
+    DATA >E0F, >00F, >20E, >60D, >A0C, >E0B, >40B, >A0A, >00A, >709, >F08, >708
+;          5     5    5     5      5    5      5    5     5      5    5      5
+    DATA >F07, >807, >107, >B06, >506, >F05, >A05, >505, >005, >C04, >704, >304
+;          6     6    6     6      6    6      6    6     6      6    6      6
+    DATA >004, >C03, >903, >503, >203, >003, >D02, >A02, >802, >602, >402, >202
+;          7     7    7     7      7    7      7    7     7
+    DATA >002, >E01, >C01, >B01, >901, >801, >601, >501, >401
 
 WALTBL
 
