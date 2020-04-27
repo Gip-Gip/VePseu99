@@ -1,12 +1,12 @@
 ;##############################################################################;
-; ldlz.a99 - decompresses data into memory                                     ;
+; ldbank.a99 - loads a ROM BANK into the second RAM bank!                      ;
 ;==============================================================================;
-; This file is a part of VePseu 99!                                             ;
+; This file is a part of VePseu 99!                                            ;
 ;                                                                              ;
 ; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
 ;                                                                              ;
 ; Redistribution and use in source and binary forms, with or without           ;
-; modification, are permitted provided that the following conditions are met:   ;
+; modification, are permitted provided that the following conditions are met:  ;
 ;                                                                              ;
 ; 1. Redistributions of source code must retain the above copyright notice,    ;
 ;    this list of conditions and the following disclaimer.                     ;
@@ -15,7 +15,7 @@
 ;    and/or other materials provided with the distribution.                    ;
 ; 3. Neither the name of the copyright holder nor the names of its             ;
 ;    contributors may be used to endorse or promote products derived from this ;
-;    software without specific prior written permission.                        ;
+;    software without specific prior written permission.                       ;
 ;                                                                              ;
 ; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
 ; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
@@ -30,39 +30,19 @@
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
-    EVEN
-
-
-; LDLZ - decompresses data into memory
-; A5 = point in memory containing compressed data, A6 = point in memory to
-; decompress data to
-LDLZ
-    CLR A7 ; 10 cycles
-    MOVB *A5+, A7 ; 20 cycles
-    SWPB A7 ; 10 cycles
-    LI A8, LZDICT ; 10 cycles
-; Load the dictionary!
-LDL1
-    MOVB *A5+, *A8+ ; 26 cycles
-    MOVB *A5+, *A8+ ; 26 cycles
-    MOVB *A5+, *A8+ ; 26 cycles
-    MOVB *A5+, *A8+ ; 26 cycles
-    DEC A7 ; 10 cycles
-    JNE LDL1 ; 8 or 10 cycles
-
-    CLR A7 ; 10 cycles
-    MOVB *A5+, A7 ; 20 cycles
-    SWPB A7 ; 10 cycles
-LDL2
-    CLR A8 ; 10 cycles
-    MOVB *A5+, A8 ; 20 cycles
-    SWPB A8 ; 10 cycles
-    SLA A8, 2 ; 16 cycles
-    AI A8, LZDICT ; 14 cycles
-    MOVB *A8+, *A6+ ; 26 cycles
-    MOVB *A8+, *A6+ ; 26 cycles
-    MOVB *A8+, *A6+ ; 26 cycles
-    MOVB *A8+, *A6+ ; 26 cycles
-    DEC A7 ; 10 cycles
-    JNE LDL2 ; 8 or 10 cycles
-    RT ; 12 cycles
+; Theoretically, if we don't use any branch functions we can just load this
+; into scratchpad ram and it'll work perfectly...
+; A5 = bank to switch to
+LDBRAW
+    SLA A5, 1
+    AI A5, >6000
+    DEC *A5
+    LI A5, >6000
+    LI A6, >7000
+    LI A7, >1000
+LDBL1
+    MOV *A5+, *A6+
+    DECT A7
+    JNE LDBL1
+    DEC @>6000
+    RT

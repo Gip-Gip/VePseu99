@@ -142,9 +142,7 @@ public class Map
         mapFile.addByte(playerY);
         mapFile.addByte(playerA);
         
-        LZ compressedMap = new LZ(get1dMap());
-        
-        for(byte mapByte : compressedMap.getCompressedData())
+        for(byte mapByte : get1dMap())
         {
             mapFile.addByte(mapByte);
         }
@@ -231,12 +229,9 @@ public class Map
         playerY = mapFile.getByte();
         playerA = mapFile.getByte();
         
-        LZ compressedMap = new LZ(mapFile.getData(), true);
-        
-        
         int x = 0;
         int y = 0;
-        for(byte wall : compressedMap.getUncompressedData())
+        for(byte wall : mapFile.getData())
         {
             map[y][x] = wall;
             x ++;
@@ -244,6 +239,7 @@ public class Map
             {
                 x = 0;
                 y ++;
+                if(y == MAPWIDTH) y--;
             }
         }
         

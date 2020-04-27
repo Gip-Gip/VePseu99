@@ -36,25 +36,6 @@
 ; LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
 ; MAP = pointer to compressed map data
 LDMAP
-; First load the scenes
-    MOV *MAP+, @CURSCN
-    CLR PX ; 10 cycles
-    CLR PY ; 10 cycles
-    CLR PA ; 10 cycles
-    MOVB *MAP+, PX ; 20 cycles
-    SWPB PX ; 10 cycles
-    MOVB *MAP+, PY ; 20 cycles
-    SWPB PY ; 10 cycles
-    MOVB *MAP+, PA ; 20 cycles
-    SWPB PA ; 10 cycles
 
-    MOV RTADDR, A1 ; 14 cycles
-    MOV MAP, A5 ; 14 cycles
-    LI A6, RAMMAP ; 12 cycles
-    BL @LDLZ
-
-    LI MAP, RAMMAP ; 12 cycles
-
-    B *A1 ; 12 cycles
 
 

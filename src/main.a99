@@ -42,6 +42,7 @@ SWDTH EQU 32
 NULL EQU 0
 
 WSREGS EQU >8300
+LDBANK EQU >8320
 
 A1 EQU 0 ; Accumulator register 1
 A2 EQU 1 ; Accumulator register 2
@@ -61,6 +62,7 @@ PY EQU 14 ; Player Y register
 PA EQU 15 ; Player angle register
 
     AORG >6000
+    BANK 0
 
 CRTHED
     BYTE >AA    ; Standard header n stuff
@@ -177,6 +179,22 @@ INITL2
     LI A6, >11 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
+; Load ldbank into scratchpad ram...
+    LI A1, LDBRAW
+    LI A2, LDBANK
+    LI A3, 16 ; LDBANK is 16 words in length
+LDBRL1
+    MOV *A1+, *A2+
+    DEC A3
+    JNE LDBRL1
+
+    LI A5, 1
+    DEC @>6802
+    BL @LDBANK
+    DEC @>6800
+
+    JMP WAIT
+
 ; Place the color table behind the screen at address >2C*>40, aka >0B00
     LI A5, >03 ; 12 cycles
     LI A6, >2C ; 12 cycles
@@ -187,15 +205,7 @@ INITL2
     LI A5, TEXTBL
     BL @LDTEX
 
-; Decompress the demo map into memory
-    LI MAP, MAP1 ; 12 cycles
-    BL @LDMAP
-
-    CLR A1
-    MOVB A1, @UNLOCK
-
-    LI A1, DNOTIF
-    MOV A1, @NOTIFY
+; Load the map into memory
 
 ; Set the audio pointers to their base
     CLR A1
