@@ -43,6 +43,10 @@ NULL EQU 0
 
 WSREGS EQU >8300
 LDBANK EQU >8320
+; Basic screen notification pointer
+NOTIFY EQU >8340
+; Demo-specific variables
+UNLOCK EQU >8342
 
 A1 EQU 0 ; Accumulator register 1
 A2 EQU 1 ; Accumulator register 2
@@ -188,13 +192,6 @@ LDBRL1
     DEC A3
     JNE LDBRL1
 
-    LI A5, 1
-    DEC @>6802
-    BL @LDBANK
-    DEC @>6800
-
-    JMP WAIT
-
 ; Place the color table behind the screen at address >2C*>40, aka >0B00
     LI A5, >03 ; 12 cycles
     LI A6, >2C ; 12 cycles
@@ -206,6 +203,8 @@ LDBRL1
     BL @LDTEX
 
 ; Load the map into memory
+    LI A5, 1
+    BL @LDMAP
 
 ; Set the audio pointers to their base
     CLR A1
@@ -268,5 +267,3 @@ LOOP
     LWPI >83E0 ; 10 cycles
 ; Return to the ISR
     RT
-
-    PAGE

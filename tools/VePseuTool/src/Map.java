@@ -137,7 +137,6 @@ public class Map
         }
         
         mapFile.setName(mapName);
-        mapFile.addRef(sceneCnt > 0 ? sceneName + '0' : "NULL");
         mapFile.addByte(playerX);
         mapFile.addByte(playerY);
         mapFile.addByte(playerA);
@@ -224,7 +223,6 @@ public class Map
         AsmData mapFile = sections.get(sections.size() - 1);
         
         mapName = mapFile.getName();
-        mapFile.getRef();
         playerX = mapFile.getByte();
         playerY = mapFile.getByte();
         playerA = mapFile.getByte();

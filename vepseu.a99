@@ -43,6 +43,10 @@ NULL EQU 0
 
 WSREGS EQU >8300
 LDBANK EQU >8320
+; Basic screen notification pointer
+NOTIFY EQU >8340
+; Demo-specific variables
+UNLOCK EQU >8342
 
 A1 EQU 0 ; Accumulator register 1
 A2 EQU 1 ; Accumulator register 2
@@ -188,13 +192,6 @@ LDBRL1
     DEC A3
     JNE LDBRL1
 
-    LI A5, 1
-    DEC @>6802
-    BL @LDBANK
-    DEC @>6800
-
-    JMP WAIT
-
 ; Place the color table behind the screen at address >2C*>40, aka >0B00
     LI A5, >03 ; 12 cycles
     LI A6, >2C ; 12 cycles
@@ -206,6 +203,8 @@ LDBRL1
     BL @LDTEX
 
 ; Load the map into memory
+    LI A5, 1
+    BL @LDMAP
 
 ; Set the audio pointers to their base
     CLR A1
@@ -267,10 +266,7 @@ LOOP
 ; Go back to the ISR's workspace registers
     LWPI >83E0 ; 10 cycles
 ; Return to the ISR
-    RT
-
-    PAGE
-
+    RT 
 ;##############################################################################;
 ; ram.a99 - general ram layout for the upper 4k of the cart                    ;
 *==============================================================================*
@@ -303,9 +299,19 @@ LOOP
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
+; Macros of which change the RAM banks
+
+    .defm SRB0
+    DEC @>6800
+    .endm
+
+    .defm SRB1
+    DEC @>6802
+    .endm
+
 INTTMP EQU >7000
 
-*The screen buffer, extends from >7000 to >7300
+; The screen buffer, extends from >7000 to >7300
 SCRNBF  EQU >7000
 SCRNBH  EQU >7180
 SCRNBL  EQU >300
@@ -318,39 +324,36 @@ AINDF2 EQU >73A8
 AINDB2 EQU >73AA
 AINDF3 EQU >73AC
 AINDB3 EQU >73AE
-CURSCN EQU >73B0
-KEYP1 EQU >73B2
-KEYP2 EQU >73B3
-KEYP3 EQU >73B4
-KEYP4 EQU >73B5
-KEYP5 EQU >73B6
-KEYP6 EQU >73B7
+KEYP1 EQU >73B1
+KEYP2 EQU >73B2
+KEYP3 EQU >73B3
+KEYP4 EQU >73B4
+KEYP5 EQU >73B5
+KEYP6 EQU >73B6
 ; Bit 7, weight >02, is set if a action has been loaded this frame
 ; Bit 8, weight >01, is set if a sprite is drawn this frame
-STAT1 EQU >73B8
+STAT1 EQU >73B7
 ; Bit 8, weight >1, is set if the #1 key is pressed
-STAT2 EQU >73B9
+STAT2 EQU >73B8
 
 ACTION EQU >7300
 DRAWNL EQU >7380
 
-; Basic screen notification pointer
-NOTIFY EQU >73BA
-; Demo-specific variables
-UNLOCK EQU >73BC
-
 ; Audio channel buffers
-AUD0BF EQU >7900
-AUD1BF EQU >7A00
-AUD2BF EQU >7B00
-AUD3BF EQU >7C00
+AUD0BF EQU >7400
+AUD1BF EQU >7500
+AUD2BF EQU >7600
+AUD3BF EQU >7700
 
-RAMMAP EQU >7F00
+RAMMAP EQU >7800
 
 RBANK2 EQU >7000
 
-    PAGE
+MAPPTR EQU >7000
+CURSCN EQU >7002
 
+    PAGE
+ 
 ;##############################################################################;
 ; tables.a99 - multiple collections of important non-code data                 ;
 *==============================================================================*
@@ -391,7 +394,7 @@ RBANK2 EQU >7000
 ; vertical line draw list size in bytes
 ; vertical line draw list, position, height, and color selection(boolean 0 or 8)
 
-DNOTIF  BYTE 0
+DNOTIF  DATA 0
 
 AIMSB0  BYTE >79
 AIMSB1  BYTE >7A
@@ -636,7 +639,7 @@ WALF
     BYTE 0, 0
 
     PAGE
-
+ 
 
 CLRTBL
     BYTE -31, -2, -127, -106, -95, -70, -63, 49, -20, -13, -24, -7, -84, -77, -88, -71
@@ -644,7 +647,7 @@ TEXTBL
     BYTE 0, 36, 36, 126, 36, 126, 36, 36, 0, 16, 56, 80, 56, 20, 56, 16
     BYTE 0, 0, 16, 16, 124, 16, 16, 0, 0, 0, 0, 0, 56, 0, 0, 0
     BYTE 0, 28, 34, 90, 86, 92, 32, 30, 0, 16, 84, 56, 124, 56, 84, 16
-    BYTE 0, 0, 98, 100, 8, 16, 38, 70, 0, 48, 72, 72, 48, 74, 68, 58
+    BYTE 0, 0, 98, 100, 8, 16, 38, 70, 0, 48, 72, 72, 48, 74, 68, 58 
 ;##############################################################################;
 ; act.a99 - code that draws and activates actions                              *
 ;==============================================================================;
@@ -697,11 +700,16 @@ ACTL2
     MOVB @STAT2, A4
     ANDI A4, >0100
     JEQ ACTL1
-    B *A3
+; The code is in the 2nd RAM bank, this is getting kinda messy...
+    MOV RTADDR, A4
+    .SRB1
+    BL *A3
+    .SRB0
+    B *A4
 
 ACTEND
     RT
-
+ 
 ;##############################################################################;
 ; audio.a99 - subprograms used to handle audio!                                ;
 ;==============================================================================;
@@ -909,7 +917,7 @@ AUDB3
 
 AUDB4
 
-    RT
+    RT 
 ;##############################################################################;
 ; DRWNOT - Code that draws notifications                                       ;
 ;==============================================================================;
@@ -948,10 +956,15 @@ DRWNOT
     MOV @NOTIFY, A1
     LI A2, SCRNBF
 DRWNL1
-    MOVB *A1+, *A2+
+; All the ram we need is in the 2nd RAM bank...
+    .SRB1
+    MOVB *A1+, A3
+; And the screen buffer is in the 1st...
+    .SRB0
+    MOVB A3, *A2+
     JNE DRWNL1
 
-    RT
+    RT 
 ;##############################################################################;
 ; keyboard.a99 - code used to take and utilize input from the keyboard         ;
 ;==============================================================================;
@@ -1188,7 +1201,7 @@ KEYHTW
     B *A4 ; 18 cycles
 
     PAGE
-
+ 
 ;##############################################################################;
 ; ldbank.a99 - loads a ROM BANK into the second RAM bank!                      ;
 ;==============================================================================;
@@ -1223,21 +1236,30 @@ KEYHTW
 
 ; Theoretically, if we don't use any branch functions we can just load this
 ; into scratchpad ram and it'll work perfectly...
+; LDBRAW is 32 bytes in size and is not called directly, it is instead stored in
+; scratchpad ram
 ; A5 = bank to switch to
 LDBRAW
+; All banks are on even addresses, multiply by 2...
     SLA A5, 1
+; ROM banks start at >6000
     AI A5, >6000
+; Write to that address through a decrement
     DEC *A5
+; Set A5 to point to the start of rom, A6 to point to the start of RAM, and A7
+; to hold the size of ROM/RAM(>1000 = 4kb)
     LI A5, >6000
     LI A6, >7000
     LI A7, >1000
 LDBL1
+; Now we simply copy everything over to ram!
     MOV *A5+, *A6+
     DECT A7
     JNE LDBL1
+; Change back to bank 0, and we're done!
     DEC @>6000
     RT
-
+ 
 ;##############################################################################;
 ; ldclr.a99 - code that loads the color table                                  ;
 ;==============================================================================;
@@ -1294,7 +1316,7 @@ LDCL2
     JNE LDCL2 ; (10 ; color table length) - 2 = est. 98 cycles
 ; The -2 cycles is for the not taken JNE at the end of the loop
     B *A2
-
+ 
 ;##############################################################################;
 ; ldmap.a99 - code used to decompress map data into ram                        ;
 ;==============================================================================;
@@ -1327,16 +1349,50 @@ LDCL2
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
+MAPLEN  EQU >100
     EVEN
 
-
-; LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
-; MAP = pointer to compressed map data
+; LDMAP - loads a map from a bank
+; A5 = map number
 LDMAP
+    MOV RTADDR, A8
+; Load the map's bank into memory
+    .SRB1
+    BL @LDBANK
+    MOV A8, RTADDR
+; Copy the map from RAM bank 2 to bank 1
+; This is done to simplify render code, since the screen buffer is on bank 1
+; If we kept the map on bank 2 things would slow down quite a bit, and at the
+; cost of only about 256 bytes of ram
+    MOV @MAPPTR, A5
+    CLR PX
+    CLR PY
+    CLR PA
+; Set PX, PY, and PA before the move
+    MOVB *A5+, PX
+    SWPB PX
+    MOVB *A5+, PY
+    SWPB PY
+    MOVB *A5+, PA
+    SWPB PA
+    LI A6, RAMMAP
+    LI A7, MAPLEN
+LDML1
+; Swap to bank 2, get a byte, swap to bank 1, store a byte...
+    .SRB1
+    MOVB *A5+, A8
+    .SRB0
+    MOVB A8, *A6+
+    DEC A7
+    JNE LDML1
 
+    LI MAP, RAMMAP
 
+; Set the default notification
+    LI A1, DNOTIF
+    MOV A1, @NOTIFY
 
-
+    RT 
 ;##############################################################################;
 ; ldtex.a99 - loads compressed textures                                        ;
 ;==============================================================================;
@@ -1390,7 +1446,7 @@ LDTL2
     JNE LDTL1
 
     B *A2
-
+ 
 ;##############################################################################;
 ; render.a99 - code used to render a picture to the VDP                        ;
 ;==============================================================================;
@@ -1621,7 +1677,7 @@ RNDB4
     JMP RNDB4R ; 10 cycles, branch from here
 
     PAGE
-
+ 
 ;##############################################################################;
 ; scenes.a99 - code used to render scenes and such                             ;
 ;==============================================================================;
@@ -1660,6 +1716,8 @@ RNDB4
 SCENES
 ; Temporarily SWPB PA
     SWPB PA
+; All the ram we need is in the 2nd RAM bank...
+    .SRB1
 ; Make sure bit 7 and 8 of STAT1 is set to 0
     CLR A1
     MOVB @STAT1, A1
@@ -1721,6 +1779,8 @@ SCNB4R
     JEQ SCNB5
 SCNB5R
     SWPB PA
+; Swap back to the 1st RAM bank...
+    .SRB0
     RT
 
 ; Draw Sprites!
@@ -1786,8 +1846,14 @@ SCNB3
     MOVB A6, @STAT1
     LI A6, ACTION
     SLA A5, 3
+; ACTION is in ram bank 0, and the action we need to copy is in bank 1. While
+; doing it another way is not that possible, it still results in less efficient
+; code like this...
 SCNBL4
-    MOVB *A1+, *A6+
+    MOVB *A1+, A7
+    .SRB0
+    MOVB A7, *A6+
+    .SRB1
     DEC A5
     JNE SCNBL4
 
@@ -1804,6 +1870,8 @@ SCNB4
     JMP SCNB4R
 
 SCNB5
+; Actions are in the 1st bank...
+    .SRB0
     LI A1, ACTION
     LI A2, >20
     CLR A3
@@ -1811,10 +1879,598 @@ SCNBL5
     MOV A3, *A1+
     DECT A2
     JNE SCNBL5
+    .SRB1
     JMP SCNB5R
-
-END .PRINT (>7000-END), ' BYTES LEFT IN ROM'
-
+ 
+END .PRINT (>7000-END), ' BYTES LEFT IN ROM' 
+    AORG >7FFF 
+    BYTE 0 
+    AORG >7000
     BANK 1
-    AORG >6000
-    TEXT 'PEE PEE POO POO'
+    EVEN
+
+    DATA MAP1
+    DATA MAP1S0
+    DATA >0000
+
+WOOF
+    LI A1, WOOFTX
+    MOV A1, @NOTIFY
+    RT
+
+    EVEN
+QUACK
+    LI A1, QUACKT
+    MOV A1, @NOTIFY
+    RT
+
+    EVEN
+SMILE1
+    MOV @UNLOCK, A1
+    JEQ SMILM1
+    LI A1, SMILT2
+    MOV A1, @NOTIFY
+    RT
+
+    EVEN
+SMILM1
+    LI A1, SMILT1
+    MOV A1, @NOTIFY
+    RT
+
+DOPEN
+    MOVB @UNLOCK, A1
+    JEQ DLKD
+    CLR A1
+    MOVB A1, @UNLOCK
+    LI A5, 2
+    B @x#LDMAP
+
+DLKD
+    LI A1, LKDTXT
+    MOV A1, @NOTIFY
+    RT
+
+GRAB
+    LI A1, >0100
+    MOVB A1, @UNLOCK
+    LI A1, KEYTXT
+    MOV A1, @NOTIFY
+    RT
+
+READ1
+    LI A1, READ1T
+    MOV A1, @NOTIFY
+    RT
+
+READ2
+    LI A1, READ2T
+    MOV A1, @NOTIFY
+    RT
+
+READ3
+    LI A1, READ3T
+    MOV A1, @NOTIFY
+    RT
+
+SMEL1
+    LI A1, SMEL1T
+    MOV A1, @NOTIFY
+    RT
+
+SMEL2
+    LI A1, SMEL2T
+    MOV A1, @NOTIFY
+    RT
+
+WOOFTX
+    TEXT 'WOOF WOOF!'
+    BYTE 0
+
+QUACKT
+    TEXT 'QUACK QUACK!'
+    BYTE 0
+
+SMILT1
+    TEXT 'IVE SEEN A KEY SOMEWHERE...'
+    BYTE 0
+
+SMILT2
+    TEXT 'YOUVE FOUND THE KEY!'
+    BYTE 0
+
+LKDTXT
+    TEXT 'THIS DOOR IS LOCKED!'
+    BYTE 0
+
+KEYTXT
+    TEXT 'KEY AQUIRED!'
+    BYTE 0
+
+READ1T
+    TEXT 'LOCKED DOOR AHEAD!'
+    BYTE 0
+
+READ2T
+    TEXT 'WELCOME TO THE FLORAL GARDEN'
+    BYTE 0
+
+READ3T
+    TEXT 'THANKS FOR PLAYING! PLEASE VISITTHE TOPIC ON ATARIAGE AND GIVE  FEEDBACK!'
+    BYTE 0
+
+SMEL1T
+    TEXT 'THE FLOWER SMELLS LOVELY!'
+    BYTE 0
+
+SMEL2T
+    TEXT 'GET AWAY FROM ME'
+    BYTE 0 
+    EVEN
+MAP1S0
+
+    BYTE 1, 43, MAP1S1/256, MAP1S1, -128, 68, 114, 15, 83, 114, 15, 96, 114, 15, 110, 114
+    BYTE 15, 68, 126, 15, 83, 126, 15, 110, 126, 15, 96, 126, 15, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -37, -37, -37
+    BYTE -37, -37, -61, -1, -1, -1, -61, -37, -37, -37, -37, -37, -37
+    EVEN
+MAP1S1
+
+    BYTE 1, 27, MAP1S2/256, MAP1S2, 64, 68, -16, 15, 82, -16, 15, 96, -16, 15, 110, -16
+    BYTE 15, 7, 31, 63, 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1
+    BYTE -1, 127, 67, -37, -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1
+    BYTE -1
+    EVEN
+MAP1S2
+
+    BYTE 1, 59, MAP1S3/256, MAP1S3, 64, 68, 0, 15, 82, 0, 15, 96, 0, 15, 110, 0
+    BYTE 15, -32, -8, -4, -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3
+    BYTE -1, -1, -61, -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1
+    BYTE -1
+    EVEN
+MAP1S3
+
+    BYTE 0, 28, MAP1S4/256, MAP1S4, -128, 64, 32, 15, 80, 32, 15, 96, 32, 15, 112, 32
+    BYTE 15, 66, 46, 15, 81, 46, 15, 95, 46, 15, 111, 46, 15, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -1, -61, -37
+    BYTE -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1, -1
+    EVEN
+MAP1S4
+
+    BYTE 2, 60, MAP1S5/256, MAP1S5, -128, 64, -48, 15, 80, -48, 15, 96, -48, 15, 112, -48
+    BYTE 15, 66, -62, 15, 81, -62, 15, 96, -62, 15, 110, -62, 15, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -1, -61, -37
+    BYTE -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1, -1, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1
+    EVEN
+MAP1S5
+
+    BYTE 1, 44, MAP1S6/256, MAP1S6, -127, 64, 112, 15, 80, 112, 15, 96, 112, 15, 112, 112
+    BYTE 15, 64, -128, 15, 80, -128, 15, 96, -128, 15, 112, -128, 15, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -1, -61, -37
+    BYTE -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1, -1
+    TEXT '1:OPEN'
+
+    BYTE DOPEN/256, DOPEN
+    EVEN
+MAP1S6
+
+    BYTE 1, 38, MAP1S7/256, MAP1S7, 65, -88, 112, 10, -88, -128, 10, -104, 112, 10, -104, -128
+    BYTE 10, -1, 1, 1, 1, 1, 1, 1, 1, -1, -128, -128, -128, -128, -128, -128
+    BYTE -128, -1, -37, -54, -1, -1, -39, -21, -1, -1, 39, -13, -1, -1, 51, -105
+    BYTE -1
+    TEXT '1:READ'
+
+    BYTE READ1/256, READ1
+    EVEN
+MAP1S7
+
+    BYTE 1, 101, MAP1S8/256, MAP1S8, 17, -112, 120, 8, -52, 48, 80, 112, 17, 30, 18, 51
+    TEXT '1:TALK'
+
+    BYTE WOOF/256, WOOF
+    EVEN
+MAP1S8
+
+    BYTE 3, 100, MAP1S9/256, MAP1S9, 17, -112, 119, 10, 60, 126, -37, -1, -67, -61, 126, 60
+    TEXT '1:TALK'
+
+    BYTE SMILE1/256, SMILE1
+    EVEN
+MAP1S9
+
+    BYTE 1, -123, MAP1S10/256, MAP1S10, 49, -112, 120, 8, -112, 120, 1, -112, 120, 10, 0, 0
+    BYTE 0, -128, 0, 0, 40, 108, 0, 0, 80, 0, 0, 0, 0, 0, 0, 120
+    BYTE 40, 124, 124, 124, 0, 0
+    TEXT '1:TALK'
+
+    BYTE QUACK/256, QUACK
+    EVEN
+MAP1S10
+
+    BYTE 3, -124, MAP1S11/256, MAP1S11, 17, -112, 120, 10, 0, 0, 64, -68, 72, 0, 0, 0
+    TEXT '1:GRAB'
+
+    BYTE GRAB/256, GRAB
+    EVEN
+MAP1S11
+
+    BYTE 1, -62, MAP1S12/256, MAP1S12, 65, -104, 112, 10, -104, -128, 10, -88, 112, 10, -88, -128
+    BYTE 10, -1, -37, -54, -1, -1, -39, -21, -1, -1, 39, -13, -1, -1, 51, -105
+    BYTE -1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -128, -128, -128, -128, -128, -128
+    BYTE -128
+    TEXT '1:READ'
+
+    BYTE READ2/256, READ2
+    EVEN
+MAP1S12
+
+    BYTE 2, -61, MAP1S13/256, MAP1S13, 49, -112, 120, 2, -112, 120, 8, -112, 120, 6, 0, 0
+    BYTE 0, 0, 8, 24, 12, 8, 0, 28, 34, 28, 0, 0, 0, 0, 0, 0
+    BYTE 28, 0, 0, 0, 0, 0
+    TEXT '1:SMEL'
+
+    BYTE SMEL1/256, SMEL1
+    EVEN
+MAP1S13
+
+    BYTE 0, -60, MAP1S14/256, MAP1S14, 49, -112, 120, 2, -112, 120, 10, -112, 120, 1, 0, 0
+    BYTE 0, 0, 8, 24, 12, 8, 28, 54, 54, 28, 0, 0, 0, 0, 0, 8
+    BYTE 8, 0, 0, 0, 0, 0
+    TEXT '1:SMEL'
+
+    BYTE SMEL1/256, SMEL1
+    EVEN
+MAP1S14
+
+    BYTE 2, -59, MAP1S15/256, MAP1S15, 33, -112, 120, 2, -112, 120, 5, 0, 0, 0, 0, 8
+    BYTE 24, 12, 8, 0, 20, 62, 28, 0, 0, 0, 0
+    TEXT '1:SMEL'
+
+    BYTE SMEL1/256, SMEL1
+    EVEN
+MAP1S15
+
+    BYTE 0, -58, MAP1S16/256, MAP1S16, 113, -112, -128, 13, -112, 112, 13, -108, 122, 1, -96, 112
+    BYTE 10, -96, 112, 15, -96, -128, 15, -96, -128, 10, 0, 0, -32, -4, -34, -1
+    BYTE 0, -32, 0, 0, 1, 7, 14, 15, 14, 15, 0, 0, 36, 0, 60, 0
+    BYTE 0, 0, 0, 0, 0, 15, 15, 28, 0, 0, 15, 15, 15, 0, 0, 0
+    BYTE 0, 0, -32, -32, -32, 0, 0, 0, 0, 0, 0, 0, 0, -32, -32, 112
+    BYTE 0, 0
+    TEXT '1:SMEL'
+
+    BYTE SMEL2/256, SMEL2
+    EVEN
+MAP1S16
+
+    BYTE 1, -56, NULL/256, NULL, 65, -90, 113, 10, -106, 113, 10, -106, -127, 10, -90, -127
+    BYTE 10, -1, 1, 1, 1, 1, 1, 1, 1, -1, -37, -54, -1, -1, -39, -21
+    BYTE -1, -1, 39, -13, -1, -1, 51, -105, -1, -1, -128, -128, -128, -128, -128, -128
+    BYTE -128
+    TEXT '1:READ'
+
+    BYTE READ3/256, READ3
+    EVEN
+MAP1
+
+    BYTE 1, 2, 1, 0, 0, -128, -128, -128, -128, -128, -128, -128, -128, -110
+    BYTE -78, -78, -78, 0, 0, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, -78, 0, 0, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, -77, 0, 0, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, -78, 0, 0, 0, 0, 0, -92, 0, 0, -92, -128, -128, -128, -110
+    BYTE -78, -78, -78, 0, 0, 0, 0, -92, -92, 0, 0, -92, -92, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, -92, 0, 0, 0, 0, -92, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, -92, -92, 0, 0, -92, -92, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, -92, 0, 0, 0, 0, -92, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, -92, -92, -92, -92, -92, -92, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, 0, -76, 0, -78, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, -76, -76, -73, 0, -74, 0, -75, -75, -59, -59, -59
+    BYTE 0, 0, 0, 0, 0, -76, 0, 0, 0, 0, 0, 0, 0, 0, 0, -59
+    BYTE 0, 0, 0, 0, 0, -76, -76, -75, -78, 0, -74, 0, -75, -59, -59, -59
+    BYTE 0, 0, 0, 0, 0, 0, 0, 0, 0, -76, 0, -75, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0
+ 
+
+B1END .PRINT (>8000-B1END), "BYTES LEFT IN BANK 1!" 
+    AORG >7000
+    BANK 2
+    EVEN
+
+    DATA MAP2
+    DATA MAP2S0
+    DATA >0000
+
+BARK
+    LI A1, BARKTX
+    MOV A1, @NOTIFY
+    RT
+
+    EVEN
+KWACK
+    LI A1, KWACKT
+    MOV A1, @NOTIFY
+    RT
+
+    EVEN
+GRINE1
+    MOV @UNLOCK, A1
+    JEQ GRINM1
+    LI A1, GRINT2
+    MOV A1, @NOTIFY
+    RT
+
+    EVEN
+GRINM1
+    LI A1, GRINT1
+    MOV A1, @NOTIFY
+    RT
+
+DVSH
+    MOVB @UNLOCK, A1
+    JEQ DNOP
+    LI PX, 1
+    LI PY, 12
+    RT
+
+DNOP
+    LI A1, NOPTXT
+    MOV A1, @NOTIFY
+    RT
+
+HOLD
+    LI A1, >0100
+    MOVB A1, @UNLOCK
+    LI A1, KYTXT
+    MOV A1, @NOTIFY
+    RT
+
+VIEW1
+    LI A1, VIEW1T
+    MOV A1, @NOTIFY
+    RT
+
+VIEW2
+    LI A1, VIEW2T
+    MOV A1, @NOTIFY
+    RT
+
+VIEW3
+    LI A1, VIEW3T
+    MOV A1, @NOTIFY
+    RT
+
+SNIF1
+    LI A1, SNIF1T
+    MOV A1, @NOTIFY
+    RT
+
+SNIF2
+    LI A1, SNIF2T
+    MOV A1, @NOTIFY
+    RT
+
+BARKTX
+    TEXT 'BARK BARK!'
+    BYTE 0
+
+KWACKT
+    TEXT 'KWACK KWACK!'
+    BYTE 0
+
+GRINT1
+    TEXT 'IVE SEEN A KY SOMEWHERE...'
+    BYTE 0
+
+GRINT2
+    TEXT 'YOUVE FOUND THE KY!'
+    BYTE 0
+
+NOPTXT
+    TEXT 'THIS DOOR IS LOCKED!'
+    BYTE 0
+
+KYTXT
+    TEXT 'KY AQUIRED!'
+    BYTE 0
+
+VIEW1T
+    TEXT 'LOCKED DOOR AHEAD!'
+    BYTE 0
+
+VIEW2T
+    TEXT 'WELCOME TO THE FLORAL GARDEN'
+    BYTE 0
+
+VIEW3T
+    TEXT 'THANKS FOR PLAYING! PLEASE VISITTHE TOPIC ON ATARIAGE AND GIVE  FEEDBACK!'
+    BYTE 0
+
+SNIF1T
+    TEXT 'THE FLOWER SNIFLS LOVELY!'
+    BYTE 0
+
+SNIF2T
+    TEXT 'GET AWAY FROM ME'
+    BYTE 0 
+    EVEN
+MAP2S0
+
+    BYTE 1, 43, MAP2S1/256, MAP2S1, -128, 68, 114, 15, 83, 114, 15, 96, 114, 15, 110, 114
+    BYTE 15, 68, 126, 15, 83, 126, 15, 110, 126, 15, 96, 126, 15, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -37, -37, -37
+    BYTE -37, -37, -61, -1, -1, -1, -61, -37, -37, -37, -37, -37, -37
+    EVEN
+MAP2S1
+
+    BYTE 1, 27, MAP2S2/256, MAP2S2, 64, 68, -16, 15, 82, -16, 15, 96, -16, 15, 110, -16
+    BYTE 15, 7, 31, 63, 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1
+    BYTE -1, 127, 67, -37, -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1
+    BYTE -1
+    EVEN
+MAP2S2
+
+    BYTE 1, 59, MAP2S3/256, MAP2S3, 64, 68, 0, 15, 82, 0, 15, 96, 0, 15, 110, 0
+    BYTE 15, -32, -8, -4, -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3
+    BYTE -1, -1, -61, -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1
+    BYTE -1
+    EVEN
+MAP2S3
+
+    BYTE 0, 28, MAP2S4/256, MAP2S4, -128, 64, 32, 15, 80, 32, 15, 96, 32, 15, 112, 32
+    BYTE 15, 66, 46, 15, 81, 46, 15, 95, 46, 15, 111, 46, 15, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -1, -61, -37
+    BYTE -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1, -1
+    EVEN
+MAP2S4
+
+    BYTE 2, 60, MAP2S5/256, MAP2S5, -128, 64, -48, 15, 80, -48, 15, 96, -48, 15, 112, -48
+    BYTE 15, 66, -62, 15, 81, -62, 15, 96, -62, 15, 110, -62, 15, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -1, -61, -37
+    BYTE -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1, -1, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1
+    EVEN
+MAP2S5
+
+    BYTE 1, 44, MAP2S6/256, MAP2S6, -127, 64, 112, 15, 80, 112, 15, 96, 112, 15, 112, 112
+    BYTE 15, 64, -128, 15, 80, -128, 15, 96, -128, 15, 112, -128, 15, 7, 31, 63
+    BYTE 127, 127, -61, -61, -61, 67, 127, -1, -1, -1, -1, -1, -1, 127, 67, -37
+    BYTE -37, -37, -37, -37, -37, 91, 91, -37, -37, -37, -61, -1, -1, -32, -8, -4
+    BYTE -2, -2, -61, -61, -61, -61, -1, -1, -1, -1, -15, -3, -1, -1, -61, -37
+    BYTE -37, -37, -37, -37, -37, -37, -37, -37, -37, -37, -61, -1, -1
+    TEXT '1:OPEN'
+
+    BYTE DVSH/256, DVSH
+    EVEN
+MAP2S6
+
+    BYTE 1, 38, MAP2S7/256, MAP2S7, 65, -88, 112, 10, -88, -128, 10, -104, 112, 10, -104, -128
+    BYTE 10, -1, 1, 1, 1, 1, 1, 1, 1, -1, -128, -128, -128, -128, -128, -128
+    BYTE -128, -1, -37, -54, -1, -1, -39, -21, -1, -1, 39, -13, -1, -1, 51, -105
+    BYTE -1
+    TEXT '1:VIEW'
+
+    BYTE VIEW1/256, VIEW1
+    EVEN
+MAP2S7
+
+    BYTE 1, 101, MAP2S8/256, MAP2S8, 17, -112, 120, 8, -52, 48, 80, 112, 17, 30, 18, 51
+    TEXT '1:TALK'
+
+    BYTE BARK/256, BARK
+    EVEN
+MAP2S8
+
+    BYTE 3, 100, MAP2S9/256, MAP2S9, 17, -112, 119, 10, 60, 126, -37, -1, -67, -61, 126, 60
+    TEXT '1:TALK'
+
+    BYTE GRINE1/256, GRINE1
+    EVEN
+MAP2S9
+
+    BYTE 1, -123, MAP2S10/256, MAP2S10, 49, -112, 120, 8, -112, 120, 1, -112, 120, 10, 0, 0
+    BYTE 0, -128, 0, 0, 40, 108, 0, 0, 80, 0, 0, 0, 0, 0, 0, 120
+    BYTE 40, 124, 124, 124, 0, 0
+    TEXT '1:TALK'
+
+    BYTE KWACK/256, KWACK
+    EVEN
+MAP2S10
+
+    BYTE 3, -124, MAP2S11/256, MAP2S11, 17, -112, 120, 10, 0, 0, 64, -68, 72, 0, 0, 0
+    TEXT '1:HOLD'
+
+    BYTE HOLD/256, HOLD
+    EVEN
+MAP2S11
+
+    BYTE 1, -62, MAP2S12/256, MAP2S12, 65, -104, 112, 10, -104, -128, 10, -88, 112, 10, -88, -128
+    BYTE 10, -1, -37, -54, -1, -1, -39, -21, -1, -1, 39, -13, -1, -1, 51, -105
+    BYTE -1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -128, -128, -128, -128, -128, -128
+    BYTE -128
+    TEXT '1:VIEW'
+
+    BYTE VIEW2/256, VIEW2
+    EVEN
+MAP2S12
+
+    BYTE 2, -61, MAP2S13/256, MAP2S13, 49, -112, 120, 2, -112, 120, 8, -112, 120, 6, 0, 0
+    BYTE 0, 0, 8, 24, 12, 8, 0, 28, 34, 28, 0, 0, 0, 0, 0, 0
+    BYTE 28, 0, 0, 0, 0, 0
+    TEXT '1:SNIF'
+
+    BYTE SNIF1/256, SNIF1
+    EVEN
+MAP2S13
+
+    BYTE 0, -60, MAP2S14/256, MAP2S14, 49, -112, 120, 2, -112, 120, 10, -112, 120, 1, 0, 0
+    BYTE 0, 0, 8, 24, 12, 8, 28, 54, 54, 28, 0, 0, 0, 0, 0, 8
+    BYTE 8, 0, 0, 0, 0, 0
+    TEXT '1:SNIF'
+
+    BYTE SNIF1/256, SNIF1
+    EVEN
+MAP2S14
+
+    BYTE 2, -59, MAP2S15/256, MAP2S15, 33, -112, 120, 2, -112, 120, 5, 0, 0, 0, 0, 8
+    BYTE 24, 12, 8, 0, 20, 62, 28, 0, 0, 0, 0
+    TEXT '1:SNIF'
+
+    BYTE SNIF1/256, SNIF1
+    EVEN
+MAP2S15
+
+    BYTE 0, -58, MAP2S16/256, MAP2S16, 113, -112, -128, 13, -112, 112, 13, -108, 122, 1, -96, 112
+    BYTE 10, -96, 112, 15, -96, -128, 15, -96, -128, 10, 0, 0, -32, -4, -34, -1
+    BYTE 0, -32, 0, 0, 1, 7, 14, 15, 14, 15, 0, 0, 36, 0, 60, 0
+    BYTE 0, 0, 0, 0, 0, 15, 15, 28, 0, 0, 15, 15, 15, 0, 0, 0
+    BYTE 0, 0, -32, -32, -32, 0, 0, 0, 0, 0, 0, 0, 0, -32, -32, 112
+    BYTE 0, 0
+    TEXT '1:SNIF'
+
+    BYTE SNIF2/256, SNIF2
+    EVEN
+MAP2S16
+
+    BYTE 1, -56, NULL/256, NULL, 65, -90, 113, 10, -106, 113, 10, -106, -127, 10, -90, -127
+    BYTE 10, -1, 1, 1, 1, 1, 1, 1, 1, -1, -37, -54, -1, -1, -39, -21
+    BYTE -1, -1, 39, -13, -1, -1, 51, -105, -1, -1, -128, -128, -128, -128, -128, -128
+    BYTE -128
+    TEXT '1:VIEW'
+
+    BYTE VIEW3/256, VIEW3
+    EVEN
+MAP2
+
+    BYTE 1, 2, 1, 0, 0, -128, -128, -128, -128, -128, -128, -128, -128, -110, -78, -78
+    BYTE -78, 0, 0, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    BYTE -78, 0, 0, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    BYTE -77, 0, 0, -128, -128, -128, -128, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    BYTE -78, 0, 0, 0, 0, 0, -92, 0, 0, -92, -128, -128, -128, -110, -78, -78
+    BYTE -78, 0, 0, 0, 0, -92, -92, 0, 0, -92, -92, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, -92, 0, 0, 0, 0, -92, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, -92, -92, 0, 0, -92, -92, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, -92, 0, 0, 0, 0, -92, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, -92, -92, -92, -92, -92, -92, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, -76, 0, -78, 0, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, -76, -76, -73, 0, -74, 0, -75, -75, -59, -59, -59, 0, 0
+    BYTE 0, 0, 0, -76, 0, 0, 0, 0, 0, 0, 0, 0, 0, -59, 0, 0
+    BYTE 0, 0, 0, -76, -76, -75, -78, 0, -74, 0, -75, -59, -59, -59, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, -76, 0, -75, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    BYTE 0, 0, 0
+ 
+
+B2END .PRINT (>8000-B2END), "BYTES LEFT IN BANK 2!" 

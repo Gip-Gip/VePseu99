@@ -50,7 +50,12 @@ ACTL2
     MOVB @STAT2, A4
     ANDI A4, >0100
     JEQ ACTL1
-    B *A3
+; The code is in the 2nd RAM bank, this is getting kinda messy...
+    MOV RTADDR, A4
+    .SRB1
+    BL *A3
+    .SRB0
+    B *A4
 
 ACTEND
     RT

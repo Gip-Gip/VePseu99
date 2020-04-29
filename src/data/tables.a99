@@ -38,7 +38,7 @@
 ; vertical line draw list size in bytes
 ; vertical line draw list, position, height, and color selection(boolean 0 or 8)
 
-DNOTIF  BYTE 0
+DNOTIF  DATA 0
 
 AIMSB0  BYTE >79
 AIMSB1  BYTE >7A

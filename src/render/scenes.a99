@@ -36,6 +36,8 @@
 SCENES
 ; Temporarily SWPB PA
     SWPB PA
+; All the ram we need is in the 2nd RAM bank...
+    .SRB1
 ; Make sure bit 7 and 8 of STAT1 is set to 0
     CLR A1
     MOVB @STAT1, A1
@@ -97,6 +99,8 @@ SCNB4R
     JEQ SCNB5
 SCNB5R
     SWPB PA
+; Swap back to the 1st RAM bank...
+    .SRB0
     RT
 
 ; Draw Sprites!
@@ -162,8 +166,14 @@ SCNB3
     MOVB A6, @STAT1
     LI A6, ACTION
     SLA A5, 3
+; ACTION is in ram bank 0, and the action we need to copy is in bank 1. While
+; doing it another way is not that possible, it still results in less efficient
+; code like this...
 SCNBL4
-    MOVB *A1+, *A6+
+    MOVB *A1+, A7
+    .SRB0
+    MOVB A7, *A6+
+    .SRB1
     DEC A5
     JNE SCNBL4
 
@@ -180,6 +190,8 @@ SCNB4
     JMP SCNB4R
 
 SCNB5
+; Actions are in the 1st bank...
+    .SRB0
     LI A1, ACTION
     LI A2, >20
     CLR A3
@@ -187,4 +199,5 @@ SCNBL5
     MOV A3, *A1+
     DECT A2
     JNE SCNBL5
+    .SRB1
     JMP SCNB5R

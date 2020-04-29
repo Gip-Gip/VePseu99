@@ -36,7 +36,12 @@ DRWNOT
     MOV @NOTIFY, A1
     LI A2, SCRNBF
 DRWNL1
-    MOVB *A1+, *A2+
+; All the ram we need is in the 2nd RAM bank...
+    .SRB1
+    MOVB *A1+, A3
+; And the screen buffer is in the 1st...
+    .SRB0
+    MOVB A3, *A2+
     JNE DRWNL1
 
     RT

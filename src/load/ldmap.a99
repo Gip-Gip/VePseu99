@@ -30,12 +30,47 @@
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
+MAPLEN  EQU >100
     EVEN
 
-
-; LDMAP - Decompresses a map into memory, and sets the MAP pointer to that map!
-; MAP = pointer to compressed map data
+; LDMAP - loads a map from a bank
+; A5 = map number
 LDMAP
+    MOV RTADDR, A8
+; Load the map's bank into memory
+    .SRB1
+    BL @LDBANK
+    MOV A8, RTADDR
+; Copy the map from RAM bank 2 to bank 1
+; This is done to simplify render code, since the screen buffer is on bank 1
+; If we kept the map on bank 2 things would slow down quite a bit, and at the
+; cost of only about 256 bytes of ram
+    MOV @MAPPTR, A5
+    CLR PX
+    CLR PY
+    CLR PA
+; Set PX, PY, and PA before the move
+    MOVB *A5+, PX
+    SWPB PX
+    MOVB *A5+, PY
+    SWPB PY
+    MOVB *A5+, PA
+    SWPB PA
+    LI A6, RAMMAP
+    LI A7, MAPLEN
+LDML1
+; Swap to bank 2, get a byte, swap to bank 1, store a byte...
+    .SRB1
+    MOVB *A5+, A8
+    .SRB0
+    MOVB A8, *A6+
+    DEC A7
+    JNE LDML1
 
+    LI MAP, RAMMAP
 
+; Set the default notification
+    LI A1, DNOTIF
+    MOV A1, @NOTIFY
 
+    RT

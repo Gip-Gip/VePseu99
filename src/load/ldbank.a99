@@ -32,17 +32,26 @@
 
 ; Theoretically, if we don't use any branch functions we can just load this
 ; into scratchpad ram and it'll work perfectly...
+; LDBRAW is 32 bytes in size and is not called directly, it is instead stored in
+; scratchpad ram
 ; A5 = bank to switch to
 LDBRAW
+; All banks are on even addresses, multiply by 2...
     SLA A5, 1
+; ROM banks start at >6000
     AI A5, >6000
+; Write to that address through a decrement
     DEC *A5
+; Set A5 to point to the start of rom, A6 to point to the start of RAM, and A7
+; to hold the size of ROM/RAM(>1000 = 4kb)
     LI A5, >6000
     LI A6, >7000
     LI A7, >1000
 LDBL1
+; Now we simply copy everything over to ram!
     MOV *A5+, *A6+
     DECT A7
     JNE LDBL1
+; Change back to bank 0, and we're done!
     DEC @>6000
     RT
