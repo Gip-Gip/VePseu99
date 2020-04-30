@@ -1597,7 +1597,7 @@ FRMDL1
     SBZ 0
     SRL A1, 1
     CI A1, 4694
-    JGT FRMDL1
+    JLT FRMDL1
 
     SBO 0
     INCT CRU
