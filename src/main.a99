@@ -45,8 +45,10 @@ WSREGS EQU >8300
 LDBANK EQU >8320
 ; Basic screen notification pointer
 NOTIFY EQU >8340
+MUSI EQU >8342
+MUSD EQU >8344
 ; Demo-specific variables
-UNLOCK EQU >8342
+UNLOCK EQU >8345
 
 A1 EQU 0 ; Accumulator register 1
 A2 EQU 1 ; Accumulator register 2
@@ -253,10 +255,14 @@ LOOP
     BL @ACT
 ; Draw the notification
     BL @DRWNOT
+; Play music
+    BL @MUSIC
 ; Play audio
     BL @AUDIO
 ; Push the previously rendered screen to the VDP
     BL @RNDPSH ; (20 + 36214) cycles
+
+    BL @FRMDLY
 ; Each frame is around 94,329 to 95,108 cycles long, on average.
 ; Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
 ; Not terrible, considering making the framerate higher doesn't make the game

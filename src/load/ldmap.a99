@@ -60,17 +60,34 @@ LDMAP
     LI A7, MAPLEN
 LDML1
 ; Swap to bank 2, get a byte, swap to bank 1, store a byte...
-    .SRB1
     MOVB *A5+, A8
     .SRB0
     MOVB A8, *A6+
     DEC A7
+    .SRB1
     JNE LDML1
 
+; Set MAP to point to RAMMAP
     LI MAP, RAMMAP
+
+; Set MUSI to CURMUS
+    MOV @CURMUS, @MUSI
+; Set the duration to 1
+    LI A1, >0100
+    MOVB A1, @MUSD
+    .SRB0
 
 ; Set the default notification
     LI A1, DNOTIF
     MOV A1, @NOTIFY
+
+; Set the delay to 100ms
+    CLR CRU
+    SBO 0
+    LI A1, 4694
+    INCT CRU
+    LDCR A1, 14
+    DECT CRU
+    SBZ 0
 
     RT

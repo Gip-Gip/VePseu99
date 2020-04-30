@@ -41,7 +41,7 @@ LDBRAW
 ; ROM banks start at >6000
     AI A5, >6000
 ; Write to that address through a decrement
-    DEC *A5
+    CLR *A5
 ; Set A5 to point to the start of rom, A6 to point to the start of RAM, and A7
 ; to hold the size of ROM/RAM(>1000 = 4kb)
     LI A5, >6000
@@ -53,5 +53,5 @@ LDBL1
     DECT A7
     JNE LDBL1
 ; Change back to bank 0, and we're done!
-    DEC @>6000
+    CLR @>6000
     RT

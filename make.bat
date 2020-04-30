@@ -1,7 +1,7 @@
 @echo off
 set rt=%cd%
 REM put your XAS99 script here...
-set xas99=xas99
+set xas99=%UserProfile%\xdt99\xas99.py
 set python=python
 del vepseu.a99
 call :LOADDIR src
@@ -12,9 +12,10 @@ echo     BYTE 0 >> %rt%\vepseu.a99
 cd %rt%
 call :LOADDIR maps
 cd %rt%
-%xas99% -b vepseu.a99 -o vepseu.bin
-REM weirdly, JS99er does not work with 24k roms, might be a "feature"
-%python% concat.py -o vepseu8.bin vepseu.bin_0 vepseu.bin_1 vepseu.bin_2 vepseu.bin_2
+%python% %xas99% -b vepseu.a99 -o vepseu.bin
+set concfiles=
+for %%i in (vepseu.bin_*) do call :CONCSET %%i
+%python% concat.py -o vepseu8.bin %concfiles%
 exit /b
 
 :LOADDIR
@@ -28,3 +29,6 @@ exit /b
 type %1 >> %rt%\vepseu.a99
 echo. >> %rt%\vepseu.a99
 exit /b
+
+:CONCSET
+set concfiles=%concfiles% %1

@@ -1,2 +1,8 @@
 
+MAP1MU
+;        Duration, c0 volume, c1 vol, c1 note, c2 vol, c2 note
+    BYTE 10, 0, 10, 0, 0, 0
+    BYTE 10, 0, 0, 0, 0, 0
+    BYTE 0
+
 B1END .PRINT (>8000-B1END), "BYTES LEFT IN BANK 1!"

@@ -30,7 +30,7 @@
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
-MAXVOL EQU >0F
+MAXVOL EQU >000F
 SADDR EQU >8400
 NOISB EQU >E600
 AUDO1 EQU >8000
@@ -39,14 +39,13 @@ AUDO3 EQU >C000
 VOLB EQU >F000
 
     EVEN
-; A5 = volume(0-15)
+; A5 = volume(0-15)(MSB)
 PUSHA0
 ; Since the audio chip attinuates audio, we need to convert volume to
 ; attenuation. To do this, we simply subtract A5 from the max volume possible
     NEG A5 ; 12 cycles
-    AI A5, MAXVOL ; 14 cycles
-    ORI A5, >F0 ; 14 cycles
-    SWPB A5 ; 10 cycles
+    AI A5, MAXVOL*256 ; 14 cycles
+    ORI A5, >F000 ; 14 cycles
 
     MOV @AINDF0, A6
     MOVB A5, *A6+
@@ -55,12 +54,14 @@ PUSHA0
 
     RT
 
-; A5 = volume(0-15), A6 = note (0-69, see note table)
+; A5 = volume(0-15)(MSB), A6 = note (0-69, see note table)(MSB)
 PUSHA1
     NEG A5 ; 12 cycles
-    AI A5, MAXVOL ; 14 cycles
-    ORI A5, >90 ; 14 cycles
-    SWPB A5 ; 10 cycles
+    AI A5, MAXVOL*256 ; 14 cycles
+    ORI A5, >9000 ; 14 cycles
+    SWPB A6
+    ANDI A6, >00FF
+
 
 ; Multiply A6 by 2. We do this because each note offset is one word in the table
     SLA A6, 1
@@ -82,12 +83,13 @@ PUSHA1
 
     RT
 
-; A5 = volume(0-15), A6 = note (0-69, see note table)
+; A5 = volume(0-15)(MSB), A6 = note (0-69, see note table)(MSB)
 PUSHA2
     NEG A5 ; 12 cycles
-    AI A5, MAXVOL ; 14 cycles
-    ORI A5, >B0 ; 14 cycles
-    SWPB A5 ; 10 cycles
+    AI A5, MAXVOL*256 ; 14 cycles
+    ORI A5, >B000 ; 14 cycles
+    SWPB A6
+    ANDI A6, >00FF
 
 ; Multiply A6 by 2. We do this because each note offset is one word in the table
     SLA A6, 1

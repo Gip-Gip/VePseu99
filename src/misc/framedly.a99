@@ -35,15 +35,21 @@
 FRMDLY
 ; Wait until 100ms have passed
     CLR CRU
+FRMDL1
     SBO 0
     INC CRU
-FRMDL1
     STCR A1, 15
-    CI A1, 4694
-    JLT FRMDL1
-    LI A1,4694
-    LDCR A1, 14
     DEC CRU
+    SBZ 0
+    SRL A1, 1
+    CI A1, 4694
+    JGT FRMDL1
+
+    SBO 0
+    INCT CRU
+    LI A1, 1
+    LDCR A1, 1
+    DECT CRU
     SBZ 0
 
     RT

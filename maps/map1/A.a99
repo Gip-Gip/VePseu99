@@ -4,7 +4,7 @@
 
     DATA MAP1
     DATA MAP1S0
-    DATA >0000
+    DATA MAP1MU
 
 WOOF
     LI A1, WOOFTX

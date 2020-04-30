@@ -33,11 +33,11 @@
 ; Macros of which change the RAM banks
 
     .defm SRB0
-    DEC @>6800
+    CLR @>6800
     .endm
 
     .defm SRB1
-    DEC @>6802
+    CLR @>6802
     .endm
 
 INTTMP EQU >7000
@@ -82,5 +82,6 @@ RBANK2 EQU >7000
 
 MAPPTR EQU >7000
 CURSCN EQU >7002
+CURMUS EQU >7004
 
     PAGE

@@ -1,5 +1,5 @@
 ;##############################################################################;
-; framedly.a99 - contains code that keep VEPSEU at a constant framerate!       ;
+; music.a99 - plays level music                                                ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
 ;                                                                              ;
@@ -32,18 +32,48 @@
 
     EVEN
 
-FRMDLY
-; Wait until 100ms have passed
-    CLR CRU
-    SBO 0
-    INC CRU
-FRMDL1
-    STCR A1, 15
-    CI A1, 4694
-    JLT FRMDL1
-    LI A1,4694
-    LDCR A1, 14
-    DEC CRU
-    SBZ 0
+MUSIC
+; If we're still playing the last note, don't do anyhting
+    LI A1, ->0100
+    AB A1, @MUSD
+    JNE MUSEND
+    .SRB1
+    MOV @MUSI, A1
+    MOVB *A1+, @MUSD
+; If the duration is 0, reset the song
+    JEQ MUSB1
 
+    MOV RTADDR, A4
+
+; Store the c0 volume to the noise channel
+    CLR A5
+    MOVB *A1+, A5
+    .SRB0
+    BL @PUSHA0
+    .SRB1
+; Store the c1 volume and note to the 1st square wave channel
+    CLR A5
+    CLR A6
+    MOVB *A1+, A5
+    MOVB *A1+, A6
+    .SRB0
+    BL @PUSHA1
+    .SRB1
+; Store the c2 volume and note to the 2nd square wave channel
+    CLR A5
+    CLR A6
+    MOVB *A1+, A5
+    MOVB *A1+, A6
+    .SRB0
+    BL @PUSHA2
+    MOV A1, @MUSI
+    B *A4
+
+MUSB1
+    MOV @CURMUS, @MUSI
+    LI A1, >0100
+    MOVB A1, @MUSD
+
+    .SRB0
+MUSEND
     RT
