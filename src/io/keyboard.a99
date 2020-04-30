@@ -33,10 +33,10 @@
     EVEN
 
 
-; The amount of frames between repeating a key. Since we get on average 30fps
+; The amount of frames between repeating a key. Since we get exactly 10fps
 ; and we want a key to repeat every 1/4 of a second, we'll set the delay to
 ; 7 frames
-KEYDLY EQU >0500
+KEYDLY EQU >0200
 
 ; Keyboard scanning routine
 ; 700 to 1040 cycles

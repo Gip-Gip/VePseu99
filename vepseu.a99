@@ -1009,10 +1009,10 @@ DRWNL1
     EVEN
 
 
-; The amount of frames between repeating a key. Since we get on average 30fps
+; The amount of frames between repeating a key. Since we get exactly 10fps
 ; and we want a key to repeat every 1/4 of a second, we'll set the delay to
 ; 7 frames
-KEYDLY EQU >0500
+KEYDLY EQU >0200
 
 ; Keyboard scanning routine
 ; 700 to 1040 cycles
@@ -1247,14 +1247,15 @@ KEYHTW
 
 MUSIC
 ; If we're still playing the last note, don't do anyhting
-    LI A1, ->0100
-    AB A1, @MUSD
+    CLR A1
+    MOVB @MUSD, A1
     JNE MUSEND
     .SRB1
     MOV @MUSI, A1
     MOVB *A1+, @MUSD
 ; If the duration is 0, reset the song
     JEQ MUSB1
+MUSB1R
 
     MOV RTADDR, A4
 
@@ -1283,12 +1284,13 @@ MUSIC
     B *A4
 
 MUSB1
-    MOV @CURMUS, @MUSI
-    LI A1, >0100
-    MOVB A1, @MUSD
+    MOV @CURMUS, A1
+    MOVB *A1+, @MUSD
+    JMP MUSB1R
 
-    .SRB0
 MUSEND
+    AI A1, ->0100
+    MOV A1, @MUSD
     RT 
 ;##############################################################################;
 ; ldbank.a99 - loads a ROM BANK into the second RAM bank!                      ;
@@ -2341,8 +2343,8 @@ MAP1
 
 MAP1MU
 ;        Duration, c0 volume, c1 vol, c1 note, c2 vol, c2 note
-    BYTE 10, 0, 10, 0, 0, 0
-    BYTE 10, 0, 0, 0, 0, 0
+    BYTE 5, 0, 10, 0, 0, 0
+    BYTE 5, 0, 0, 0, 0, 0
     BYTE 0
 
 B1END .PRINT (>8000-B1END), "BYTES LEFT IN BANK 1!" 
