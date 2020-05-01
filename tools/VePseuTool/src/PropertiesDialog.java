@@ -69,6 +69,11 @@ implements ActionListener, WindowListener
         wseButton.setBounds(170, 175, 100, 25);
         wseButton.addActionListener(new ExportWallStyle());
         
+        // Music load button
+        Button lmidiButton = new Button("Load Midi");
+        lmidiButton.setBounds(10, 210, 100, 25);
+        lmidiButton.addActionListener(new LoadMIDI());
+        
         add(mnLabel);
         add(paLabel);
         add(pxLabel);
@@ -79,6 +84,7 @@ implements ActionListener, WindowListener
         add(pyTextField);
         add(wslButton);
         add(wseButton);
+        add(lmidiButton);
         
         addWindowListener(this);
         setSize(480, 320);

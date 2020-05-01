@@ -36,8 +36,9 @@ DOPEN
     JEQ DLKD
     CLR A1
     MOVB A1, @UNLOCK
-    LI A5, 2
-    B @x#LDMAP
+    LI PX, 2
+    LI PY, 12
+    RT
 
 DLKD
     LI A1, LKDTXT

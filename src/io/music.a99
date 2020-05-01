@@ -30,12 +30,17 @@
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
+NOISB EQU >E600
+AUDO1 EQU >8000
+AUDO2 EQU >A000
+
     EVEN
 
 MUSIC
 ; If we're still playing the last note, don't do anyhting
     CLR A1
     MOVB @MUSD, A1
+    CI A1, >0100
     JNE MUSEND
     .SRB1
     MOV @MUSI, A1
@@ -43,32 +48,41 @@ MUSIC
 ; If the duration is 0, reset the song
     JEQ MUSB1
 MUSB1R
-
-    MOV RTADDR, A4
-
+    LI A2, SADDR
 ; Store the c0 volume to the noise channel
-    CLR A5
-    MOVB *A1+, A5
-    .SRB0
-    BL @PUSHA0
-    .SRB1
+; Load the default noise address/mode byte into A3
+    LI A3, NOISB
+; Send that byte to the sound address
+    MOVB A3, *A2
+; Send the attenuation of the noise address to the sound address
+    MOVB *A1+, *A2
 ; Store the c1 volume and note to the 1st square wave channel
-    CLR A5
-    CLR A6
-    MOVB *A1+, A5
-    MOVB *A1+, A6
-    .SRB0
-    BL @PUSHA1
-    .SRB1
+    CLR A3
+    MOVB *A1+, A3
+    SWPB A3
+    SLA A3, 1
+    AI A3, NOTES
+    MOV *A3, A4
+    ORI A4, AUDO1
+    MOVB A4, *A2
+    SWPB A4
+    MOVB A4, *A2
+    MOVB *A1+, *A2
 ; Store the c2 volume and note to the 2nd square wave channel
-    CLR A5
-    CLR A6
-    MOVB *A1+, A5
-    MOVB *A1+, A6
+    CLR A3
+    MOVB *A1+, A3
+    SWPB A3
+    SLA A3, 1
+    AI A3, NOTES
+    MOV *A3, A4
+    ORI A4, AUDO2
+    MOVB A4, *A2
+    SWPB A4
+    MOVB A4, *A2
+    MOVB *A1+, *A2
     .SRB0
-    BL @PUSHA2
     MOV A1, @MUSI
-    B *A4
+    RT
 
 MUSB1
     MOV @CURMUS, A1

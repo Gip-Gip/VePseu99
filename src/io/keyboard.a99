@@ -132,7 +132,7 @@ KEY3
 ; Load a volume of 8 into A5
     LI A5, >0A
 ; Load the note A2 into A6
-    LI A6, 0
+    LI A6, >03
     BL @PUSHA3
     LI A5, >00
     LI A6, 0

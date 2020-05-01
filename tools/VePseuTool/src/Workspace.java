@@ -15,6 +15,9 @@ import java.awt.image.BufferStrategy;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
+
 public class Workspace extends Canvas
 implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
 {
@@ -53,6 +56,11 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
         wallStyle = αwallStyle;
         repaint();
+    }
+    
+    public void setMusic(Sequence αsequence)
+    {
+        map.setMusic(αsequence);
     }
     
     public WallStyle getWallStyle()

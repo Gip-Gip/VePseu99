@@ -1,10 +1,14 @@
 import java.awt.Point;
 import java.util.ArrayList;
 
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
+
 public class Map
 {
     private byte[][] map = null;
     private ArrayList<Scene> scenes = null;
+    private Music music = null;
     
     private String mapName = null;
     public static final byte MAPWIDTH = 16;
@@ -18,6 +22,7 @@ public class Map
     {
         map = new byte[MAPWIDTH][MAPHEIGHT];
         scenes = new ArrayList<Scene>();
+        music = new Music();
     }
     
     public void addScene(int αx, int αy)
@@ -93,6 +98,11 @@ public class Map
         mapName = αname.substring(0, Math.min(αname.length(), 6));
     }
     
+    public void setMusic(Sequence αsequence)
+    {
+        music = new Music(αsequence);
+    }
+    
     public byte getPlayerX()
     {
         return playerX;
@@ -135,6 +145,12 @@ public class Map
             fileLength += sceneData.getAsmData().length;
             concat.add(sceneData);
         }
+        
+        AsmData musFile = music.getData();
+        
+        musFile.setName(mapName + "MU"); 
+        fileLength += musFile.getAsmData().length;
+        concat.add(musFile);
         
         mapFile.setName(mapName);
         mapFile.addByte(playerX);

@@ -59,6 +59,14 @@ public class AsmData
         index ++;
     }
     
+    public void addData(byte[] bytes)
+    {
+        for(byte unit : bytes)
+        {
+            addByte(unit);
+        }
+    }
+    
     public void addRef(String unit)
     {
         if(index >= 16)
