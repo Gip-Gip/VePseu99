@@ -31,6 +31,9 @@
 ;##############################################################################;
 
     EVEN
+    
+; We want to delay until 5.5 frames have passed
+DELAY EQU 4297
 
 FRMDLY
 ; Wait until 100ms have passed
@@ -43,12 +46,12 @@ FRMDL1
     DEC CRU
     SBZ 0
     SRL A1, 1
-    CI A1, 4694
+    CI A1, DELAY
     JLT FRMDL1
 
     SBO 0
     INCT CRU
-    LI A1, 1
+    LI A1, DELAY
     LDCR A1, 1
     DECT CRU
     SBZ 0
