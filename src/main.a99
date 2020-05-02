@@ -47,6 +47,15 @@ LDBANK EQU >8320
 NOTIFY EQU >8340
 MUSI EQU >8342
 MUSD EQU >8344
+KEYS EQU >8345
+KEYC1 EQU >8345
+KEYC2 EQU >8346
+KEYC3 EQU >8347
+KEYC4 EQU >8348
+KEYC5 EQU >8349
+KEYC6 EQU >834A
+KEYC7 EQU >834B
+KEYC8 EQU >834C
 ; Demo-specific variables
 UNLOCK EQU >8345
 
@@ -245,8 +254,6 @@ LOOP
     LWPI WSREGS ; 10 cycles
 ; Disable interrupts while we're in an interrupt...
     LIMI 0 ; 16 cycles
-; Read the keyboard
-    BL @KEYBRD ; (20 + 668) to (20 + 952) cycles
 ; Render the screen
     BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
 ; Render scenes

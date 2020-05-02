@@ -36,6 +36,7 @@ FRMDLY
 ; Wait until 100ms have passed
     CLR CRU
 FRMDL1
+    NOP
     SBO 0
     INC CRU
     STCR A1, 15
