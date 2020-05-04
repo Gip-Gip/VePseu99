@@ -32,8 +32,128 @@
 
     EVEN
 
-; Scans the entire keyboard
 KEYBRD
-    ;LI CRU, >0006
+    CLR RX
+    CLR RY
 
-    ;B @KEYR
+; W Key
+KEY_W
+    LI A1, >4000
+    SZCB @KEYR2, A1
+    SOCB @KEYP_W, A1
+    JNE KEY_WN
+    INC RY
+    SETO A1
+    MOVB A1, @KEYP_W
+    JMP KEY_S
+
+KEY_WN
+    CLR A1
+    MOVB A1, @KEYP_W
+; S Key
+KEY_S
+    LI A1, >2000
+    SZCB @KEYR2, A1
+    SOCB @KEYP_S, A1
+    JNE KEY_SN
+    DEC RY
+    SETO A1
+    MOVB A1, @KEYP_S
+    JMP KEY_D
+   
+KEY_SN
+    CLR A1
+    MOVB A1, @KEYP_S
+; D Key
+KEY_D
+    LI A1, >2000
+    SZCB @KEYR3, A1
+    SOCB @KEYP_D, A1
+    JNE KEY_DN
+    DEC PA
+    SETO A1
+    MOVB A1, @KEYP_D
+    JMP KEY_A
+
+KEY_DN
+    CLR A1
+    MOVB A1, @KEYP_D
+; A Key
+KEY_A
+    LI A1, >2000
+    SZCB @KEYR6, A1
+    SOCB @KEYP_A, A1
+    JNE KEY_AN
+    INC PA
+    SETO A1
+    MOVB A1, @KEYP_A
+    JMP KEY_1
+
+KEY_AN
+    CLR A1
+    MOVB A1, @KEYP_A
+; 1st action key
+KEY_1
+    LI A1, >1000
+    SZCB @KEYR6, A1
+    SOCB @KEYP_1, A1
+    JNE KEY_1N
+    LI A1, >0100
+    SOCB A1, @STAT2
+    SETO A1
+    MOVB A1, @KEYP_1
+    JMP KEY_2
+
+KEY_1N
+    CLR A1
+    MOVB A1, @KEYP_1
+    LI A1, >0100
+    SZCB A1, @STAT2
+KEY_2
+    
+; Update the player's position
+; First perform player-angle specific calculations
+    ANDI PA, >03
+; Is NEG (bit 7) set?
+    MOV PA, A1
+    ANDI A1, >02
+    JEQ KEYB1
+    NEG RY
+KEYB1
+; Is SWAP(bit 8) set?
+    MOV PA, A1
+    ANDI A1, >01
+    JNE KEYB2
+KEYB2R
+; Make sure that the player isn't trying to move into a wall
+    MOV RY, A1
+    A PY, A1
+    SLA A1, 4
+    A RX, A1
+    A PX, A1
+    A MAP, A1
+    CLR A2
+    MOVB *A1, A2
+    JNE KEYB3
+    
+    A RX, PX
+    A RY, PY
+
+KEYB3
+    
+; Clear the keys
+    CLR A1
+    LI A2, KEYS
+    LI A3, 8
+KEYL1
+    MOVB A1, *A2
+    INC A2
+    DEC A3
+    JNE KEYL1
+    
+    RT
+
+KEYB2
+    MOV RY, RX
+    CLR RY
+    JMP KEYB2R

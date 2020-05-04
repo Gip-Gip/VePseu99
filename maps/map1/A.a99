@@ -19,7 +19,7 @@ QUACK
 
     EVEN
 SMILE1
-    MOV @UNLOCK, A1
+    MOVB @UNLOCK, A1
     JEQ SMILM1
     LI A1, SMILT2
     MOV A1, @NOTIFY
@@ -34,8 +34,6 @@ SMILM1
 DOPEN
     MOVB @UNLOCK, A1
     JEQ DLKD
-    CLR A1
-    MOVB A1, @UNLOCK
     LI PX, 2
     LI PY, 12
     RT
@@ -46,7 +44,7 @@ DLKD
     RT
 
 GRAB
-    LI A1, >0100
+    SETO A1
     MOVB A1, @UNLOCK
     LI A1, KEYTXT
     MOV A1, @NOTIFY

@@ -67,6 +67,7 @@ RENDER
 ; 1302 cycles
     LI A1, DRAWNL ; 12 cycles
     LI A2, 32 ; 12 cycles
+    SETO A3
 RNDL3
     MOVB A3, *A1+ ; (20 ; 32) = 640 cycles
     DEC A2 ; (10 ; 32) = 320 cycles

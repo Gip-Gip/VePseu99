@@ -1,12 +1,12 @@
 ;##############################################################################;
-; audio.a99 - subprograms used to handle audio!                                ;
+; template.a99 - template for all VePseu99 files!                               ;
 ;==============================================================================;
-; This file is a part of VePseu 99!                                            ;
+; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
 ; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
 ;                                                                              ;
 ; Redistribution and use in source and binary forms, with or without           ;
-; modification, are permitted provided that the following conditions are met:  ;
+; modification, are permitted provided that the following conditions are met:   ;
 ;                                                                              ;
 ; 1. Redistributions of source code must retain the above copyright notice,    ;
 ;    this list of conditions and the following disclaimer.                     ;
@@ -15,7 +15,7 @@
 ;    and/or other materials provided with the distribution.                    ;
 ; 3. Neither the name of the copyright holder nor the names of its             ;
 ;    contributors may be used to endorse or promote products derived from this ;
-;    software without specific prior written permission.                       ;
+;    software without specific prior written permission.                        ;
 ;                                                                              ;
 ; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
 ; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
@@ -30,57 +30,4 @@
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
-MAXVOL EQU >000F
-SADDR EQU >8400
-AUDO3 EQU >C000
-VOLB EQU >F000
-
     EVEN
-; A5 = volume(0-15), A6 = note (0-69, see note table)
-PUSHA3
-    NEG A5 ; 12 cycles
-    AI A5, MAXVOL ; 14 cycles
-    ORI A5, >D0 ; 14 cycles
-    SWPB A5 ; 10 cycles
-
-; Multiply A6 by 2. We do this because each note offset is one word in the table
-    SLA A6, 1
-
-    AI A6, NOTES
-    MOV *A6, A7
-    ORI A7, AUDO3
-
-    MOV @AINDF3, A8
-    MOVB A7, *A8+
-    MOVB @AIMSB3, A8
-    SWPB A7
-    MOVB A7, *A8+
-    MOVB @AIMSB3, A8
-    MOVB A5, *A8+
-    MOVB @AIMSB3, A8
-
-    MOV A8, @AINDF3
-
-    RT
-
-AUDIO
-; Accumulator 2 will be a pointer to the sound address
-    LI A2, SADDR
-; Compare to see if the front and back pointer are the same
-    MOV @AINDB3, A1
-    C @AINDF3, A1
-; If they are, all sounds are played and we can skip channel 0(noise)
-    JEQ AUDB4
-
-    MOVB *A1+, *A2
-    MOVB @AIMSB3, A1
-    MOVB *A1+, *A2
-    MOVB @AIMSB3, A1
-    MOVB *A1+, *A2
-    MOVB @AIMSB3, A1
-
-    MOV A1, @AINDB3
-
-AUDB4
-
-    RT

@@ -271,14 +271,14 @@ WALF
     BYTE 3
     BYTE 2
     BYTE 24
-    BYTE 0, 4, 0
+    BYTE 0, 6, 0
     BYTE 1, 6, 0
     BYTE 2, 6, 0
     BYTE 3, 6, 0
     BYTE 4, 6, 0
     BYTE 5, 6, 0
     BYTE 6, 6, 8
-    BYTE 7, 6, 8
+    BYTE 7, 4, 8
 
     BYTE 0, 0
 

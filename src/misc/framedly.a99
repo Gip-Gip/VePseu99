@@ -37,9 +37,25 @@ DELAY EQU 4297
 
 FRMDLY
 ; Wait until 100ms have passed
-    CLR CRU
 FRMDL1
-    NOP
+    CLR A1
+    LI A2, KEYS
+    LI A3, 8
+FRMDL2
+; Update the keys
+    LI CRU, >0024
+    LDCR A1,3
+    LI CRU, >0006
+    STCR A4, 8
+    INV A4
+    SOCB A4, *A2 
+    AI A1, >0100
+    INC A2
+    DEC A3
+    JNE FRMDL2
+
+    CLR CRU
+    CLR A1
     SBO 0
     INC CRU
     STCR A1, 15
@@ -48,6 +64,14 @@ FRMDL1
     SRL A1, 1
     CI A1, DELAY
     JLT FRMDL1
+
+;Wait for the VDP interrupt
+    CLR CRU
+FRMDL3
+    TB 2
+    JEQ FRMDL3
+
+; And reset the CRU timer!
 
     SBO 0
     INCT CRU

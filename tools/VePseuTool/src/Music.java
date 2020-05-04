@@ -112,6 +112,11 @@ public class Music
             
             return true;
         }
+        
+        public Line clone()
+        {
+            return new Line(d, c0v, c1v, c1n, c2v, c2n);
+        }
     }
     
     public Music()
@@ -166,7 +171,7 @@ public class Music
         
         for(Line line : lines)
         {
-            lineList.add(line);
+            lineList.add(line.clone());
         }
         
         for(int ι = 0; ι < lineList.size(); ι++)

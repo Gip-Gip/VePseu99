@@ -48,16 +48,16 @@ NOTIFY EQU >8340
 MUSI EQU >8342
 MUSD EQU >8344
 KEYS EQU >8345
-KEYC1 EQU >8345
-KEYC2 EQU >8346
-KEYC3 EQU >8347
-KEYC4 EQU >8348
-KEYC5 EQU >8349
-KEYC6 EQU >834A
-KEYC7 EQU >834B
-KEYC8 EQU >834C
+KEYR1 EQU >8345
+KEYR2 EQU >8346
+KEYR3 EQU >8347
+KEYR4 EQU >8348
+KEYR5 EQU >8349
+KEYR6 EQU >834A
+KEYR7 EQU >834B
+KEYR8 EQU >834C
 ; Demo-specific variables
-UNLOCK EQU >8345
+UNLOCK EQU >8350
 
 A1 EQU 0 ; Accumulator register 1
 A2 EQU 1 ; Accumulator register 2
@@ -134,6 +134,8 @@ VDCSRA
 
 ; INIT takes an estimated 12394 cycles in total!
 INIT
+; Make sure interrupts are off
+    LIMI 0 ; 16 cycles
 ; Make sure the workspace registers are in the right place
     LWPI WSREGS ; 10 cycles
 
@@ -231,29 +233,19 @@ LDBRL1
     MOVB @AIMSB3, A1
     MOV A1, @AINDF3
     MOV A1, @AINDB3
-
-; Set the screen blank counter to an odd number so the screen doesn't go blank
-    LI A1, 1 ; 12 cycles
-    MOV A1, @>83D6 ; 22 cycles
-
-; Tell the ISR to call LOOP every frame
-    LI A1, LOOP ; 12 cycles
-    MOV A1, @>83C4 ; 22 cycles
-
-; Enable interrupts (officially)
-    LIMI 2 ; 16 cycles
-
-; Wait for LOOP to be called!
-WAIT
-    JMP WAIT ; 10 cycles, not that it really matters though...
-
+    
+    CLR A1
+    MOVB A1, @KEYP_W
+    MOVB A1, @KEYP_S
+    MOVB A1, @KEYP_D
+    MOVB A1, @KEYP_A
+    
 ; Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
 ; VDP unfortunately kinda slows that down a bit..
 LOOP
-; Load our workspace registers
-    LWPI WSREGS ; 10 cycles
-; Disable interrupts while we're in an interrupt...
-    LIMI 0 ; 16 cycles
+    BL @KEYBRD
+; Play music
+    BL @MUSIC
 ; Render the screen
     BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
 ; Render scenes
@@ -262,10 +254,6 @@ LOOP
     BL @ACT
 ; Draw the notification
     BL @DRWNOT
-; Play music
-    BL @MUSIC
-; Play audio
-    BL @AUDIO
 ; Push the previously rendered screen to the VDP
     BL @RNDPSH ; (20 + 36214) cycles
 
@@ -276,7 +264,5 @@ LOOP
 ; smoother, but I'm not too impressed with it either. We'll just have to see how
 ; optimization goes
 
-; Go back to the ISR's workspace registers
-    LWPI >83E0 ; 10 cycles
 ; Return to the ISR
-    RT
+    JMP LOOP

@@ -48,16 +48,16 @@ NOTIFY EQU >8340
 MUSI EQU >8342
 MUSD EQU >8344
 KEYS EQU >8345
-KEYC1 EQU >8345
-KEYC2 EQU >8346
-KEYC3 EQU >8347
-KEYC4 EQU >8348
-KEYC5 EQU >8349
-KEYC6 EQU >834A
-KEYC7 EQU >834B
-KEYC8 EQU >834C
+KEYR1 EQU >8345
+KEYR2 EQU >8346
+KEYR3 EQU >8347
+KEYR4 EQU >8348
+KEYR5 EQU >8349
+KEYR6 EQU >834A
+KEYR7 EQU >834B
+KEYR8 EQU >834C
 ; Demo-specific variables
-UNLOCK EQU >8345
+UNLOCK EQU >8350
 
 A1 EQU 0 ; Accumulator register 1
 A2 EQU 1 ; Accumulator register 2
@@ -134,6 +134,8 @@ VDCSRA
 
 ; INIT takes an estimated 12394 cycles in total!
 INIT
+; Make sure interrupts are off
+    LIMI 0 ; 16 cycles
 ; Make sure the workspace registers are in the right place
     LWPI WSREGS ; 10 cycles
 
@@ -231,29 +233,19 @@ LDBRL1
     MOVB @AIMSB3, A1
     MOV A1, @AINDF3
     MOV A1, @AINDB3
-
-; Set the screen blank counter to an odd number so the screen doesn't go blank
-    LI A1, 1 ; 12 cycles
-    MOV A1, @>83D6 ; 22 cycles
-
-; Tell the ISR to call LOOP every frame
-    LI A1, LOOP ; 12 cycles
-    MOV A1, @>83C4 ; 22 cycles
-
-; Enable interrupts (officially)
-    LIMI 2 ; 16 cycles
-
-; Wait for LOOP to be called!
-WAIT
-    JMP WAIT ; 10 cycles, not that it really matters though...
-
+    
+    CLR A1
+    MOVB A1, @KEYP_W
+    MOVB A1, @KEYP_S
+    MOVB A1, @KEYP_D
+    MOVB A1, @KEYP_A
+    
 ; Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
 ; VDP unfortunately kinda slows that down a bit..
 LOOP
-; Load our workspace registers
-    LWPI WSREGS ; 10 cycles
-; Disable interrupts while we're in an interrupt...
-    LIMI 0 ; 16 cycles
+    BL @KEYBRD
+; Play music
+    BL @MUSIC
 ; Render the screen
     BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
 ; Render scenes
@@ -262,10 +254,6 @@ LOOP
     BL @ACT
 ; Draw the notification
     BL @DRWNOT
-; Play music
-    BL @MUSIC
-; Play audio
-    BL @AUDIO
 ; Push the previously rendered screen to the VDP
     BL @RNDPSH ; (20 + 36214) cycles
 
@@ -276,10 +264,9 @@ LOOP
 ; smoother, but I'm not too impressed with it either. We'll just have to see how
 ; optimization goes
 
-; Go back to the ISR's workspace registers
-    LWPI >83E0 ; 10 cycles
 ; Return to the ISR
-    RT;##############################################################################;
+    JMP LOOP
+;##############################################################################;
 ; ram.a99 - general ram layout for the upper 4k of the cart                    ;
 *==============================================================================*
 ; This file is a part of VePseu 99!                                            ;
@@ -336,12 +323,12 @@ AINDF2 EQU >73A8
 AINDB2 EQU >73AA
 AINDF3 EQU >73AC
 AINDB3 EQU >73AE
-KEYP1 EQU >73B1
-KEYP2 EQU >73B2
-KEYP3 EQU >73B3
-KEYP4 EQU >73B4
-KEYP5 EQU >73B5
-KEYP6 EQU >73B6
+
+KEYP_W EQU >73B1
+KEYP_S EQU >73B2
+KEYP_D EQU >73B3
+KEYP_A EQU >73B4
+KEYP_1 EQU >73B5
 ; Bit 7, weight >02, is set if a action has been loaded this frame
 ; Bit 8, weight >01, is set if a sprite is drawn this frame
 STAT1 EQU >73B7
@@ -639,14 +626,14 @@ WALF
     BYTE 3
     BYTE 2
     BYTE 24
-    BYTE 0, 4, 0
+    BYTE 0, 6, 0
     BYTE 1, 6, 0
     BYTE 2, 6, 0
     BYTE 3, 6, 0
     BYTE 4, 6, 0
     BYTE 5, 6, 0
     BYTE 6, 6, 8
-    BYTE 7, 6, 8
+    BYTE 7, 4, 8
 
     BYTE 0, 0
 
@@ -720,91 +707,6 @@ ACTL2
 ACTEND
     RT
 ;##############################################################################;
-; audio.a99 - subprograms used to handle audio!                                ;
-;==============================================================================;
-; This file is a part of VePseu 99!                                            ;
-;                                                                              ;
-; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
-;                                                                              ;
-; Redistribution and use in source and binary forms, with or without           ;
-; modification, are permitted provided that the following conditions are met:  ;
-;                                                                              ;
-; 1. Redistributions of source code must retain the above copyright notice,    ;
-;    this list of conditions and the following disclaimer.                     ;
-; 2. Redistributions in binary form must reproduce the above copyright notice, ;
-;    this list of conditions and the following disclaimer in the documentation ;
-;    and/or other materials provided with the distribution.                    ;
-; 3. Neither the name of the copyright holder nor the names of its             ;
-;    contributors may be used to endorse or promote products derived from this ;
-;    software without specific prior written permission.                       ;
-;                                                                              ;
-; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
-; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
-; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
-; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
-; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
-; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
-; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
-; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
-; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
-; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
-; POSSIBILITY OF SUCH DAMAGE.                                                  ;
-;##############################################################################;
-
-MAXVOL EQU >000F
-SADDR EQU >8400
-AUDO3 EQU >C000
-VOLB EQU >F000
-
-    EVEN
-; A5 = volume(0-15), A6 = note (0-69, see note table)
-PUSHA3
-    NEG A5 ; 12 cycles
-    AI A5, MAXVOL ; 14 cycles
-    ORI A5, >D0 ; 14 cycles
-    SWPB A5 ; 10 cycles
-
-; Multiply A6 by 2. We do this because each note offset is one word in the table
-    SLA A6, 1
-
-    AI A6, NOTES
-    MOV *A6, A7
-    ORI A7, AUDO3
-
-    MOV @AINDF3, A8
-    MOVB A7, *A8+
-    MOVB @AIMSB3, A8
-    SWPB A7
-    MOVB A7, *A8+
-    MOVB @AIMSB3, A8
-    MOVB A5, *A8+
-    MOVB @AIMSB3, A8
-
-    MOV A8, @AINDF3
-
-    RT
-
-AUDIO
-; Accumulator 2 will be a pointer to the sound address
-    LI A2, SADDR
-; Compare to see if the front and back pointer are the same
-    MOV @AINDB3, A1
-    C @AINDF3, A1
-; If they are, all sounds are played and we can skip channel 0(noise)
-    JEQ AUDB4
-
-    MOVB *A1+, *A2
-    MOVB @AIMSB3, A1
-    MOVB *A1+, *A2
-    MOVB @AIMSB3, A1
-    MOVB *A1+, *A2
-    MOVB @AIMSB3, A1
-
-    MOV A1, @AINDB3
-
-AUDB4
-
-    RT;##############################################################################;
 ; DRWNOT - Code that draws notifications                                       ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
@@ -884,11 +786,132 @@ DRWNL1
 
     EVEN
 
-; Scans the entire keyboard
 KEYBRD
-    ;LI CRU, >0006
+    CLR RX
+    CLR RY
 
-    ;B @KEYR;##############################################################################;
+; W Key
+KEY_W
+    LI A1, >4000
+    SZCB @KEYR2, A1
+    SOCB @KEYP_W, A1
+    JNE KEY_WN
+    INC RY
+    SETO A1
+    MOVB A1, @KEYP_W
+    JMP KEY_S
+
+KEY_WN
+    CLR A1
+    MOVB A1, @KEYP_W
+; S Key
+KEY_S
+    LI A1, >2000
+    SZCB @KEYR2, A1
+    SOCB @KEYP_S, A1
+    JNE KEY_SN
+    DEC RY
+    SETO A1
+    MOVB A1, @KEYP_S
+    JMP KEY_D
+   
+KEY_SN
+    CLR A1
+    MOVB A1, @KEYP_S
+; D Key
+KEY_D
+    LI A1, >2000
+    SZCB @KEYR3, A1
+    SOCB @KEYP_D, A1
+    JNE KEY_DN
+    DEC PA
+    SETO A1
+    MOVB A1, @KEYP_D
+    JMP KEY_A
+
+KEY_DN
+    CLR A1
+    MOVB A1, @KEYP_D
+; A Key
+KEY_A
+    LI A1, >2000
+    SZCB @KEYR6, A1
+    SOCB @KEYP_A, A1
+    JNE KEY_AN
+    INC PA
+    SETO A1
+    MOVB A1, @KEYP_A
+    JMP KEY_1
+
+KEY_AN
+    CLR A1
+    MOVB A1, @KEYP_A
+; 1st action key
+KEY_1
+    LI A1, >1000
+    SZCB @KEYR6, A1
+    SOCB @KEYP_1, A1
+    JNE KEY_1N
+    LI A1, >0100
+    SOCB A1, @STAT2
+    SETO A1
+    MOVB A1, @KEYP_1
+    JMP KEY_2
+
+KEY_1N
+    CLR A1
+    MOVB A1, @KEYP_1
+    LI A1, >0100
+    SZCB A1, @STAT2
+KEY_2
+    
+; Update the player's position
+; First perform player-angle specific calculations
+    ANDI PA, >03
+; Is NEG (bit 7) set?
+    MOV PA, A1
+    ANDI A1, >02
+    JEQ KEYB1
+    NEG RY
+KEYB1
+; Is SWAP(bit 8) set?
+    MOV PA, A1
+    ANDI A1, >01
+    JNE KEYB2
+KEYB2R
+; Make sure that the player isn't trying to move into a wall
+    MOV RY, A1
+    A PY, A1
+    SLA A1, 4
+    A RX, A1
+    A PX, A1
+    A MAP, A1
+    CLR A2
+    MOVB *A1, A2
+    JNE KEYB3
+    
+    A RX, PX
+    A RY, PY
+
+KEYB3
+    
+; Clear the keys
+    CLR A1
+    LI A2, KEYS
+    LI A3, 8
+KEYL1
+    MOVB A1, *A2
+    INC A2
+    DEC A3
+    JNE KEYL1
+    
+    RT
+
+KEYB2
+    MOV RY, RX
+    CLR RY
+    JMP KEYB2R
+;##############################################################################;
 ; music.a99 - plays level music                                                ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
@@ -923,6 +946,7 @@ KEYBRD
 NOISB EQU >E600
 AUDO1 EQU >8000
 AUDO2 EQU >A000
+SADDR EQU >8400
 
     EVEN
 
@@ -982,7 +1006,41 @@ MUSB1
 MUSEND
     AI A1, ->0100
     MOV A1, @MUSD
-    RT;##############################################################################;
+    RT
+;##############################################################################;
+; template.a99 - template for all VePseu99 files!                               ;
+;==============================================================================;
+; This file is a part of VePseu 99!                                             ;
+;                                                                              ;
+; Copyright (c) 2020, Charles Thompson. All rights reserved.                   ;
+;                                                                              ;
+; Redistribution and use in source and binary forms, with or without           ;
+; modification, are permitted provided that the following conditions are met:   ;
+;                                                                              ;
+; 1. Redistributions of source code must retain the above copyright notice,    ;
+;    this list of conditions and the following disclaimer.                     ;
+; 2. Redistributions in binary form must reproduce the above copyright notice, ;
+;    this list of conditions and the following disclaimer in the documentation ;
+;    and/or other materials provided with the distribution.                    ;
+; 3. Neither the name of the copyright holder nor the names of its             ;
+;    contributors may be used to endorse or promote products derived from this ;
+;    software without specific prior written permission.                        ;
+;                                                                              ;
+; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  ;
+; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    ;
+; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   ;
+; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE    ;
+; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR          ;
+; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF         ;
+; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS     ;
+; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN      ;
+; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)      ;
+; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE   ;
+; POSSIBILITY OF SUCH DAMAGE.                                                  ;
+;##############################################################################;
+
+    EVEN
+;##############################################################################;
 ; ldbank.a99 - loads a ROM BANK into the second RAM bank!                      ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
@@ -1279,9 +1337,25 @@ DELAY EQU 4297
 
 FRMDLY
 ; Wait until 100ms have passed
-    CLR CRU
 FRMDL1
-    NOP
+    CLR A1
+    LI A2, KEYS
+    LI A3, 8
+FRMDL2
+; Update the keys
+    LI CRU, >0024
+    LDCR A1,3
+    LI CRU, >0006
+    STCR A4, 8
+    INV A4
+    SOCB A4, *A2 
+    AI A1, >0100
+    INC A2
+    DEC A3
+    JNE FRMDL2
+
+    CLR CRU
+    CLR A1
     SBO 0
     INC CRU
     STCR A1, 15
@@ -1290,6 +1364,14 @@ FRMDL1
     SRL A1, 1
     CI A1, DELAY
     JLT FRMDL1
+
+;Wait for the VDP interrupt
+    CLR CRU
+FRMDL3
+    TB 2
+    JEQ FRMDL3
+
+; And reset the CRU timer!
 
     SBO 0
     INCT CRU
@@ -1368,6 +1450,7 @@ RENDER
 ; 1302 cycles
     LI A1, DRAWNL ; 12 cycles
     LI A2, 32 ; 12 cycles
+    SETO A3
 RNDL3
     MOVB A3, *A1+ ; (20 ; 32) = 640 cycles
     DEC A2 ; (10 ; 32) = 320 cycles
@@ -1754,7 +1837,7 @@ QUACK
 
     EVEN
 SMILE1
-    MOV @UNLOCK, A1
+    MOVB @UNLOCK, A1
     JEQ SMILM1
     LI A1, SMILT2
     MOV A1, @NOTIFY
@@ -1769,8 +1852,6 @@ SMILM1
 DOPEN
     MOVB @UNLOCK, A1
     JEQ DLKD
-    CLR A1
-    MOVB A1, @UNLOCK
     LI PX, 2
     LI PY, 12
     RT
@@ -1781,7 +1862,7 @@ DLKD
     RT
 
 GRAB
-    LI A1, >0100
+    SETO A1
     MOVB A1, @UNLOCK
     LI A1, KEYTXT
     MOV A1, @NOTIFY
@@ -1855,6 +1936,7 @@ SMEL1T
 SMEL2T
     TEXT 'GET AWAY FROM ME'
     BYTE 0
+
 B1END .PRINT (>8000-B1END), "BYTES LEFT IN BANK 1!"
     EVEN
 MAP1S0
@@ -2010,142 +2092,59 @@ MAP1S16
     EVEN
 MAP1MU
 
-    BYTE 1, -5, 3, -105, 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101
-    BYTE 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1
-    BYTE 3, -97, 0, -65, 1, -5, 3, -105, 0, -65, 1, -1, 3, -97, 0, -65
-    BYTE 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101
-    BYTE 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -105, 0, -65, 1, -1
-    BYTE 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65
-    BYTE 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -105
-    BYTE 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1
-    BYTE 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65
-    BYTE 1, -5, 3, -105, 0, -65, 2, -1, 3, -105, 0, -65, 1, -1, 3, -105
-    BYTE 0, -65, 1, -5, 6, -105, 0, -65, 2, -1, 6, -105, 0, -65, 1, -1
-    BYTE 6, -105, 0, -65, 1, -5, 3, -105, 0, -65, 1, -1, 3, -97, 0, -65
-    BYTE 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101
-    BYTE 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -105, 0, -65, 1, -1
-    BYTE 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65
-    BYTE 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -105
-    BYTE 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1
-    BYTE 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1, 3, -97, 0, -65
-    BYTE 1, -5, 3, -105, 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101
-    BYTE 0, -65, 1, -1, 3, -97, 0, -65, 1, -5, 3, -101, 0, -65, 1, -1
-    BYTE 3, -97, 0, -65, 1, -5, 3, -105, 0, -65, 2, -1, 3, -105, 0, -65
-    BYTE 1, -1, 3, -105, 0, -65, 1, -5, 1, -105, 0, -65, 2, -1, 1, -105
-    BYTE 0, -65, 1, -1, 1, -105, 0, -65, 1, -5, 3, -97, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 24, -77, 2, -1
-    BYTE 3, -105, 24, -77, 1, -1, 3, -105, 3, -65, 1, -5, 6, -105, 3, -65
-    BYTE 2, -1, 6, -105, 3, -65, 1, -1, 6, -105, 3, -65, 1, -5, 3, -105
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 22, -77
-    BYTE 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 20, -77, 2, -1, 3, -105, 20, -77, 1, -1, 3, -105, 3, -65, 1, -5
-    BYTE 1, -105, 3, -65, 2, -1, 1, -105, 3, -65, 1, -1, 1, -105, 3, -65
-    BYTE 1, -5, 3, -97, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 22, -77
-    BYTE 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 24, -77, 2, -1, 3, -105, 24, -77, 1, -1, 3, -105
-    BYTE 3, -65, 1, -5, 6, -105, 3, -65, 2, -1, 6, -105, 3, -65, 1, -1
-    BYTE 6, -105, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1
-    BYTE 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 20, -77, 2, -1, 3, -105, 20, -77
-    BYTE 1, -1, 3, -105, 3, -65, 1, -5, 1, -105, 3, -65, 2, -1, 1, -105
-    BYTE 3, -65, 1, -1, 1, -105, 3, -65, 1, -5, 3, -97, 27, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 8, -101, 27, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 8, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 8, -105
-    BYTE 27, -77, 1, -1, 3, -97, 27, -77, 1, -5, 8, -101, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 8, -101, 27, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 8, -105, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 8, -101
-    BYTE 27, -77, 1, -1, 3, -97, 3, -65, 1, -5, 8, -101, 27, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 8, -105, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 8, -101, 27, -77, 1, -1, 3, -97, 27, -77, 1, -5, 8, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 8, -105, 29, -77, 2, -1
-    BYTE 8, -105, 29, -77, 1, -1, 8, -105, 3, -65, 1, -5, 11, -105, 3, -65
-    BYTE 2, -1, 11, -105, 3, -65, 1, -1, 11, -105, 3, -65, 1, -5, 8, -105
-    BYTE 27, -77, 1, -1, 3, -97, 3, -65, 1, -5, 8, -101, 27, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 8, -101, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 8, -105, 27, -77, 1, -1, 3, -97, 27, -77, 1, -5, 8, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 8, -101, 27, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 8, -105, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 8, -101, 27, -77, 1, -1, 3, -97, 3, -65, 1, -5, 8, -101
-    BYTE 27, -77, 1, -1, 3, -97, 3, -65, 1, -5, 8, -105, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 8, -101, 27, -77, 1, -1, 3, -97, 27, -77
-    BYTE 1, -5, 8, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 8, -105
-    BYTE 25, -77, 2, -1, 8, -105, 25, -77, 1, -1, 8, -105, 3, -65, 1, -5
-    BYTE 6, -105, 3, -65, 2, -1, 6, -105, 3, -65, 1, -1, 6, -105, 3, -65
-    BYTE 1, -5, 3, -97, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 22, -77
-    BYTE 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 24, -77, 2, -1, 3, -105, 24, -77, 1, -1, 3, -105
-    BYTE 3, -65, 1, -5, 6, -105, 3, -65, 2, -1, 6, -105, 3, -65, 1, -1
-    BYTE 6, -105, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1
-    BYTE 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 20, -77, 2, -1, 3, -105, 20, -77
-    BYTE 1, -1, 3, -105, 3, -65, 1, -5, 1, -105, 3, -65, 2, -1, 1, -105
-    BYTE 3, -65, 1, -1, 1, -105, 3, -65, 1, -5, 3, -97, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101, 3, -65, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 24, -77, 2, -1
-    BYTE 3, -105, 24, -77, 1, -1, 3, -105, 3, -65, 1, -5, 6, -105, 3, -65
-    BYTE 2, -1, 6, -105, 3, -65, 1, -1, 6, -105, 3, -65, 1, -5, 3, -105
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -105, 22, -77, 1, -1, 3, -97, 22, -77, 1, -5, 3, -101
-    BYTE 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -105, 3, -65, 1, -1, 3, -97, 3, -65
-    BYTE 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -101
-    BYTE 22, -77, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105, 22, -77, 1, -1
-    BYTE 3, -97, 3, -65, 1, -5, 3, -101, 22, -77, 1, -1, 3, -97, 22, -77
-    BYTE 1, -5, 3, -101, 3, -65, 1, -1, 3, -97, 3, -65, 1, -5, 3, -105
-    BYTE 20, -77, 2, -1, 3, -105, 20, -77, 1, -1, 3, -105, 3, -65, 1, -5
-    BYTE 1, -105, 3, -65, 2, -1, 1, -105, 3, -65, 1, -1, 1, -105, 3, -65
-    BYTE 0
+    BYTE 2, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 39, -101
+    BYTE 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1
+    BYTE 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65
+    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101
+    BYTE 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1
+    BYTE 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65
+    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99
+    BYTE 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1
+    BYTE 44, -102, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65
+    BYTE 1, -7, 32, -99, 0, -65, 1, -1, 32, -99, 0, -65, 2, -1, 35, -100
+    BYTE 0, -65, 2, -1, 39, -101, 0, -65, 1, -3, 44, -102, 0, -65, 1, -1
+    BYTE 44, -102, 0, -65, 1, -3, 39, -101, 0, -65, 1, -1, 39, -101, 0, -65
+    BYTE 1, -7, 35, -100, 0, -65, 1, -1, 35, -100, 0, -65, 1, -3, 32, -99
+    BYTE 0, -65, 1, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1
+    BYTE 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101, 0, -65
+    BYTE 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1, 35, -100
+    BYTE 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1
+    BYTE 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65
+    BYTE 2, -1, 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102
+    BYTE 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 1, -7
+    BYTE 3, -97, 0, -65, 1, -1, 3, -97, 0, -65, 2, -1, 35, -100, 0, -65
+    BYTE 2, -1, 39, -101, 0, -65, 1, -3, 44, -102, 0, -65, 1, -1, 44, -102
+    BYTE 0, -65, 1, -3, 39, -101, 0, -65, 1, -1, 39, -101, 0, -65, 1, -7
+    BYTE 35, -100, 0, -65, 1, -1, 35, -100, 0, -65, 1, -3, 32, -99, 0, -65
+    BYTE 1, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 39, -101
+    BYTE 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1
+    BYTE 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65
+    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101
+    BYTE 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1
+    BYTE 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65
+    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 1, -7, 32, -99
+    BYTE 5, -73, 1, -1, 32, -99, 5, -73, 2, -1, 35, -100, 5, -73, 2, -1
+    BYTE 39, -101, 5, -73, 1, -3, 44, -102, 5, -73, 1, -1, 44, -102, 5, -73
+    BYTE 1, -3, 39, -101, 5, -73, 1, -1, 39, -101, 5, -73, 1, -7, 35, -100
+    BYTE 5, -73, 1, -1, 35, -100, 5, -73, 1, -3, 32, -99, 5, -73, 1, -1
+    BYTE 32, -99, 5, -73, 2, -1, 35, -100, 5, -73, 2, -1, 39, -101, 5, -73
+    BYTE 2, -1, 44, -102, 5, -73, 2, -1, 39, -101, 5, -73, 2, -1, 35, -100
+    BYTE 5, -73, 2, -1, 32, -99, 7, -75, 2, -1, 35, -100, 7, -75, 2, -1
+    BYTE 39, -101, 7, -75, 2, -1, 44, -102, 7, -75, 2, -1, 39, -101, 7, -75
+    BYTE 2, -1, 35, -100, 7, -75, 2, -1, 32, -99, 7, -75, 2, -1, 35, -100
+    BYTE 7, -75, 2, -1, 39, -101, 7, -75, 2, -1, 44, -102, 7, -75, 2, -1
+    BYTE 39, -101, 7, -75, 2, -1, 35, -100, 7, -75, 1, -7, 3, -97, 8, -77
+    BYTE 1, -1, 3, -97, 3, -65, 2, -1, 35, -100, 3, -65, 2, -1, 39, -101
+    BYTE 3, -65, 1, -3, 44, -102, 3, -65, 1, -1, 44, -102, 3, -65, 1, -3
+    BYTE 39, -101, 3, -65, 1, -1, 39, -101, 3, -65, 1, -7, 35, -100, 3, -65
+    BYTE 1, -1, 35, -100, 3, -65, 1, -3, 32, -99, 3, -65, 1, -1, 32, -99
+    BYTE 3, -65, 2, -1, 35, -100, 3, -65, 2, -1, 39, -101, 3, -65, 2, -1
+    BYTE 44, -102, 3, -65, 2, -1, 39, -101, 3, -65, 2, -1, 35, -100, 3, -65
+    BYTE 2, -1, 32, -99, 3, -65, 2, -1, 35, -100, 3, -65, 2, -1, 39, -101
+    BYTE 3, -65, 2, -1, 44, -102, 3, -65, 2, -1, 39, -101, 3, -65, 2, -1
+    BYTE 35, -100, 3, -65, 2, -1, 32, -99, 3, -65, 2, -1, 35, -100, 3, -65
+    BYTE 2, -1, 39, -101, 3, -65, 2, -1, 44, -102, 3, -65, 2, -1, 39, -101
+    BYTE 3, -65, 2, -1, 35, -100, 3, -65, 0
     EVEN
 MAP1
 
@@ -2161,7 +2160,7 @@ MAP1
     BYTE 0, 0, 0, 0, 0, -92, -92, -92, -92, -92, -92, 0, 0, 0, 0, 0
     BYTE 0, 0, 0, 0, 0, 0, -76, 0, -78, 0, 0, 0, 0, 0, 0, 0
     BYTE 0, 0, 0, -76, -76, -73, 0, -74, 0, -75, -75, -59, -59, -59, 0, 0
-    BYTE 0, 0, 0, -76, 0, 0, 0, 0, 0, 0, 0, 0, -128, -59, 0, 0
+    BYTE 0, 0, 0, -76, 0, 0, 0, 0, 0, 0, 0, 0, 0, -59, 0, 0
     BYTE 0, 0, 0, -76, -76, -75, -78, 0, -74, 0, -75, -59, -59, -59, 0, 0
     BYTE 0, 0, 0, 0, 0, 0, 0, -76, 0, -75, 0, 0, 0, 0, 0, 0
     BYTE 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
