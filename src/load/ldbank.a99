@@ -35,23 +35,30 @@
 ; LDBRAW is 32 bytes in size and is not called directly, it is instead stored in
 ; scratchpad ram
 ; A5 = bank to switch to
+; 102,494 cycles in total
 LDBRAW
+; Switch to the disired ROM bank
+; 38 cycles in total
 ; All banks are on even addresses, multiply by 2...
-    SLA A5, 1
+    SLA A5, 1 ; 14 cycles
 ; ROM banks start at >6000
-    AI A5, >6000
-; Write to that address through a decrement
-    CLR *A5
+    AI A5, >6000 ; 14 cycles
+; Write to that address through a clr
+    CLR *A5 ; 10 cycles
+; Initialize the loop
+; 36 cycles in total
 ; Set A5 to point to the start of rom, A6 to point to the start of RAM, and A7
-; to hold the size of ROM/RAM(>1000 = 4kb)
-    LI A5, >6000
-    LI A6, >7000
-    LI A7, >1000
-LDBL1
+; to hold the size of ROM/RAM in bytes(>1000 = 4kb)
+    LI A5, >6000 ; 12 cycles
+    LI A6, >7000 ; 12 cycles
+    LI A7, >1000 ; 12 cycles
 ; Now we simply copy everything over to ram!
-    MOV *A5+, *A6+
-    DECT A7
-    JNE LDBL1
+; 4096/2(>1000/2) loops, 102,398 cycles in total
+LDBL1
+    MOV *A5+, *A6+ ; 30 cycles
+    DECT A7 ; 10 cycles
+    JNE LDBL1 ; 10 cycles, -2 at the end of a loop
 ; Change back to bank 0, and we're done!
-    CLR @>6000
-    RT
+; 22 cycles in total
+    CLR @>6000 ; 10 cycles
+    RT ; 12 cycles

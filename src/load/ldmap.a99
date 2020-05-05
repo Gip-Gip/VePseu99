@@ -1,5 +1,5 @@
 ;##############################################################################;
-; ldmap.a99 - code used to decompress map data into ram                        ;
+; ldmap.a99 - contains code that loads a map from a given bank                 ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
@@ -30,17 +30,20 @@
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
+; Length of the map in bytes
 MAPLEN  EQU >100
+
     EVEN
 
 ; LDMAP - loads a map from a bank
 ; A5 = map number
 LDMAP
-    MOV RTADDR, A8
 ; Load the map's bank into memory
-    .SRB1
-    BL @LDBANK
-    MOV A8, RTADDR
+; 102,562 cycles in total
+    MOV RTADDR, A8 ; 14 cycles
+    .SRB1 ; 10 cycles
+    BL @LDBANK ; 20 + 102,494 cycles
+    MOV A8, RTADDR ; 14 cycles
 ; Copy the map from RAM bank 2 to bank 1
 ; This is done to simplify render code, since the screen buffer is on bank 1
 ; If we kept the map on bank 2 things would slow down quite a bit, and at the
