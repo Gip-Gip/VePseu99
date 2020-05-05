@@ -1,5 +1,5 @@
 ;##############################################################################;
-; ldtex.a99 - loads compressed textures                                        ;
+; ldtex.a99 - conctains code that loads textures                               ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
@@ -32,7 +32,7 @@
 
     EVEN
 
-
+; Load textures
 ; A5 = pointer to textures
 LDTEX
     MOV A5, A1

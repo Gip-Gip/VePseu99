@@ -37,6 +37,9 @@ VREAD EQU >8800
 VSTAT EQU >8802
 VWRIT EQU >8C00
 VCOMM EQU >8C02
+VDPCHA EQU >0000
+VDPSCA EQU >0800
+VDPCTA EQU >0B00
 SHGHT EQU 24
 SWDTH EQU 32
 NULL EQU 0
@@ -135,134 +138,130 @@ VDCSRA
 ; INIT takes an estimated 12394 cycles in total!
 INIT
 ; Make sure interrupts are off
+; 16 cycles
     LIMI 0 ; 16 cycles
 ; Make sure the workspace registers are in the right place
+; 10 cycles
     LWPI WSREGS ; 10 cycles
 
 ; Move the old characters to the new character space. Default location is >0800
+; First, initialize the read loop
+; 146 cycles
     LI A5, >0800 ; 12 cycles
     BL @VDCSRA ; (20 + 90) cycles
 
     LI A1, INTTMP ; 12 cycles
-    LI A2, >0800 ; 12 cycles
+; We only care about the first 128 characters. Therefore the first (128*8) bytes
+    LI A2, >0400 ; 12 cycles
+; Move all the old characters from the VDP into cartridge RAM
+; 1024(>400) loops, 49,150 cycles
 INITL1
     MOVB @VREAD, *A1+ ; 28 cycles
     DEC A2 ; 10 cycles
-    JNE INITL1 ; 8 or 10 cycles
+    JNE INITL1 ; 10 cycles, - 2 on the final loop
 
+; Initialize the write loop
     LI A5, >0000 ; 12 cycles
-    BL @VDCSWA
+    BL @VDCSWA ; 20 + 120 cycles
 
-    LI A1, INTTMP
-    LI A2, >0800
+    LI A1, INTTMP ; 12 cycles
+    LI A2, >0400 ; 12 cycles
+; Move all the old characters from cartridge RAM to the VDP
+; 1024(>400) loops, 49,150 cycles
 INITL2
-    MOVB *A1+, @VWRIT
-    DEC A2
-    JNE INITL2
+    MOVB *A1+, @VWRIT ; 28 cycles
+    DEC A2 ; 10 cycles
+    JNE INITL2 ; 10 cycles, -2 on the final loop
 
 ; Set the 0th register to all 0s
+; 160 cycles
     CLR A5 ; 10 cycles
     CLR A6 ; 10 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Enable the 1st and 2nd bit on the first register
 ; (enable the screen and vdp interrupts)
+; 164 cycles
     LI A5, >01 ; 12 cycles
     LI A6, >E1 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the video buffer to the address 2*>400, aka >800
+; 164 cycles
     LI A5, >02 ; 12 cycles
     LI A6, >02 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the character pattern address to 0
+; 162 cycles
     LI A5, >04 ; 12 cycles
-    LI A6, >00 ; 12 cycles
+    CLR A6 ; 10 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the sprite attributes table to >18*>80, aka >0C00
+; 164 cycles
     LI A5, >05 ; 12 cycles
     LI A6, >18 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the sprite pattern address to 2*>800, aka 1000
+; 164 cycles
     LI A5, >06 ; 12 cycles
     LI A6, >02 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the background color to black
+; 164 cycles
     LI A5, >07 ; 12 cycles
     LI A6, >11 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
-; Load ldbank into scratchpad ram...
-    LI A1, LDBRAW
-    LI A2, LDBANK
-    LI A3, 16 ; LDBANK is 16 words in length
-LDBRL1
-    MOV *A1+, *A2+
-    DEC A3
-    JNE LDBRL1
-
 ; Place the color table behind the screen at address >2C*>40, aka >0B00
+; 164 cycles
     LI A5, >03 ; 12 cycles
     LI A6, >2C ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
-    BL @LDCLR
+; Load ldbank into scratchpad ram...
+; 36 cycles
+; Set A1 to point to LDBRAW
+    LI A1, LDBRAW ; 12 cycles
+; Set A2 to point ot LDBANK
+    LI A2, LDBANK ; 12 cycles
+; Set A3 to hold the size of LDBANK in words(ldbank is 16 words long)
+    LI A3, 16 ; 12 cycles
+; Loop until all the words are loaded into memory
+; 16 loops, 798 cycles in total
+LDBRL1
+    MOV *A1+, *A2+ ; 30 cycles
+    DEC A3 ; 10 cycles
+    JNE LDBRL1 ; 10 cycles, -2 cycles on final loop
 
-    LI A5, TEXTBL
-    BL @LDTEX
+; Load the color pallet onto the VDP
+; 1682 cycles in total
+    BL @LDCLR ; 20 + 1662 cycles
 
-; Load the map into memory
+; Load the texture table onto the VDP
+    LI A5, TEXTBL ; 12 cycles
+    BL @LDTEX ; 20 +
+
     LI A5, 1
     BL @LDMAP
 
-; Set the audio pointers to their base
-    CLR A1
-    MOVB @AIMSB0, A1
-    MOV A1, @AINDF0
-    MOV A1, @AINDB0
-    MOVB @AIMSB1, A1
-    MOV A1, @AINDF1
-    MOV A1, @AINDB1
-    MOVB @AIMSB2, A1
-    MOV A1, @AINDF2
-    MOV A1, @AINDB2
-    MOVB @AIMSB3, A1
-    MOV A1, @AINDF3
-    MOV A1, @AINDB3
-    
     CLR A1
     MOVB A1, @KEYP_W
     MOVB A1, @KEYP_S
     MOVB A1, @KEYP_D
     MOVB A1, @KEYP_A
-    
-; Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
-; VDP unfortunately kinda slows that down a bit..
+    MOVB A1, @KEYP_1
+
 LOOP
     BL @KEYBRD
-; Play music
     BL @MUSIC
-; Render the screen
-    BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
-; Render scenes
+    BL @RENDER
     BL @SCENES
-; Perform actions
     BL @ACT
-; Draw the notification
     BL @DRWNOT
-; Push the previously rendered screen to the VDP
-    BL @RNDPSH ; (20 + 36214) cycles
-
+    BL @RNDPSH
     BL @FRMDLY
-; Each frame is around 94,329 to 95,108 cycles long, on average.
-; Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
-; Not terrible, considering making the framerate higher doesn't make the game
-; smoother, but I'm not too impressed with it either. We'll just have to see how
-; optimization goes
-
-; Return to the ISR
     JMP LOOP

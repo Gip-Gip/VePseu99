@@ -1,5 +1,5 @@
 ;##############################################################################;
-; ldclr.a99 - code that loads the color table                                  ;
+; ldclr.a99 - contains code that loads the color table                         ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
@@ -32,25 +32,35 @@
 
     EVEN
 
-
-LDCLR
 ; Load the color table onto the VDP
-    MOV RTADDR, A2
-    LI A5, >0B00 ; 12 cycles
+; Takes 1662 cycles in total!
+LDCLR
+; Initialize the loop
+; 166 cycles
+    MOV RTADDR, A2 ; 14 cycles
+; Set the write address to VDPCTA
+    LI A5, VDPCTA ; 12 cycles
     BL @VDCSWA ; 20 cycles + 120 cycles
-; First make all the text white on black
-    LI A1, >F100
-    LI A3, >10
+; First make all the text white on black (the first 16 color entries)
+; 24 cycles
+    LI A1, >F100 ; 12 cycles
+    LI A3, >10 ; 12 cycles
+; Load the white-on-black color pallet into ram
+; 16 loops, 670 cycles in total
 LDCL1
-    MOVB A1, @VWRIT
-    DEC A3
-    JNE LDCL1
+    MOVB A1, @VWRIT; 22 cycles
+    DEC A3 ; 10 cycles
+    JNE LDCL1 ; 10 cycles, -2 at the end of the loop
 
-    LI A1, CLRTBL
-    LI A3, >10
+; Initialize the loop
+; 24 cycles
+    LI A1, CLRTBL ; 12 cycles
+    LI A3, >10 ; 12 cycles
+; Load the color pallet onto the vdp
+; 16 loops, 766 cycles in total
 LDCL2
-    MOVB *A1+, @VWRIT ; (28 ; color table length) = est. 280 cycles
-    DEC A3
-    JNE LDCL2 ; (10 ; color table length) - 2 = est. 98 cycles
-; The -2 cycles is for the not taken JNE at the end of the loop
+    MOVB *A1+, @VWRIT ; 28 cycles
+    DEC A3 ; 10 cycles
+    JNE LDCL2 ; 10 cycles, -2 at the end of the loop
+; Return! 12 cycles
     B *A2
