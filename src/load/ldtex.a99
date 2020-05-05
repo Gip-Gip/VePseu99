@@ -34,20 +34,33 @@
 
 ; Load textures
 ; A5 = pointer to textures
+; 50,058 cycles in total!
 LDTEX
-    MOV A5, A1
-    MOV RTADDR, A2
-    LI A5, >0400
-    BL @VDCSWA
-    LI A3, 16
+; Set the VDP write address to halfway through the character table
+; 180 cycles in total
+    MOV A5, A1 ; 14 cycles
+    MOV RTADDR, A2 ; 14 cycles
+    LI A5, >0400 ; 12 cycles
+    BL @VDCSWA ; 20 + 120 cycles
+; Initialize the loop
+; 12 cycles in total
+    LI A3, 16 ; 12 cycles
+; We repeat the same 8 textures 16 times
+; 16 loops, 49,854 cycles in total
 LDTL1
-    MOV A1, A5
-    LI A4, 8*8
+; Go to the start of the texture table
+    MOV A1, A5 ; 14 cycles
+; Prepare to load eight 8-byte textures
+    LI A4, 8*8 ; 12 cycles
+;-- Load the 8 textures onto the VDP
+;-- 64 loops, 3070 cycles in total
 LDTL2
-    MOVB *A5+, @VWRIT
-    DEC A4
-    JNE LDTL2
-    DEC A3
-    JNE LDTL1
+    MOVB *A5+, @VWRIT ;-- 28 cycles
+    DEC A4 ;-- 10 cycles
+    JNE LDTL2 ;-- 10 cycles, -2 at the end of the loop
+    DEC A3 ; 10 cycles
+    JNE LDTL1 ; 10 cycles, -2 at the end of the loop
 
-    B *A2
+; Return!
+; 12 cycles in total
+    B *A2 ; 12 cycles

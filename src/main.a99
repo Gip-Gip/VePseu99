@@ -242,8 +242,9 @@ LDBRL1
     BL @LDCLR ; 20 + 1662 cycles
 
 ; Load the texture table onto the VDP
+; 50090 cycles in total
     LI A5, TEXTBL ; 12 cycles
-    BL @LDTEX ; 20 +
+    BL @LDTEX ; 20 + 50,058 cycles
 
     LI A5, 1
     BL @LDMAP
