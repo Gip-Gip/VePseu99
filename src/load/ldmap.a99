@@ -37,6 +37,7 @@ MAPLEN  EQU >100
 
 ; LDMAP - loads a map from a bank
 ; A5 = map number
+; 123,326 cycles in total
 LDMAP
 ; Load the map's bank into memory
 ; 102,562 cycles in total
@@ -48,49 +49,58 @@ LDMAP
 ; This is done to simplify render code, since the screen buffer is on bank 1
 ; If we kept the map on bank 2 things would slow down quite a bit, and at the
 ; cost of only about 256 bytes of ram
-    MOV @MAPPTR, A5
-    CLR PX
-    CLR PY
-    CLR PA
-; Set PX, PY, and PA before the move
-    MOVB *A5+, PX
-    SWPB PX
-    MOVB *A5+, PY
-    SWPB PY
-    MOVB *A5+, PA
-    SWPB PA
-    LI A6, RAMMAP
-    LI A7, MAPLEN
-LDML1
-; Swap to bank 2, get a byte, swap to bank 1, store a byte...
-    MOVB *A5+, A8
-    .SRB0
-    MOVB A8, *A6+
-    DEC A7
-    .SRB1
-    JNE LDML1
+; Set A5 to point to the map
+; 22 cycles in total
+    MOV @MAPPTR, A5 ; 22 cycles
+; Set PX, PY, and PA
+;110 cycles in total
+    CLR PX ; 10 cycles
+    CLR PY ; 10 cycles
+    CLR PA ; 10 cycles
+    MOVB *A5+, PX ; 20 cycles
+    SWPB PX ; 10 cycles
+    MOVB *A5+, PY ; 20 cycles
+    SWPB PY ; 10 cycles
+    MOVB *A5+, PA ; 20 cycles
+    SWPB PA ; 10 cycles
+
+; Initialize for the loop
+; 24 cycles in total
+; A6 points to the map in bank 1
+    LI A6, RAMMAP ; 12 cycles
+; A7 holds the length of the map in bytes
+    LI A7, MAPLEN ; 12 cycles
+; Swap to bank 2, get a byte, swap to bank 1, store a byte..
+; 256 loops, 20,478 cycles in total
+LDML1.
+    MOVB *A5+, A8 ; 20 cycles
+    .SRB0 ; 10 cycles
+    MOVB A8, *A6+ ; 20 cycles
+    DEC A7 ; 10 cycles
+    .SRB1 ; 10 cycles
+    JNE LDML1 ; 10 cycles, -2 at the end of the loop
 
 ; Set MAP to point to RAMMAP
-    LI MAP, RAMMAP
+; 12 cycles in total
+    LI MAP, RAMMAP ; 12 cycles
 
+; Initialize music stuff
+; 64 cycles in total
 ; Set MUSI to CURMUS
-    MOV @CURMUS, @MUSI
+    MOV @CURMUS, @MUSI ; 30 cycles
 ; Set the duration to 1
-    LI A1, >0100
-    MOVB A1, @MUSD
-    .SRB0
+    LI A1, >0100 ; 12 cycles
+    MOVB A1, @MUSD ; 22 cycles
+
+; Go back to the first bank of ram
+; 10 cycles in total
+    .SRB0 ; 10 cycles
 
 ; Set the default notification
-    LI A1, DNOTIF
-    MOV A1, @NOTIFY
+; 34 cycles in total
+    LI A1, DNOTIF ; 12 cycles
+    MOV A1, @NOTIFY ; 22 cycles
 
-; Set the delay to 100ms
-    CLR CRU
-    SBO 0
-    LI A1, 4694
-    INCT CRU
-    LDCR A1, 14
-    DECT CRU
-    SBZ 0
-
-    RT
+; Return!
+; 12 cycles in total
+    RT ; 12 cycles

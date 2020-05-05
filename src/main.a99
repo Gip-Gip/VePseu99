@@ -247,8 +247,9 @@ LDBRL1
     BL @LDTEX ; 20 + 50,058 cycles
 
 ; Load the first map
+; 123,338 cycles in total
     LI A5, 1 ; 12 cycles
-    BL @LDMAP
+    BL @LDMAP ; 123,326 cycles in total
 
     CLR A1
     MOVB A1, @KEYP_W
