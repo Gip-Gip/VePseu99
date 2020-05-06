@@ -18,6 +18,16 @@ public class NotSavedDialog extends Dialog implements ActionListener
         }
     }
     
+    public class CloseAction implements ActionListener
+    {
+
+        @Override
+        public void actionPerformed(ActionEvent arg0)
+        {
+            System.exit(0);
+        }
+    }
+    
     public NotSavedDialog(Frame αframe)
     {
         super(αframe);
@@ -25,16 +35,21 @@ public class NotSavedDialog extends Dialog implements ActionListener
         errLabel.setBounds(10, 25, 190, 50);
         
         Button saveButton = new Button("Save");
-        saveButton.setBounds(75, 80, 50, 25);
+        saveButton.setBounds(50, 80, 50, 25);
         saveButton.addActionListener(new SaveAction());
         
         Button closeButton = new Button("Exit");
-        closeButton.setBounds(175, 80, 50, 25);
-        closeButton.addActionListener(this);
+        closeButton.setBounds(125, 80, 50, 25);
+        closeButton.addActionListener(new CloseAction());
+        
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setBounds(200, 80, 50, 25);
+        cancelButton.addActionListener(this);
         
         add(errLabel);
         add(saveButton);
         add(closeButton);
+        add(cancelButton);
         setSize(300, 125);
         setLayout(null);
         setVisible(true);
@@ -45,7 +60,7 @@ public class NotSavedDialog extends Dialog implements ActionListener
     @Override
     public void actionPerformed(ActionEvent arg0)
     {
-        System.exit(0);
+        dispose();
     }
 
 }
