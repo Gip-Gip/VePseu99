@@ -35,17 +35,6 @@
 ; We want to delay until 5.5 frames have passed
 DELAY EQU 4297
 
-; Macro that resets the 9.5 frame delay
-; 78 cycles in total
-    .defm RESET_DLY
-    SBO 0 ; 12 cycles
-    INCT CRU ; 10 cycles
-    LI A1, DELAY ; 12 cycles
-    LDCR A1, 1 ; 22 cycles
-    DECT CRU ; 10 cycles
-    SBZ 0 ; 12 cycles
-    .endm
-
 ; Waits until 10 frames have passed since the last .RESET_DLY
 FRMDLY
 ; Loop until a total of more than 9.5 frames have passed

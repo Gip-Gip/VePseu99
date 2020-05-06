@@ -40,11 +40,6 @@
 
 DNOTIF  DATA 0
 
-AIMSB0  BYTE AUD0BF/256
-AIMSB1  BYTE AUD1BF/256
-AIMSB2  BYTE AUD2BF/256
-AIMSB3  BYTE AUD3BF/256
-
     EVEN
 NOTES
 ;        |A   |A#   |B    |C    |C#   |D    |D#   |E    |F    |F#   |G    |G#

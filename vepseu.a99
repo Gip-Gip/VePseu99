@@ -32,11 +32,24 @@
 
     EVEN
 
+; Macro that resets the 9.5 frame delay
+; 78 cycles in total
+    .defm RESET_DLY
+    SBO 0 ; 12 cycles
+    INCT CRU ; 10 cycles
+    LI A1, DELAY ; 12 cycles
+    LDCR A1, 1 ; 22 cycles
+    DECT CRU ; 10 cycles
+    SBZ 0 ; 12 cycles
+    .endm
 
 VREAD EQU >8800
 VSTAT EQU >8802
 VWRIT EQU >8C00
 VCOMM EQU >8C02
+VDPCHA EQU >0000
+VDPSCA EQU >0800
+VDPCTA EQU >0B00
 SHGHT EQU 24
 SWDTH EQU 32
 NULL EQU 0
@@ -135,137 +148,144 @@ VDCSRA
 ; INIT takes an estimated 12394 cycles in total!
 INIT
 ; Make sure interrupts are off
+; 16 cycles
     LIMI 0 ; 16 cycles
 ; Make sure the workspace registers are in the right place
+; 10 cycles
     LWPI WSREGS ; 10 cycles
 
 ; Move the old characters to the new character space. Default location is >0800
+; First, initialize the read loop
+; 146 cycles
     LI A5, >0800 ; 12 cycles
     BL @VDCSRA ; (20 + 90) cycles
 
     LI A1, INTTMP ; 12 cycles
-    LI A2, >0800 ; 12 cycles
+; We only care about the first 128 characters. Therefore the first (128*8) bytes
+    LI A2, >0400 ; 12 cycles
+; Move all the old characters from the VDP into cartridge RAM
+; 1024(>400) loops, 49,150 cycles
 INITL1
     MOVB @VREAD, *A1+ ; 28 cycles
     DEC A2 ; 10 cycles
-    JNE INITL1 ; 8 or 10 cycles
+    JNE INITL1 ; 10 cycles, - 2 on the final loop
 
+; Initialize the write loop
     LI A5, >0000 ; 12 cycles
-    BL @VDCSWA
+    BL @VDCSWA ; 20 + 120 cycles
 
-    LI A1, INTTMP
-    LI A2, >0800
+    LI A1, INTTMP ; 12 cycles
+    LI A2, >0400 ; 12 cycles
+; Move all the old characters from cartridge RAM to the VDP
+; 1024(>400) loops, 49,150 cycles
 INITL2
-    MOVB *A1+, @VWRIT
-    DEC A2
-    JNE INITL2
+    MOVB *A1+, @VWRIT ; 28 cycles
+    DEC A2 ; 10 cycles
+    JNE INITL2 ; 10 cycles, -2 on the final loop
 
 ; Set the 0th register to all 0s
+; 160 cycles
     CLR A5 ; 10 cycles
     CLR A6 ; 10 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Enable the 1st and 2nd bit on the first register
 ; (enable the screen and vdp interrupts)
+; 164 cycles
     LI A5, >01 ; 12 cycles
     LI A6, >E1 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the video buffer to the address 2*>400, aka >800
+; 164 cycles
     LI A5, >02 ; 12 cycles
     LI A6, >02 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the character pattern address to 0
+; 162 cycles
     LI A5, >04 ; 12 cycles
-    LI A6, >00 ; 12 cycles
+    CLR A6 ; 10 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the sprite attributes table to >18*>80, aka >0C00
+; 164 cycles
     LI A5, >05 ; 12 cycles
     LI A6, >18 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the sprite pattern address to 2*>800, aka 1000
+; 164 cycles
     LI A5, >06 ; 12 cycles
     LI A6, >02 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
 ; Set the background color to black
+; 164 cycles
     LI A5, >07 ; 12 cycles
     LI A6, >11 ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
-; Load ldbank into scratchpad ram...
-    LI A1, LDBRAW
-    LI A2, LDBANK
-    LI A3, 16 ; LDBANK is 16 words in length
-LDBRL1
-    MOV *A1+, *A2+
-    DEC A3
-    JNE LDBRL1
-
 ; Place the color table behind the screen at address >2C*>40, aka >0B00
+; 164 cycles
     LI A5, >03 ; 12 cycles
     LI A6, >2C ; 12 cycles
     BL @VDCSRG ; 20 cycles + 120 cycles
 
-    BL @LDCLR
+; Load ldbank into scratchpad ram...
+; 36 cycles
+; Set A1 to point to LDBRAW
+    LI A1, LDBRAW ; 12 cycles
+; Set A2 to point ot LDBANK
+    LI A2, LDBANK ; 12 cycles
+; Set A3 to hold the size of LDBANK in words(ldbank is 16 words long)
+    LI A3, 16 ; 12 cycles
+; Loop until all the words are loaded into memory
+; 16 loops, 798 cycles in total
+LDBRL1
+    MOV *A1+, *A2+ ; 30 cycles
+    DEC A3 ; 10 cycles
+    JNE LDBRL1 ; 10 cycles, -2 cycles on final loop
 
-    LI A5, TEXTBL
-    BL @LDTEX
+; Load the color pallet onto the VDP
+; 1682 cycles in total
+    BL @LDCLR ; 20 + 1662 cycles
 
-; Load the map into memory
-    LI A5, 1
-    BL @LDMAP
+; Load the texture table onto the VDP
+; 50,090 cycles in total
+    LI A5, TEXTBL ; 12 cycles
+    BL @LDTEX ; 20 + 50,058 cycles
 
-; Set the audio pointers to their base
-    CLR A1
-    MOVB @AIMSB0, A1
-    MOV A1, @AINDF0
-    MOV A1, @AINDB0
-    MOVB @AIMSB1, A1
-    MOV A1, @AINDF1
-    MOV A1, @AINDB1
-    MOVB @AIMSB2, A1
-    MOV A1, @AINDF2
-    MOV A1, @AINDB2
-    MOVB @AIMSB3, A1
-    MOV A1, @AINDF3
-    MOV A1, @AINDB3
-    
-    CLR A1
-    MOVB A1, @KEYP_W
-    MOVB A1, @KEYP_S
-    MOVB A1, @KEYP_D
-    MOVB A1, @KEYP_A
-    
-; Each frame ideally has to be under 50,000 cycles(60 fps), but writing to the
-; VDP unfortunately kinda slows that down a bit..
+; Load the first map
+; 123,338 cycles in total
+    LI A5, 1 ; 12 cycles
+    BL @LDMAP ; 123,326 cycles in total
+
+; Set all the KEYP variables to false
+; 120 cycles in total
+    CLR A1 ; 10 cycles
+    MOVB A1, @KEYP_W ; 22 cycles
+    MOVB A1, @KEYP_S ; 22 cycles
+    MOVB A1, @KEYP_D ; 22 cycles
+    MOVB A1, @KEYP_A ; 22 cycles
+    MOVB A1, @KEYP_1 ; 22 cycles
+
+; Set the CRU's decrement timer to 9.5 frames
+; 78 cycles in total
+    .RESET_DLY ; 78 cycles
+
 LOOP
     BL @KEYBRD
-; Play music
     BL @MUSIC
-; Render the screen
-    BL @RENDER ; (20 + 57,387 to 20 + 57,882) cycles on average
-; Render scenes
+    BL @RENDER
     BL @SCENES
-; Perform actions
     BL @ACT
-; Draw the notification
     BL @DRWNOT
-; Push the previously rendered screen to the VDP
-    BL @RNDPSH ; (20 + 36214) cycles
-
-    BL @FRMDLY
-; Each frame is around 94,329 to 95,108 cycles long, on average.
-; Meaning it takes about 2 frames at most to render an image. Meaning 30 fps
-; Not terrible, considering making the framerate higher doesn't make the game
-; smoother, but I'm not too impressed with it either. We'll just have to see how
-; optimization goes
-
-; Return to the ISR
-    JMP LOOP
+    BL @RNDPSH
+    BL @FRMDLY ; Waits until 10 frames have passed since the last .RESET_DLY
+; Go to the start of the loop
+; 8 cycles
+    JMP LOOP ; 8 cycles
 ;##############################################################################;
 ; ram.a99 - general ram layout for the upper 4k of the cart                    ;
 *==============================================================================*
@@ -315,15 +335,6 @@ SCRNBF  EQU >7000
 SCRNBH  EQU >7180
 SCRNBL  EQU >300
 
-AINDF0 EQU >73A0
-AINDB0 EQU >73A2
-AINDF1 EQU >73A4
-AINDB1 EQU >73A6
-AINDF2 EQU >73A8
-AINDB2 EQU >73AA
-AINDF3 EQU >73AC
-AINDB3 EQU >73AE
-
 KEYP_W EQU >73B1
 KEYP_S EQU >73B2
 KEYP_D EQU >73B3
@@ -337,12 +348,6 @@ STAT2 EQU >73B8
 
 ACTION EQU >7300
 DRAWNL EQU >7380
-
-; Audio channel buffers
-AUD0BF EQU >7400
-AUD1BF EQU >7500
-AUD2BF EQU >7600
-AUD3BF EQU >7700
 
 RAMMAP EQU >7800
 
@@ -394,11 +399,6 @@ CURMUS EQU >7004
 ; vertical line draw list, position, height, and color selection(boolean 0 or 8)
 
 DNOTIF  DATA 0
-
-AIMSB0  BYTE AUD0BF/256
-AIMSB1  BYTE AUD1BF/256
-AIMSB2  BYTE AUD2BF/256
-AIMSB3  BYTE AUD3BF/256
 
     EVEN
 NOTES
@@ -1077,28 +1077,35 @@ MUSEND
 ; LDBRAW is 32 bytes in size and is not called directly, it is instead stored in
 ; scratchpad ram
 ; A5 = bank to switch to
+; 102,494 cycles in total
 LDBRAW
+; Switch to the disired ROM bank
+; 38 cycles in total
 ; All banks are on even addresses, multiply by 2...
-    SLA A5, 1
+    SLA A5, 1 ; 14 cycles
 ; ROM banks start at >6000
-    AI A5, >6000
-; Write to that address through a decrement
-    CLR *A5
+    AI A5, >6000 ; 14 cycles
+; Write to that address through a clr
+    CLR *A5 ; 10 cycles
+; Initialize the loop
+; 36 cycles in total
 ; Set A5 to point to the start of rom, A6 to point to the start of RAM, and A7
-; to hold the size of ROM/RAM(>1000 = 4kb)
-    LI A5, >6000
-    LI A6, >7000
-    LI A7, >1000
-LDBL1
+; to hold the size of ROM/RAM in bytes(>1000 = 4kb)
+    LI A5, >6000 ; 12 cycles
+    LI A6, >7000 ; 12 cycles
+    LI A7, >1000 ; 12 cycles
 ; Now we simply copy everything over to ram!
-    MOV *A5+, *A6+
-    DECT A7
-    JNE LDBL1
+; 4096/2(>1000/2) loops, 102,398 cycles in total
+LDBL1
+    MOV *A5+, *A6+ ; 30 cycles
+    DECT A7 ; 10 cycles
+    JNE LDBL1 ; 10 cycles, -2 at the end of a loop
 ; Change back to bank 0, and we're done!
-    CLR @>6000
-    RT
+; 22 cycles in total
+    CLR @>6000 ; 10 cycles
+    RT ; 12 cycles
 ;##############################################################################;
-; ldclr.a99 - code that loads the color table                                  ;
+; ldclr.a99 - contains code that loads the color table                         ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
@@ -1131,30 +1138,40 @@ LDBL1
 
     EVEN
 
-
-LDCLR
 ; Load the color table onto the VDP
-    MOV RTADDR, A2
-    LI A5, >0B00 ; 12 cycles
+; Takes 1662 cycles in total!
+LDCLR
+; Initialize the loop
+; 166 cycles
+    MOV RTADDR, A2 ; 14 cycles
+; Set the write address to VDPCTA
+    LI A5, VDPCTA ; 12 cycles
     BL @VDCSWA ; 20 cycles + 120 cycles
-; First make all the text white on black
-    LI A1, >F100
-    LI A3, >10
+; First make all the text white on black (the first 16 color entries)
+; 24 cycles
+    LI A1, >F100 ; 12 cycles
+    LI A3, >10 ; 12 cycles
+; Load the white-on-black color pallet into ram
+; 16 loops, 670 cycles in total
 LDCL1
-    MOVB A1, @VWRIT
-    DEC A3
-    JNE LDCL1
+    MOVB A1, @VWRIT; 22 cycles
+    DEC A3 ; 10 cycles
+    JNE LDCL1 ; 10 cycles, -2 at the end of the loop
 
-    LI A1, CLRTBL
-    LI A3, >10
+; Initialize the loop
+; 24 cycles
+    LI A1, CLRTBL ; 12 cycles
+    LI A3, >10 ; 12 cycles
+; Load the color pallet onto the vdp
+; 16 loops, 766 cycles in total
 LDCL2
-    MOVB *A1+, @VWRIT ; (28 ; color table length) = est. 280 cycles
-    DEC A3
-    JNE LDCL2 ; (10 ; color table length) - 2 = est. 98 cycles
-; The -2 cycles is for the not taken JNE at the end of the loop
+    MOVB *A1+, @VWRIT ; 28 cycles
+    DEC A3 ; 10 cycles
+    JNE LDCL2 ; 10 cycles, -2 at the end of the loop
+; Return! 12 cycles
     B *A2
 ;##############################################################################;
-; ldmap.a99 - code used to decompress map data into ram                        ;
+; ldmap.a99 - contains code that loads a map from a given bank                 ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
@@ -1185,68 +1202,82 @@ LDCL2
 ; POSSIBILITY OF SUCH DAMAGE.                                                  ;
 ;##############################################################################;
 
+; Length of the map in bytes
 MAPLEN  EQU >100
+
     EVEN
 
 ; LDMAP - loads a map from a bank
 ; A5 = map number
+; 123,326 cycles in total
 LDMAP
-    MOV RTADDR, A8
 ; Load the map's bank into memory
-    .SRB1
-    BL @LDBANK
-    MOV A8, RTADDR
+; 102,562 cycles in total
+    MOV RTADDR, A8 ; 14 cycles
+    .SRB1 ; 10 cycles
+    BL @LDBANK ; 20 + 102,494 cycles
+    MOV A8, RTADDR ; 14 cycles
 ; Copy the map from RAM bank 2 to bank 1
 ; This is done to simplify render code, since the screen buffer is on bank 1
 ; If we kept the map on bank 2 things would slow down quite a bit, and at the
 ; cost of only about 256 bytes of ram
-    MOV @MAPPTR, A5
-    CLR PX
-    CLR PY
-    CLR PA
-; Set PX, PY, and PA before the move
-    MOVB *A5+, PX
-    SWPB PX
-    MOVB *A5+, PY
-    SWPB PY
-    MOVB *A5+, PA
-    SWPB PA
-    LI A6, RAMMAP
-    LI A7, MAPLEN
+; Set A5 to point to the map
+; 22 cycles in total
+    MOV @MAPPTR, A5 ; 22 cycles
+; Set PX, PY, and PA
+;110 cycles in total
+    CLR PX ; 10 cycles
+    CLR PY ; 10 cycles
+    CLR PA ; 10 cycles
+    MOVB *A5+, PX ; 20 cycles
+    SWPB PX ; 10 cycles
+    MOVB *A5+, PY ; 20 cycles
+    SWPB PY ; 10 cycles
+    MOVB *A5+, PA ; 20 cycles
+    SWPB PA ; 10 cycles
+
+; Initialize for the loop
+; 24 cycles in total
+; A6 points to the map in bank 1
+    LI A6, RAMMAP ; 12 cycles
+; A7 holds the length of the map in bytes
+    LI A7, MAPLEN ; 12 cycles
+; Swap to bank 2, get a byte, swap to bank 1, store a byte..
+; 256 loops, 20,478 cycles in total
 LDML1
-; Swap to bank 2, get a byte, swap to bank 1, store a byte...
-    MOVB *A5+, A8
-    .SRB0
-    MOVB A8, *A6+
-    DEC A7
-    .SRB1
-    JNE LDML1
+    MOVB *A5+, A8 ; 20 cycles
+    .SRB0 ; 10 cycles
+    MOVB A8, *A6+ ; 20 cycles
+    DEC A7 ; 10 cycles
+    .SRB1 ; 10 cycles
+    JNE LDML1 ; 10 cycles, -2 at the end of the loop
 
 ; Set MAP to point to RAMMAP
-    LI MAP, RAMMAP
+; 12 cycles in total
+    LI MAP, RAMMAP ; 12 cycles
 
+; Initialize music stuff
+; 64 cycles in total
 ; Set MUSI to CURMUS
-    MOV @CURMUS, @MUSI
+    MOV @CURMUS, @MUSI ; 30 cycles
 ; Set the duration to 1
-    LI A1, >0100
-    MOVB A1, @MUSD
-    .SRB0
+    LI A1, >0100 ; 12 cycles
+    MOVB A1, @MUSD ; 22 cycles
+
+; Go back to the first bank of ram
+; 10 cycles in total
+    .SRB0 ; 10 cycles
 
 ; Set the default notification
-    LI A1, DNOTIF
-    MOV A1, @NOTIFY
+; 34 cycles in total
+    LI A1, DNOTIF ; 12 cycles
+    MOV A1, @NOTIFY ; 22 cycles
 
-; Set the delay to 100ms
-    CLR CRU
-    SBO 0
-    LI A1, 4694
-    INCT CRU
-    LDCR A1, 14
-    DECT CRU
-    SBZ 0
-
-    RT;##############################################################################;
-; ldtex.a99 - loads compressed textures                                        ;
+; Return!
+; 12 cycles in total
+    RT ; 12 cycles
+;##############################################################################;
+; ldtex.a99 - conctains code that loads textures                               ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                             ;
 ;                                                                              ;
@@ -1279,27 +1310,40 @@ LDML1
 
     EVEN
 
-
+; Load textures
 ; A5 = pointer to textures
+; 50,058 cycles in total!
 LDTEX
-    MOV A5, A1
-    MOV RTADDR, A2
-    LI A5, >0400
-    BL @VDCSWA
-    LI A3, 16
+; Set the VDP write address to halfway through the character table
+; 180 cycles in total
+    MOV A5, A1 ; 14 cycles
+    MOV RTADDR, A2 ; 14 cycles
+    LI A5, >0400 ; 12 cycles
+    BL @VDCSWA ; 20 + 120 cycles
+; Initialize the loop
+; 12 cycles in total
+    LI A3, 16 ; 12 cycles
+; We repeat the same 8 textures 16 times
+; 16 loops, 49,854 cycles in total
 LDTL1
-    MOV A1, A5
-    LI A4, 8*8
+; Go to the start of the texture table
+    MOV A1, A5 ; 14 cycles
+; Prepare to load eight 8-byte textures
+    LI A4, 8*8 ; 12 cycles
+;-- Load the 8 textures onto the VDP
+;-- 64 loops, 3070 cycles in total
 LDTL2
-    MOVB *A5+, @VWRIT
-    DEC A4
-    JNE LDTL2
-    DEC A3
-    JNE LDTL1
+    MOVB *A5+, @VWRIT ;-- 28 cycles
+    DEC A4 ;-- 10 cycles
+    JNE LDTL2 ;-- 10 cycles, -2 at the end of the loop
+    DEC A3 ; 10 cycles
+    JNE LDTL1 ; 10 cycles, -2 at the end of the loop
 
-    B *A2
+; Return!
+; 12 cycles in total
+    B *A2 ; 12 cycles
 ;##############################################################################;
-; framedly.a99 - contains code that keep VEPSEU at a constant framerate!       ;
+; framedly.a99 - contains code that keeps VEPSEU at a constant framerate!      ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
 ;                                                                              ;
@@ -1331,56 +1375,63 @@ LDTL2
 ;##############################################################################;
 
     EVEN
-    
+
 ; We want to delay until 5.5 frames have passed
 DELAY EQU 4297
 
+; Waits until 10 frames have passed since the last .RESET_DLY
 FRMDLY
-; Wait until 100ms have passed
+; Loop until a total of more than 9.5 frames have passed
+; since the last .RESET_DLY
+; 1488 cycles per loop
 FRMDL1
-    CLR A1
-    LI A2, KEYS
-    LI A3, 8
+; Initialize the loop
+; A1 holds the keyboard column to read from, A2 hold the keyboard row to write
+; to, A3 holds the amound of rows to read
+; 34 cycles in total
+    CLR A1 ; 10 cycles
+    LI A2, KEYS ; 12 cycles
+    LI A3, 8 ; 12 cycles
+;-- Load any pressed keys into memory
+;-- 8 loops, 1294 cycles in total
 FRMDL2
-; Update the keys
-    LI CRU, >0024
-    LDCR A1,3
-    LI CRU, >0006
-    STCR A4, 8
-    INV A4
-    SOCB A4, *A2 
-    AI A1, >0100
-    INC A2
-    DEC A3
-    JNE FRMDL2
+    LI CRU, >0024 ;-- 12 cycles
+    LDCR A1,3 ;-- 26 cycles
+    LI CRU, >0006 ;-- 12 cycles
+    STCR A4, 8 ;-- 44 cycles
+    INV A4 ;-- 10 cycles
+    SOCB A4, *A2 ;-- 14 cycles
+    AI A1, >0100 ;-- 14 cycles
+    INC A2 ;-- 10 cycles
+    DEC A3 ;-- 10 cycles
+    JNE FRMDL2 ;-- 10 cycles, -2 at the end of the loop
 
-    CLR CRU
-    CLR A1
-    SBO 0
-    INC CRU
-    STCR A1, 15
-    DEC CRU
-    SBZ 0
-    SRL A1, 1
-    CI A1, DELAY
-    JLT FRMDL1
+; Check to see if the CRU's decrementer has reset
+; 160 cycles in total
+    CLR CRU ; 10 cycles
+    CLR A1 ; 10 cycles
+    SBO 0 ; 12 cycles
+    INC CRU ; 10 cycles
+    STCR A1, 15 ; 58 cycles
+    DEC CRU ; 10 cycles
+    SBZ 0 ; 12 cycles
+    SRL A1, 1 ; 14 cycles
+    CI A1, DELAY ; 14 cycles
+    JLT FRMDL1 ; 10 cycles, -2 at end of loop
 
-;Wait for the VDP interrupt
-    CLR CRU
+; Initialize the loop
+; 10 cycles in total
+    CLR CRU ; 10 cycles
+; Wait for the VDP interrupt
+; 32 cycles per loop
 FRMDL3
-    TB 2
-    JEQ FRMDL3
+    TB 2 ; 12 cycles
+    JEQ FRMDL3 ; 10 cycles
 
-; And reset the CRU timer!
-
-    SBO 0
-    INCT CRU
-    LI A1, DELAY
-    LDCR A1, 1
-    DECT CRU
-    SBZ 0
-
-    RT
+; Reset the CRU timer, and return!
+; 90 cycles in total
+    .RESET_DLY ; 78 cycles
+    RT ; 12 cycles
 ;##############################################################################;
 ; render.a99 - code used to render a picture to the VDP                        ;
 ;==============================================================================;
@@ -2092,59 +2143,59 @@ MAP1S16
     EVEN
 MAP1MU
 
-    BYTE 2, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 39, -101
-    BYTE 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1
-    BYTE 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65
-    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101
-    BYTE 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1
-    BYTE 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65
-    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99
-    BYTE 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1
-    BYTE 44, -102, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65
-    BYTE 1, -7, 32, -99, 0, -65, 1, -1, 32, -99, 0, -65, 2, -1, 35, -100
-    BYTE 0, -65, 2, -1, 39, -101, 0, -65, 1, -3, 44, -102, 0, -65, 1, -1
-    BYTE 44, -102, 0, -65, 1, -3, 39, -101, 0, -65, 1, -1, 39, -101, 0, -65
-    BYTE 1, -7, 35, -100, 0, -65, 1, -1, 35, -100, 0, -65, 1, -3, 32, -99
-    BYTE 0, -65, 1, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1
-    BYTE 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101, 0, -65
-    BYTE 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1, 35, -100
-    BYTE 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1
-    BYTE 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65
-    BYTE 2, -1, 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102
-    BYTE 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 1, -7
-    BYTE 3, -97, 0, -65, 1, -1, 3, -97, 0, -65, 2, -1, 35, -100, 0, -65
-    BYTE 2, -1, 39, -101, 0, -65, 1, -3, 44, -102, 0, -65, 1, -1, 44, -102
-    BYTE 0, -65, 1, -3, 39, -101, 0, -65, 1, -1, 39, -101, 0, -65, 1, -7
-    BYTE 35, -100, 0, -65, 1, -1, 35, -100, 0, -65, 1, -3, 32, -99, 0, -65
-    BYTE 1, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 39, -101
-    BYTE 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1
-    BYTE 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1, 35, -100, 0, -65
-    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65, 2, -1, 39, -101
-    BYTE 0, -65, 2, -1, 35, -100, 0, -65, 2, -1, 32, -99, 0, -65, 2, -1
-    BYTE 35, -100, 0, -65, 2, -1, 39, -101, 0, -65, 2, -1, 44, -102, 0, -65
-    BYTE 2, -1, 39, -101, 0, -65, 2, -1, 35, -100, 0, -65, 1, -7, 32, -99
-    BYTE 5, -73, 1, -1, 32, -99, 5, -73, 2, -1, 35, -100, 5, -73, 2, -1
-    BYTE 39, -101, 5, -73, 1, -3, 44, -102, 5, -73, 1, -1, 44, -102, 5, -73
-    BYTE 1, -3, 39, -101, 5, -73, 1, -1, 39, -101, 5, -73, 1, -7, 35, -100
-    BYTE 5, -73, 1, -1, 35, -100, 5, -73, 1, -3, 32, -99, 5, -73, 1, -1
-    BYTE 32, -99, 5, -73, 2, -1, 35, -100, 5, -73, 2, -1, 39, -101, 5, -73
-    BYTE 2, -1, 44, -102, 5, -73, 2, -1, 39, -101, 5, -73, 2, -1, 35, -100
-    BYTE 5, -73, 2, -1, 32, -99, 7, -75, 2, -1, 35, -100, 7, -75, 2, -1
-    BYTE 39, -101, 7, -75, 2, -1, 44, -102, 7, -75, 2, -1, 39, -101, 7, -75
-    BYTE 2, -1, 35, -100, 7, -75, 2, -1, 32, -99, 7, -75, 2, -1, 35, -100
-    BYTE 7, -75, 2, -1, 39, -101, 7, -75, 2, -1, 44, -102, 7, -75, 2, -1
-    BYTE 39, -101, 7, -75, 2, -1, 35, -100, 7, -75, 1, -7, 3, -97, 8, -77
-    BYTE 1, -1, 3, -97, 3, -65, 2, -1, 35, -100, 3, -65, 2, -1, 39, -101
-    BYTE 3, -65, 1, -3, 44, -102, 3, -65, 1, -1, 44, -102, 3, -65, 1, -3
-    BYTE 39, -101, 3, -65, 1, -1, 39, -101, 3, -65, 1, -7, 35, -100, 3, -65
-    BYTE 1, -1, 35, -100, 3, -65, 1, -3, 32, -99, 3, -65, 1, -1, 32, -99
-    BYTE 3, -65, 2, -1, 35, -100, 3, -65, 2, -1, 39, -101, 3, -65, 2, -1
-    BYTE 44, -102, 3, -65, 2, -1, 39, -101, 3, -65, 2, -1, 35, -100, 3, -65
-    BYTE 2, -1, 32, -99, 3, -65, 2, -1, 35, -100, 3, -65, 2, -1, 39, -101
-    BYTE 3, -65, 2, -1, 44, -102, 3, -65, 2, -1, 39, -101, 3, -65, 2, -1
-    BYTE 35, -100, 3, -65, 2, -1, 32, -99, 3, -65, 2, -1, 35, -100, 3, -65
-    BYTE 2, -1, 39, -101, 3, -65, 2, -1, 44, -102, 3, -65, 2, -1, 39, -101
-    BYTE 3, -65, 2, -1, 35, -100, 3, -65, 0
+    BYTE 2, -1, -99, 32, -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -101, 39
+    BYTE -65, 0, 2, -1, -102, 44, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1
+    BYTE -100, 35, -65, 0, 2, -1, -99, 32, -65, 0, 2, -1, -100, 35, -65, 0
+    BYTE 2, -1, -101, 39, -65, 0, 2, -1, -102, 44, -65, 0, 2, -1, -101, 39
+    BYTE -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -99, 32, -65, 0, 2, -1
+    BYTE -100, 35, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1, -102, 44, -65, 0
+    BYTE 2, -1, -101, 39, -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -99, 32
+    BYTE -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1
+    BYTE -102, 44, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1, -100, 35, -65, 0
+    BYTE 1, -7, -99, 32, -65, 0, 1, -1, -99, 32, -65, 0, 2, -1, -100, 35
+    BYTE -65, 0, 2, -1, -101, 39, -65, 0, 1, -3, -102, 44, -65, 0, 1, -1
+    BYTE -102, 44, -65, 0, 1, -3, -101, 39, -65, 0, 1, -1, -101, 39, -65, 0
+    BYTE 1, -7, -100, 35, -65, 0, 1, -1, -100, 35, -65, 0, 1, -3, -99, 32
+    BYTE -65, 0, 1, -1, -99, 32, -65, 0, 2, -1, -100, 35, -65, 0, 2, -1
+    BYTE -101, 39, -65, 0, 2, -1, -102, 44, -65, 0, 2, -1, -101, 39, -65, 0
+    BYTE 2, -1, -100, 35, -65, 0, 2, -1, -99, 32, -65, 0, 2, -1, -100, 35
+    BYTE -65, 0, 2, -1, -101, 39, -65, 0, 2, -1, -102, 44, -65, 0, 2, -1
+    BYTE -101, 39, -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -99, 32, -65, 0
+    BYTE 2, -1, -100, 35, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1, -102, 44
+    BYTE -65, 0, 2, -1, -101, 39, -65, 0, 2, -1, -100, 35, -65, 0, 1, -7
+    BYTE -97, 3, -65, 0, 1, -1, -97, 3, -65, 0, 2, -1, -100, 35, -65, 0
+    BYTE 2, -1, -101, 39, -65, 0, 1, -3, -102, 44, -65, 0, 1, -1, -102, 44
+    BYTE -65, 0, 1, -3, -101, 39, -65, 0, 1, -1, -101, 39, -65, 0, 1, -7
+    BYTE -100, 35, -65, 0, 1, -1, -100, 35, -65, 0, 1, -3, -99, 32, -65, 0
+    BYTE 1, -1, -99, 32, -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -101, 39
+    BYTE -65, 0, 2, -1, -102, 44, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1
+    BYTE -100, 35, -65, 0, 2, -1, -99, 32, -65, 0, 2, -1, -100, 35, -65, 0
+    BYTE 2, -1, -101, 39, -65, 0, 2, -1, -102, 44, -65, 0, 2, -1, -101, 39
+    BYTE -65, 0, 2, -1, -100, 35, -65, 0, 2, -1, -99, 32, -65, 0, 2, -1
+    BYTE -100, 35, -65, 0, 2, -1, -101, 39, -65, 0, 2, -1, -102, 44, -65, 0
+    BYTE 2, -1, -101, 39, -65, 0, 2, -1, -100, 35, -65, 0, 1, -7, -99, 32
+    BYTE -73, 5, 1, -1, -99, 32, -73, 5, 2, -1, -100, 35, -73, 5, 2, -1
+    BYTE -101, 39, -73, 5, 1, -3, -102, 44, -73, 5, 1, -1, -102, 44, -73, 5
+    BYTE 1, -3, -101, 39, -73, 5, 1, -1, -101, 39, -73, 5, 1, -7, -100, 35
+    BYTE -73, 5, 1, -1, -100, 35, -73, 5, 1, -3, -99, 32, -73, 5, 1, -1
+    BYTE -99, 32, -73, 5, 2, -1, -100, 35, -73, 5, 2, -1, -101, 39, -73, 5
+    BYTE 2, -1, -102, 44, -73, 5, 2, -1, -101, 39, -73, 5, 2, -1, -100, 35
+    BYTE -73, 5, 2, -1, -99, 32, -75, 7, 2, -1, -100, 35, -75, 7, 2, -1
+    BYTE -101, 39, -75, 7, 2, -1, -102, 44, -75, 7, 2, -1, -101, 39, -75, 7
+    BYTE 2, -1, -100, 35, -75, 7, 2, -1, -99, 32, -75, 7, 2, -1, -100, 35
+    BYTE -75, 7, 2, -1, -101, 39, -75, 7, 2, -1, -102, 44, -75, 7, 2, -1
+    BYTE -101, 39, -75, 7, 2, -1, -100, 35, -75, 7, 1, -7, -97, 3, -77, 8
+    BYTE 1, -1, -97, 3, -65, 3, 2, -1, -100, 35, -65, 3, 2, -1, -101, 39
+    BYTE -65, 3, 1, -3, -102, 44, -65, 3, 1, -1, -102, 44, -65, 3, 1, -3
+    BYTE -101, 39, -65, 3, 1, -1, -101, 39, -65, 3, 1, -7, -100, 35, -65, 3
+    BYTE 1, -1, -100, 35, -65, 3, 1, -3, -99, 32, -65, 3, 1, -1, -99, 32
+    BYTE -65, 3, 2, -1, -100, 35, -65, 3, 2, -1, -101, 39, -65, 3, 2, -1
+    BYTE -102, 44, -65, 3, 2, -1, -101, 39, -65, 3, 2, -1, -100, 35, -65, 3
+    BYTE 2, -1, -99, 32, -65, 3, 2, -1, -100, 35, -65, 3, 2, -1, -101, 39
+    BYTE -65, 3, 2, -1, -102, 44, -65, 3, 2, -1, -101, 39, -65, 3, 2, -1
+    BYTE -100, 35, -65, 3, 2, -1, -99, 32, -65, 3, 2, -1, -100, 35, -65, 3
+    BYTE 2, -1, -101, 39, -65, 3, 2, -1, -102, 44, -65, 3, 2, -1, -101, 39
+    BYTE -65, 3, 2, -1, -100, 35, -65, 3, 0
     EVEN
 MAP1
 
@@ -2165,3 +2216,4 @@ MAP1
     BYTE 0, 0, 0, 0, 0, 0, 0, -76, 0, -75, 0, 0, 0, 0, 0, 0
     BYTE 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     BYTE 0, 0, 0
+;4f6BlqG6wTHs8+j5rLOouQAkJH4kfiQkABA4UDgUOBAAABAQfBAQAAAAAAA4AAAAABwiWlZcIB4AEFQ4fDhUEAAAYmQIECZGADBISDBKRDo=

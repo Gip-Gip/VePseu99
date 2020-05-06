@@ -72,7 +72,7 @@ LDMAP
     LI A7, MAPLEN ; 12 cycles
 ; Swap to bank 2, get a byte, swap to bank 1, store a byte..
 ; 256 loops, 20,478 cycles in total
-LDML1.
+LDML1
     MOVB *A5+, A8 ; 20 cycles
     .SRB0 ; 10 cycles
     MOVB A8, *A6+ ; 20 cycles
