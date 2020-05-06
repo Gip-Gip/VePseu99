@@ -251,12 +251,18 @@ LDBRL1
     LI A5, 1 ; 12 cycles
     BL @LDMAP ; 123,326 cycles in total
 
-    CLR A1
-    MOVB A1, @KEYP_W
-    MOVB A1, @KEYP_S
-    MOVB A1, @KEYP_D
-    MOVB A1, @KEYP_A
-    MOVB A1, @KEYP_1
+; Set all the KEYP variables to false
+; 120 cycles in total
+    CLR A1 ; 10 cycles
+    MOVB A1, @KEYP_W ; 22 cycles
+    MOVB A1, @KEYP_S ; 22 cycles
+    MOVB A1, @KEYP_D ; 22 cycles
+    MOVB A1, @KEYP_A ; 22 cycles
+    MOVB A1, @KEYP_1 ; 22 cycles
+
+; Set the CRU's decrement timer to 9.5 frames
+; 78 cycles in total
+    .RESET_DLY ; 78 cycles
 
 LOOP
     BL @KEYBRD
@@ -266,5 +272,7 @@ LOOP
     BL @ACT
     BL @DRWNOT
     BL @RNDPSH
-    BL @FRMDLY
-    JMP LOOP
+    BL @FRMDLY ; Waits until 10 frames have passed since the last .RESET_DLY
+; Go to the start of the loop
+; 8 cycles
+    JMP LOOP ; 8 cycles

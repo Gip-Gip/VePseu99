@@ -1,5 +1,5 @@
 ;##############################################################################;
-; framedly.a99 - contains code that keep VEPSEU at a constant framerate!       ;
+; framedly.a99 - contains code that keeps VEPSEU at a constant framerate!      ;
 ;==============================================================================;
 ; This file is a part of VePseu 99!                                            ;
 ;                                                                              ;
@@ -31,53 +31,71 @@
 ;##############################################################################;
 
     EVEN
-    
+
 ; We want to delay until 5.5 frames have passed
 DELAY EQU 4297
 
+; Macro that resets the 9.5 frame delay
+; 78 cycles in total
+    .defm RESET_DLY
+    SBO 0 ; 12 cycles
+    INCT CRU ; 10 cycles
+    LI A1, DELAY ; 12 cycles
+    LDCR A1, 1 ; 22 cycles
+    DECT CRU ; 10 cycles
+    SBZ 0 ; 12 cycles
+    .endm
+
+; Waits until 10 frames have passed since the last .RESET_DLY
 FRMDLY
-; Wait until 100ms have passed
+; Loop until a total of more than 9.5 frames have passed
+; since the last .RESET_DLY
+; 1488 cycles per loop
 FRMDL1
-    CLR A1
-    LI A2, KEYS
-    LI A3, 8
+; Initialize the loop
+; A1 holds the keyboard column to read from, A2 hold the keyboard row to write
+; to, A3 holds the amound of rows to read
+; 34 cycles in total
+    CLR A1 ; 10 cycles
+    LI A2, KEYS ; 12 cycles
+    LI A3, 8 ; 12 cycles
+;-- Load any pressed keys into memory
+;-- 8 loops, 1294 cycles in total
 FRMDL2
-; Update the keys
-    LI CRU, >0024
-    LDCR A1,3
-    LI CRU, >0006
-    STCR A4, 8
-    INV A4
-    SOCB A4, *A2 
-    AI A1, >0100
-    INC A2
-    DEC A3
-    JNE FRMDL2
+    LI CRU, >0024 ;-- 12 cycles
+    LDCR A1,3 ;-- 26 cycles
+    LI CRU, >0006 ;-- 12 cycles
+    STCR A4, 8 ;-- 44 cycles
+    INV A4 ;-- 10 cycles
+    SOCB A4, *A2 ;-- 14 cycles
+    AI A1, >0100 ;-- 14 cycles
+    INC A2 ;-- 10 cycles
+    DEC A3 ;-- 10 cycles
+    JNE FRMDL2 ;-- 10 cycles, -2 at the end of the loop
 
-    CLR CRU
-    CLR A1
-    SBO 0
-    INC CRU
-    STCR A1, 15
-    DEC CRU
-    SBZ 0
-    SRL A1, 1
-    CI A1, DELAY
-    JLT FRMDL1
+; Check to see if the CRU's decrementer has reset
+; 160 cycles in total
+    CLR CRU ; 10 cycles
+    CLR A1 ; 10 cycles
+    SBO 0 ; 12 cycles
+    INC CRU ; 10 cycles
+    STCR A1, 15 ; 58 cycles
+    DEC CRU ; 10 cycles
+    SBZ 0 ; 12 cycles
+    SRL A1, 1 ; 14 cycles
+    CI A1, DELAY ; 14 cycles
+    JLT FRMDL1 ; 10 cycles, -2 at end of loop
 
-;Wait for the VDP interrupt
-    CLR CRU
+; Initialize the loop
+; 10 cycles in total
+    CLR CRU ; 10 cycles
+; Wait for the VDP interrupt
+; 32 cycles per loop
 FRMDL3
-    TB 2
-    JEQ FRMDL3
+    TB 2 ; 12 cycles
+    JEQ FRMDL3 ; 10 cycles
 
-; And reset the CRU timer!
-
-    SBO 0
-    INCT CRU
-    LI A1, DELAY
-    LDCR A1, 1
-    DECT CRU
-    SBZ 0
-
-    RT
+; Reset the CRU timer, and return!
+; 90 cycles in total
+    .RESET_DLY ; 78 cycles
+    RT ; 12 cycles
