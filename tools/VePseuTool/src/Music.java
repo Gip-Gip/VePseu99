@@ -124,6 +124,29 @@ public class Music
         lines = new Line[0];
     }
     
+    public Music(AsmData data)
+    {
+        ArrayList<Line> lineList = new ArrayList<Line>();
+        
+        int d, c0v, c1v, c1n, c2v, c2n;
+        while((d = data.getByte()) != 0)
+        {
+            c0v = data.getByte();
+            c1v = data.getByte();
+            c1n = data.getByte();
+            c2v = data.getByte();
+            c2n = data.getByte();
+            lineList.add(new Line(d, c0v, c1v, c1n, c2v, c2n));
+        }
+        
+        lines = new Line[lineList.size()];
+        
+        for(int ι = 0; ι < lineList.size(); ι ++)
+        {
+            lines[ι] = lineList.get(ι);
+        }
+    }
+    
     public Music(Sequence αsequence)
     {
         lines = new Line[(int)αsequence.getTickLength()];

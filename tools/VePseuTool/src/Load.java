@@ -16,6 +16,7 @@ public class Load extends MenuItem
         @Override
         public void actionPerformed(ActionEvent arg0)
         {
+            Workspace workspace = GUI.getWorkspace();
             File loadfile = null;
             String loadfileName = null;
             String loadfileDir = null;
@@ -51,7 +52,11 @@ public class Load extends MenuItem
                 catch (Exception ε)
                 {
                     GUI.errorMessage(ε);
-                } 
+                }
+                
+                workspace.setSavefile(loadfile);
+                workspace.setSavefileName(loadfileName);
+                workspace.setSavefileDir(loadfileDir);
             }
         }
     }

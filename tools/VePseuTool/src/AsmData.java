@@ -1,8 +1,10 @@
 import java.util.ArrayList;
+import java.util.Base64;
 
 public class AsmData
 {
     private String asmData = null;
+    private byte[] embData = null;
     private String asmName = null;
     private int index = 0;
     
@@ -10,6 +12,7 @@ public class AsmData
     {
         asmData = new String();
         index = -1;
+        embData = new byte[0];
     }
     
     public AsmData(byte[] αdata)
@@ -27,13 +30,32 @@ public class AsmData
         }
         asmData = new String();
         
-        while(ι < αdata.length)
+        while(ι < αdata.length && (char)αdata[ι] != ';')
             asmData += (char)αdata[ι++];
+        
+        if(ι < αdata.length && (char)αdata[ι++] == ';')
+        {
+            String embDataB64 = new String();
+            while(ι < αdata.length && !Character.isWhitespace((char)αdata[ι]))
+            {
+                if((char)αdata[ι] != ';') embDataB64 += (char)αdata[ι++];
+            }
+            embData = Base64.getDecoder().decode(embDataB64);
+        }
+        else
+        {
+            embData = new byte[0];
+        }
     }
     
     public void setName(String name)
     {
         asmName = name;
+    }
+    
+    public void setEmbData(byte[] data)
+    {
+        embData = data;
     }
     
     public String getName()
@@ -201,7 +223,10 @@ public class AsmData
             asmName +
             "\r\n" +
             asmData.substring(0, asmData.length()-1) + 
-            "\r\n"
+            "\r\n" +
+            (embData.length > 0 ?
+            ";" +Base64.getEncoder().encodeToString(embData) :
+            "")
         ).getBytes();
     }
     
@@ -222,5 +247,10 @@ public class AsmData
         }
         
         return byteData;
+    }
+    
+    public byte[] getEmbData()
+    {
+        return embData;
     }
 }

@@ -2,7 +2,6 @@ import java.awt.Point;
 import java.util.ArrayList;
 
 import javax.sound.midi.Sequence;
-import javax.sound.midi.Sequencer;
 
 public class Map
 {
@@ -18,15 +17,24 @@ public class Map
     private byte playerY = 0;
     private byte playerA = 0;
     
+    private boolean saved = false;
+    
     public Map()
     {
         map = new byte[MAPWIDTH][MAPHEIGHT];
         scenes = new ArrayList<Scene>();
         music = new Music();
+        saved = true;
+    }
+    
+    public boolean isSaved()
+    {
+        return saved;
     }
     
     public void addScene(int αx, int αy)
     {
+        saved = false;
         scenes.add(new Scene(αx, αy));
     }
     
@@ -45,6 +53,7 @@ public class Map
     
     public void removeScene(int αx, int αy)
     {
+        saved = false;
         for(Scene scene : scenes)
             if(scene.getSceneX() == αx && scene.getSceneY() == αy)
             {
@@ -55,12 +64,14 @@ public class Map
     
     public void placeWall(int αx, int αy, byte αtype)
     {
+        saved = false;
         if(αx < 16 && αx > -1 && αy < 16  && αy > -1)
             map[αy][αx] = (byte)(αtype + 0x80);
     }
     
     public void removeWall(int αx, int αy)
     {
+        saved = false;
         if(αx < 16 && αx > -1 && αy < 16  && αy > -1)
             map[αy][αx] = 0x00;
     }
@@ -95,11 +106,13 @@ public class Map
     
     public void setMapName(String αname)
     {
+        saved = false;
         mapName = αname.substring(0, Math.min(αname.length(), 6));
     }
     
     public void setMusic(Sequence αsequence)
     {
+        saved = false;
         music = new Music(αsequence);
     }
     
@@ -135,6 +148,8 @@ public class Map
         int sceneCnt = scenes.size();
         String sceneName = mapName + 'S';
         
+        saved = true;
+        
         for(int ι = 0; ι < sceneCnt; ι++)
         {
             AsmData sceneData = scenes.get(ι).getData
@@ -161,6 +176,8 @@ public class Map
         {
             mapFile.addByte(mapByte);
         }
+        
+        mapFile.setEmbData(GUI.getWorkspace().getWallStyle().getAll());
         
         fileLength += mapFile.getAsmData().length;
         concat.add(mapFile);
@@ -230,12 +247,12 @@ public class Map
         
         ι = 0;
         AsmData asmSection = null;
-        while(ι < sections.size() - 1)
+        while(ι < sections.size() - 2)
         {
             asmSection = sections.get(ι++);
             scenes.add(new Scene(asmSection));
         }
-        
+        music = new Music(sections.get(sections.size() - 2));
         AsmData mapFile = sections.get(sections.size() - 1);
         
         mapName = mapFile.getName();
@@ -256,6 +273,9 @@ public class Map
                 if(y == MAPWIDTH) y--;
             }
         }
+        
+        if(mapFile.getEmbData().length > 0)
+            GUI.getWorkspace().setWallStyle(new WallStyle(mapFile.getEmbData()));
         
         GUI.getWorkspace().setNotification("Loaded map " + mapName + "!");
         

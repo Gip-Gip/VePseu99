@@ -52,6 +52,44 @@ public class WallStyle
         }
     }
     
+    public WallStyle(byte[] data)
+    {
+        textures = new ArrayList<ArrayList<Boolean>>();
+        pallet = new ArrayList<Byte>();
+        
+        int ι = 0;
+        while(ι < COLORCNT)
+        {
+            pallet.add(data[ι++]);
+        }
+        
+        int κ = 0;
+        int x = 0;
+        int y = 0;
+        
+        while(κ < TEXCNT)
+        {
+            ArrayList<Boolean> texture = new ArrayList<Boolean>();
+            while(y < TEXHEIGHT)
+            {
+                while(x < TEXWIDTH)
+                {
+                    texture.add((data[ι] & 0b10000000) > 0);
+                    data[ι] <<= 1;
+                    x ++;
+                }
+                
+                ι ++;
+                x = 0;
+                y ++;
+            }
+            κ ++;
+            y = 0;
+            textures.add(texture);
+        }
+        
+    }
+    
     public WallStyle(BufferedImage αimage)
     {
         textures = new ArrayList<ArrayList<Boolean>>();
@@ -164,5 +202,26 @@ public class WallStyle
         }
         
         return retTextures;
+    }
+    
+    public byte[] getAll()
+    {
+        byte[] palData = getPallet();
+        byte[] texData = getTextures();
+        byte[] retData = new byte[palData.length + texData.length];
+        
+        int ι = 0;
+        
+        for(byte unit : palData)
+        {
+            retData[ι++] = unit;
+        }
+        
+        for(byte unit : texData)
+        {
+            retData[ι++] = unit;
+        }
+        
+        return retData;
     }
 }

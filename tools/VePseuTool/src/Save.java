@@ -9,16 +9,17 @@ public class Save extends MenuItem
 {
     private static final long serialVersionUID = 1L;
     
-    File savefile = null;
-    String savefileName = null;
-    String savefileDir = null;
-    
-    private class SaveAction implements ActionListener
+    public class SaveAction implements ActionListener
     {
 
         @Override
         public void actionPerformed(ActionEvent arg0)
         {
+            Workspace workspace = GUI.getWorkspace();
+            File savefile = workspace.getSavefile();
+            String savefileName = workspace.getSavefileName();
+            String savefileDir = workspace.getSavefileDir();
+            
             if(savefile == null)
             {
                 if(GUI.getWorkspace().getMap().getMapName() == null)
@@ -43,6 +44,10 @@ public class Save extends MenuItem
                 {
                     GUI.errorMessage(ε);
                 }
+                
+                workspace.setSavefile(savefile);
+                workspace.setSavefileName(savefileName);
+                workspace.setSavefileDir(savefileDir);
             }
             
             if(savefile != null)
@@ -59,10 +64,9 @@ public class Save extends MenuItem
                 catch (Exception ε)
                 {
                     GUI.errorMessage(ε);
-                } 
+                }
             }
         }
-        
     }
     
     public Save()
@@ -75,5 +79,10 @@ public class Save extends MenuItem
     {
         SaveAction action = new SaveAction();
         action.actionPerformed(null);
+    }
+    
+    public ActionListener getSaveAction()
+    {
+        return new SaveAction();
     }
 }

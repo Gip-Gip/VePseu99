@@ -12,11 +12,11 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferStrategy;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import javax.sound.midi.Sequence;
-import javax.sound.midi.Sequencer;
 
 public class Workspace extends Canvas
 implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
@@ -41,6 +41,9 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     private int mouseY = 0;
     private byte selectedTexture = 0;
     private byte selectedColor = 0;
+    private File savefile = null;
+    private String savefileName = null;
+    private String savefileDir = null;
     
     public Map getMap()
     {
@@ -50,6 +53,36 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     public Save getSave()
     {
         return save;
+    }
+    
+    public File getSavefile()
+    {
+        return savefile;
+    }
+    
+    public String getSavefileName()
+    {
+        return savefileName;
+    }
+    
+    public String getSavefileDir()
+    {
+        return savefileDir;
+    }
+    
+    public void setSavefile(File αfile)
+    {
+        savefile = αfile;
+    }
+    
+    public void setSavefileName(String αname)
+    {
+        savefileName = αname;
+    }
+    
+    public void setSavefileDir(String αdir)
+    {
+        savefileDir = αdir;
     }
     
     public void setWallStyle(WallStyle αwallStyle)

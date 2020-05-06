@@ -30,7 +30,9 @@ public class WindowEvents extends JFrame implements WindowListener
   {
     try
     {
-      System.exit(0);
+      if(!GUI.getWorkspace().getMap().isSaved())
+          new NotSavedDialog(GUI.getFrame());
+      else System.exit(0);
     }
     catch(Exception ε)
     {

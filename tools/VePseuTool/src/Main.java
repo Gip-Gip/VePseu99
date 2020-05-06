@@ -1,4 +1,3 @@
-
 public class Main
 {
     public static String version = "Beta";
