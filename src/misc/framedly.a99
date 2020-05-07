@@ -32,8 +32,8 @@
 
     EVEN
 
-; We want to delay until 5.5 frames have passed
-DELAY EQU 4694
+; We want to delay until 9.5 frames have passed
+DELAY EQU 4294
 
 ; Waits until 10 frames have passed since the last .RESET_DLY
 FRMDLY
