@@ -38,7 +38,7 @@
     CLR CRU
     SBO 0 ; 12 cycles
     INCT CRU ; 10 cycles
-    LI A1, DELAY ; 12 cycles
+    LI A1, >3FFF ; 12 cycles
     LDCR A1, 14 ; 22 cycles
     DECT CRU ; 10 cycles
     SBZ 0 ; 12 cycles
@@ -273,7 +273,7 @@ LDBRL1
 
 ; Set the CRU's decrement timer to 9.5 frames
 ; 78 cycles in total
-    .RESET_DLY ; 78 cycles
+    .RESET_DLY
 
 LOOP
     BL @KEYBRD

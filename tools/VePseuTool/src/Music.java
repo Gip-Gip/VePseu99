@@ -132,10 +132,10 @@ public class Music
         while((d = data.getByte()) != 0)
         {
             c0v = data.getByte();
-            c1v = data.getByte();
             c1n = data.getByte();
-            c2v = data.getByte();
+            c1v = data.getByte();
             c2n = data.getByte();
+            c2v = data.getByte();
             lineList.add(new Line(d, c0v, c1v, c1n, c2v, c2n));
         }
         

@@ -33,7 +33,7 @@
     EVEN
 
 ; We want to delay until 5.5 frames have passed
-DELAY EQU 4297
+DELAY EQU 4694
 
 ; Waits until 10 frames have passed since the last .RESET_DLY
 FRMDLY
@@ -72,8 +72,8 @@ FRMDL2
     DEC CRU ; 10 cycles
     SBZ 0 ; 12 cycles
     SRL A1, 1 ; 14 cycles
-    CI A1, DELAY ; 14 cycles
-    JLT FRMDL1 ; 10 cycles, -2 at end of loop
+    CI A1, >3FFF-DELAY ; 14 cycles
+    JGT FRMDL1 ; 10 cycles, -2 at end of loop
 
 ; Initialize the loop
 ; 10 cycles in total
