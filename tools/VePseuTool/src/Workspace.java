@@ -31,6 +31,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     private WallStyle wallStyle = null;
     private TiColors tiColors = null;
     private String notification = null;
+    private String telemetry = null;
     private boolean shift = false;
     private boolean ctrl = false;
     private int button = 0;
@@ -108,6 +109,25 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
         String time = sdf.format(calendar.getTime());
         notification = αnotification + " (" + time + ")";
         repaint();
+    }
+    
+    public void updateTelemetry()
+    {
+        int wallX = (mouseX - relativeX) / scale;
+        int wallY = (mouseY - relativeY) / scale;
+        telemetry = new String();
+        telemetry += "x:" + wallX + " ";
+        telemetry += "y:" + wallY + " ";
+        telemetry += "saved:" + map.isSaved() + " ";
+        
+        telemetry += "tex#:" + (selectedTexture + 1) + " ";
+        
+        byte wallColor = wallStyle.getColor(selectedColor);
+        byte fColor = (byte)((wallColor & 0xF0) >> 4);
+        byte bColor = (byte)(wallColor & 0xF);
+        
+        telemetry += "color:" + tiColors.getName(fColor);
+        telemetry += "/" + tiColors.getName(bColor) + " ";
     }
     
     public Workspace()
@@ -323,7 +343,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                         break;
                 }
                 
-                // And finally the notification bar
+                // And finally the notification bar/telemetry bar
                 graphics.setColor(Color.WHITE);
                 if(notification.length() > 0)
                     graphics.drawChars
@@ -333,6 +353,17 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                         notification.length(),
                         10,
                         10
+                    );
+                
+                updateTelemetry();
+                if(telemetry.length() > 0)
+                    graphics.drawChars
+                    (
+                        telemetry.toCharArray(),
+                        0,
+                        telemetry.length(),
+                        10,
+                        30
                     );
             }
             finally
@@ -418,25 +449,26 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 
                 if(shift) map.removeWall(wallX, wallY);
                 else map.placeWall(wallX, wallY, (byte)(selectedTexture | selectedColor << 3));
-                
-                repaint();
                 break;
                 
             case(MouseEvent.BUTTON3): // Right button
+                mouseX = αevent.getX();
+                mouseY = αevent.getY();
                 break;
             
             case(MouseEvent.BUTTON2): // Center button
                 int mouseNewX = αevent.getX();
                 int mouseNewY = αevent.getY();
-            
+                repaint();
                 relativeX += mouseNewX - mouseX;
                 relativeY += mouseNewY - mouseY;
             
                 mouseX = mouseNewX;
                 mouseY = mouseNewY;
-                repaint();
                 break;
         }
+        updateTelemetry();
+        repaint();
     }
 
     @Override
@@ -444,6 +476,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
         mouseX = αevent.getX();
         mouseY = αevent.getY();
+        updateTelemetry();
+        repaint();
     }
 
     @Override
@@ -460,6 +494,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
             relativeX -= wheelRotation;
             relativeY -= wheelRotation;
         }
+        updateTelemetry();
         repaint();
     }
 
@@ -488,7 +523,6 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                     int sceneY = (mouseY - relativeY) / scale;
                     if(map.getScene(sceneX, sceneY) == null)
                         map.addScene(sceneX, sceneY);
-                    repaint();
                 }
                 break;
             case(KeyEvent.VK_E):
@@ -502,7 +536,6 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 sceneX = (mouseX - relativeX) / scale;
                 sceneY = (mouseY - relativeY) / scale;
                 if(shift) map.removeScene(sceneX, sceneY);
-                repaint();
                 break;
             case(KeyEvent.VK_1):
                 if(shift) selectedColor = 0;
@@ -537,6 +570,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 else selectedTexture = 7;
                 break;
         }
+        updateTelemetry();
+        repaint();
     }
 
     @Override
