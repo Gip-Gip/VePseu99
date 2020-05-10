@@ -38,6 +38,16 @@ public class Map
         scenes.add(new Scene(αx, αy));
     }
     
+    public void addScene(Scene scene, int αx, int αy)
+    {
+        saved = false;
+        Scene curScene = null;
+        // If it works, it works
+        scenes.add(curScene = new Scene(scene.getData("foo", "bar")));
+        curScene.setSceneX(αx);
+        curScene.setSceneY(αy);
+    }
+    
     public ArrayList<Scene> getScenes()
     {
         return scenes;

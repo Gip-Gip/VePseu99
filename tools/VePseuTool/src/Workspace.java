@@ -4,6 +4,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.PopupMenu;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -19,7 +21,8 @@ import java.util.Calendar;
 import javax.sound.midi.Sequence;
 
 public class Workspace extends Canvas
-implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
+implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener,
+FocusListener
 {
     private static final long serialVersionUID = 1L;
     
@@ -45,6 +48,7 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     private File savefile = null;
     private String savefileName = null;
     private String savefileDir = null;
+    private Scene selectedScene = null;
     
     public Map getMap()
     {
@@ -150,8 +154,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
         // Add all the listeners
         addMouseListener(this);
         addMouseMotionListener(this);
+        addFocusListener(this);
         addMouseWheelListener(this);
-        addKeyListener(this);
         add(rClickMenu);
     }
     
@@ -501,6 +505,8 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     @Override
     public void keyPressed(KeyEvent αevent)
     {
+        int sceneX = (mouseX - relativeX) / scale;
+        int sceneY = (mouseY - relativeY) / scale;
         switch(αevent.getKeyCode())
         {
             case(KeyEvent.VK_SHIFT):
@@ -519,15 +525,20 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
                 }
                 else
                 {
-                    int sceneX = (mouseX - relativeX) / scale;
-                    int sceneY = (mouseY - relativeY) / scale;
                     if(map.getScene(sceneX, sceneY) == null)
                         map.addScene(sceneX, sceneY);
                 }
                 break;
+            // Copy (only works for scenes)
+            case(KeyEvent.VK_C):
+                if(ctrl && (selectedScene = map.getScene(sceneX, sceneY)) != null);
+                break;
+            // Paste (only works for scenes)
+            case(KeyEvent.VK_V):
+                if(ctrl && selectedScene != null)
+                    map.addScene(selectedScene, sceneX, sceneY);
+                break;
             case(KeyEvent.VK_E):
-                int sceneX = (mouseX - relativeX) / scale;
-                int sceneY = (mouseY - relativeY) / scale;
                 Scene scene;
                 if((scene = map.getScene(sceneX, sceneY)) != null)
                     new SceneDialog(GUI.getFrame(), scene);
@@ -594,5 +605,17 @@ implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
     {
         // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public void focusGained(FocusEvent arg0)
+    {
+        addKeyListener(this);
+    }
+
+    @Override
+    public void focusLost(FocusEvent arg0)
+    {
+        removeKeyListener(this);
     }
 }

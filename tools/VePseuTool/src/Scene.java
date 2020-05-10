@@ -5,6 +5,8 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -12,7 +14,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 
-public class Scene extends Canvas implements MouseMotionListener, KeyListener
+public class Scene extends Canvas
+implements MouseMotionListener, KeyListener, FocusListener
 {
     private static final long serialVersionUID = 1L;
     private int sceneX = 0;
@@ -46,6 +49,16 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
     public int getSceneY()
     {
         return sceneY;
+    }
+    
+    public void setSceneX(int x)
+    {
+        sceneX = x;
+    }
+    
+    public void setSceneY(int Y)
+    {
+        sceneY = Y;
     }
     
     public int getAngle()
@@ -311,7 +324,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         sceneX = αx;
         sceneY = αy;
         map = GUI.getWorkspace().getMap();
-        addKeyListener(this);
+        addFocusListener(this);
         addMouseMotionListener(this);
         
         setFont(new Font("Arial", Font.PLAIN, 12));
@@ -328,7 +341,7 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         sceneX = sceneXY & 0x0F;
         sceneY = (sceneXY >> 4) & 0x0F;
         map = GUI.getWorkspace().getMap();
-        addKeyListener(this);
+        addFocusListener(this);
         addMouseMotionListener(this);
         // We don't need the reference to the scene
         asmData.getRef();
@@ -685,5 +698,17 @@ public class Scene extends Canvas implements MouseMotionListener, KeyListener
         mouseY = ε.getY();
         repaint();
         selectedSprite = getSprite(mouseX / SPRITESCALE, mouseY / SPRITESCALE);
+    }
+
+    @Override
+    public void focusGained(FocusEvent e)
+    {
+        addKeyListener(this);
+    }
+
+    @Override
+    public void focusLost(FocusEvent e)
+    {
+        removeKeyListener(this);
     }
 }
